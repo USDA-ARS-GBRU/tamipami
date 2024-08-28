@@ -25,6 +25,7 @@ from statsmodels.stats.multitest import fdrcorrection
 import logomaker
 
 
+
 def _logger_setup(logfile: str) -> None:
     """Set up logging to a logfile and the terminal standard out.
 
@@ -79,7 +80,7 @@ def myparser() -> argparse.ArgumentParser:
                         )
     parser.add_argument('--spacer', type=str,  help='The spacee sequence for the guide RNA. Not needed if ---library is used' )
     parser.add_argument('--orientation', type=str, choices=["3prime", "5prime"], help='the side of the sacer the PAM/TAM is on')
-    parser.add_argument('--log', help="Log file", default="HT-TAMDA.log")
+    parser.add_argument('--log', help="Log file", default="tamipami.log")
     parser.add_argument('--length', choices=range(1, 11), metavar="[1-10]",
                         help=" The length of the PAM or TAM sequences", default=4, type=int)
     # parser.add_argument('--threads', help="Number of processor threads to use.", type=int, default=1)
@@ -99,17 +100,16 @@ spacer_dict = {'RTW572': 'GGAATCCCTTCTGCAGCACCTGG',
 
 def iterate_kmer(k: int) -> Dict:
     """Create a list of kmers.
-
     Args:
         k : The kmer  with a size representing the length of the PAM or TAM sequence, typically 4 or 5.
 
     Returns:
         A dict with lexographically sorted kmers as keys and 0 as values.
     """
-
     bases = ['A', 'C', 'T', 'G']
     kmers = [''.join(p) for p in itertools.product(bases, repeat=k)]
-    return dict.fromkeys(kmers, 0)
+    orderedkmers = sorted(kmers)
+    return dict.fromkeys(orderedkmers, 0)
 
 
 def merge_reads(fastq, fastq2, outfile) -> str:
@@ -184,7 +184,7 @@ def process(fastq: str, fastq2: str, pamlen: int, tempdir: str, spacer: str, ori
     logging.info("Counting PAM/TAM sites.")
     refcount = count_pam(pamlen=pamlen, spacer=spacer, fastq=mergedfile, orientation=orientation)
     logging.info("Runing multiplicitive replacment in case there are zeros")
-    refmc = composition.multiplicative_replacement(list(refcount.values()))
+    refmc = composition.multi_replace(list(refcount.values()))
     logging.info("Calculating a center log ratio to change from Aitchison geometry to the real number space")
     refclr = composition.clr(refmc)
     ref_n = check_N(list(refcount.values()))
@@ -249,6 +249,7 @@ def make_logo(df: pandas.DataFrame, padjust: float, filename: str, ) -> None:
         print("df_filtered")
         print(df_filtered)
         prob_df = logomaker.alignment_to_matrix(sequences=df_filtered['seqs'], to_type = 'probability', pseudocount = 0)
+        print(prob_df)
         logo_fig = logomaker.Logo(prob_df, color_scheme='classic')
         plt.savefig(filename)
     except Exception as e:
@@ -282,6 +283,7 @@ def main(args=None):
                                spacer=spacer_dict[args.library], orientation='5prime')
     df = make_df(cont_raw=cont_raw, cont_clr=cont_clr, exp_raw=exp_raw, exp_clr=exp_clr)
     make_logo(df=df, padjust=0.05, filename="logo.pdf" )
+    df.to_csv(filename="dataframe.csv")
 
 
 if __name__ == "__main__":

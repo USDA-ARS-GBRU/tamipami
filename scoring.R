@@ -1,6 +1,6 @@
 library(rjson)
 
-result <- fromJSON(file = "~/Documents/HT-TAMDA/output.txt")
+result <- fromJSON(file = "~/Documents/tamipami/output.txt")
 df <- as.data.frame(result)
 
 df$diff = df$cont_clr -df$exp_clr
