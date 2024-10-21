@@ -70,7 +70,7 @@ def make_data(length, sig_pams, reads, size):
 reads = 1000000
 size = 17
 length = 3
-sig_pams = {"AGG": -5, "TGG":-5.1, "CGG": -5.2, "GGG":-5.5}
+sig_pams = {"AGG": -5, "TGG":-5.1, "CGG": -5.2, "GGG":-5.5, 'ATA':-6,'ATT':-6.05,'ATC':-4.75}
 
 cont_raw, cont_clr, exp_raw, exp_clr = make_data(length, sig_pams, reads, size)
 df = main.make_df(cont_raw=cont_raw, cont_clr=cont_clr, exp_raw=exp_raw, exp_clr=exp_clr)

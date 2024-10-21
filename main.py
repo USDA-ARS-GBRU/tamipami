@@ -164,6 +164,7 @@ def count_pam(spacer: str, fastq: str, pamlen: int, orientation: str) -> Dict:
     return kmer_dict
 
 
+
 def process(fastq: str, fastq2: str, pamlen: int, tempdir: str, spacer: str, orientation: str) -> Tuple[Dict, List]:
     """A function to merge the reads and count the TAM/PAM sequences
     
