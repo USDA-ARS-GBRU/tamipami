@@ -1,3 +1,4 @@
+import itertools
 # -*- coding: utf-8 -*-
 # #!/usr/bin/local python
 """
@@ -12,19 +13,15 @@ import tempfile
 import os
 import re
 import itertools
-from collections import Counter
 import statistics
-from typing import Dict, List, Tuple, Literal
 
 import matplotlib.pyplot as plt
 import pandas
 from Bio import SeqIO
-import scipy.stats
-from skbio.stats import composition
-from statsmodels.stats.multitest import fdrcorrection
 import logomaker
 
-
+import pam
+import degenerate
 
 def _logger_setup(logfile: str) -> None:
     """Set up logging to a logfile and the terminal standard out.
@@ -58,15 +55,12 @@ def _logger_setup(logfile: str) -> None:
 
 def myparser() -> argparse.ArgumentParser:
     """Set up logging to a logfile and the terminal standard out.
-
     Args:
         None
-
     Returns:
         A filled ArgumentParser object
-
     """
-    parser = argparse.ArgumentParser(description='HT-TAMDA: a script to parse High throughput PAM sequences')
+    parser = argparse.ArgumentParser(description='tamipami: a script to parse High throughput PAM sequences')
     parser.add_argument('--cont1', '-c', type=str, required=False,
                         help='A forward .fastq, .fq, .fastq.gz or .fq.gz file. .')
     parser.add_argument('--cont2', '-c2', type=str, required=False,
@@ -75,7 +69,7 @@ def myparser() -> argparse.ArgumentParser:
                         help='A forward .fastq, .fq, .fastq.gz or .fq.gz file. .')
     parser.add_argument('--exp2', '-e2', type=str, default=None,
                         help='A reverse .fastq, .fq, .fastq.gz or .fq.gz file.')
-    parser.add_argument('--library', type=str, choices=["RTW544", "RTW555", "RTW572", "RTW574"],
+    parser.add_argument('--library', type=str, choices=["RTW554", "RTW555", "RTW572", "RTW574"],
                         help='The Addgene library pool. For custom pools use the --spacer and --orientation flags'
                         )
     parser.add_argument('--spacer', type=str,  help='The spacee sequence for the guide RNA. Not needed if ---library is used' )
@@ -86,31 +80,23 @@ def myparser() -> argparse.ArgumentParser:
     # parser.add_argument('--threads', help="Number of processor threads to use.", type=int, default=1)
     return parser
 
-
-spacer_dict = {'RTW572': 'GGAATCCCTTCTGCAGCACCTGG',
-               'RTW554': 'GGGCACGGGCAGCTTGCCGG',
-               'RTW555': 'GTCGCCCTCGAACTTCACCT',
-               'RTW574': 'CTGATGGTCCATGTCTGTTACTC'}
-
-# spacer_dict = {'RTW572': {'spacer': 'GGAATCCCTTCTGCAGCACCTGG','orientation': '3prime'},
-#               'RTW554': {'spacer': 'GGGCACGGGCAGCTTGCCGG', 'orientation': '3prime'},
-#               'RTW555': {'spacer': 'GTCGCCCTCGAACTTCACCT', 'orientation': '5prime'},
-#               'RTW574': {'spacer': 'CTGATGGTCCATGTCTGTTACTC', 'orientation': '5prime'}
+spacer_dict = {'RTW572': {'spacer': 'GGAATCCCTTCTGCAGCACCTGG','orientation': '3prime'},
+               'RTW554': {'spacer': 'GGGCACGGGCAGCTTGCCGG', 'orientation': '3prime'},
+               'RTW555': {'spacer': 'GTCGCCCTCGAACTTCACCT', 'orientation': '5prime'},
+               'RTW574': {'spacer': 'CTGATGGTCCATGTCTGTTACTC', 'orientation': '5prime'}}
 
 
-def iterate_kmer(k: int) -> Dict:
-    """Create a list of kmers.
+def iterate_kmer(k: int) -> dict[str,int]:
+    """
+    Create a dictionary of all possible kmers of length k. 
     Args:
-        k : The kmer  with a size representing the length of the PAM or TAM sequence, typically 4 or 5.
-
+        k: The length of the kmer.      
     Returns:
-        A dict with lexographically sorted kmers as keys and 0 as values.
+        A dictionary with lexographically sorted kmers as keys and 0 as values.
     """
     bases = ['A', 'C', 'T', 'G']
     kmers = [''.join(p) for p in itertools.product(bases, repeat=k)]
-    orderedkmers = sorted(kmers)
-    return dict.fromkeys(orderedkmers, 0)
-
+    return {kmer: 0 for kmer in sorted(kmers)}
 
 def merge_reads(fastq, fastq2, outfile) -> str:
     """ Merge Reads and return error-corrected merged fastq
@@ -136,7 +122,7 @@ def merge_reads(fastq, fastq2, outfile) -> str:
         logging.warning("could not perform read merging with bbmerge")
 
 
-def count_pam(spacer: str, fastq: str, pamlen: int, orientation: str) -> Dict:
+def count_pam(spacer: str, fastq: str, pamlen: int, orientation: str) -> dict[str, int]:
     """Create dictionary of PAM/TAM counts
 
     Args:
@@ -157,17 +143,18 @@ def count_pam(spacer: str, fastq: str, pamlen: int, orientation: str) -> Dict:
                 spacerstart = result.start()
                 pamstart = spacerstart - int(pamlen)
                 pamseq = seqstr[pamstart:spacerstart]
-            if orientation== '3prime':
-                pass
+            elif orientation== '3prime':
+                spacerend = result.end()
+                pamend = spacerend + int(pamlen)
+                pamseq = seqstr[spacerend:pamend]
             if pamseq in kmer_dict:
                 kmer_dict[pamseq] += 1
     return kmer_dict
 
 
-
-def process(fastq: str, fastq2: str, pamlen: int, tempdir: str, spacer: str, orientation: str) -> Tuple[Dict, List]:
+def process(fastq: str, fastq2: str, pamlen: int, tempdir: str, spacer: str, orientation: str) -> tuple[dict, list]:
     """A function to merge the reads and count the TAM/PAM sequences
-    
+
     Args:
         fastq (str): 
         fastq2 (str): 
@@ -176,63 +163,31 @@ def process(fastq: str, fastq2: str, pamlen: int, tempdir: str, spacer: str, ori
         spacer: 
 
     Returns:
-        A Dictionay contining counts of every  PAM/TAM in a sample
-    """
+    A  Dictionay contining counts of every  PAM/TAM in a sample
+"""
     mergedfile = os.path.join(tempdir, "merged.fastq")
     logging.info("Merging reads.")
     stdout = merge_reads(fastq=fastq, fastq2=fastq2, outfile=mergedfile)
     logging.info(stdout)
     logging.info("Counting PAM/TAM sites.")
-    refcount = count_pam(pamlen=pamlen, spacer=spacer, fastq=mergedfile, orientation=orientation)
-    logging.info("Runing multiplicitive replacment in case there are zeros")
-    refmc = composition.multi_replace(list(refcount.values()))
-    logging.info("Calculating a center log ratio to change from Aitchison geometry to the real number space")
-    refclr = composition.clr(refmc)
-    ref_n = check_N(list(refcount.values()))
-    logging.info("Poisson noise is expected to be {:5.1f} % of total".format(ref_n * 100))
-    return refcount, refclr
+    pamcount = count_pam(pamlen=pamlen, spacer=spacer, fastq=mergedfile, orientation=orientation)
+    ref_n = check_N(list(pamcount.values()))
+    logging.info("Poisson noise is expected to be {:5.1f} % of total at N={}".format(ref_n * 100, pamlen))
+    return pamcount
 
 
-def check_N(vect: List) -> float:
+def check_N(vect: list) -> float:
     """ Estimate the fraction of SD expected to come from shot noise
-
-    The fraction of the SD expected to be attributable to Poisson or shot noise.
-      A large value indicates that more reads or a shorter length value are required.
-      
+        The fraction of the SD expected to be attributable to Poisson or shot noise.
+        A large value indicates that more reads or a shorter length value are required.  
     Args:
-        vect (list): A list of  kmer counts
-        
+        vect (list): A list of kmer counts  
     Returns:
         float: The fraction of SD attributable Poisson Noise
     """
+    if not vect:
+        return 0.0
     return math.sqrt(statistics.mean(vect)) / statistics.stdev(vect)
-
-
-def make_df(cont_raw: Dict, cont_clr: List, exp_raw: Dict, exp_clr: List) -> pandas.DataFrame:
-    """ Make a data frame and estimate Z scores and BH adjusted p-values for the clr(control) -clr(experimental
-    Args:
-        cont_raw: A Dictionary of PAM/TAM counts for the control library
-        cont_clr: A List of  center Log Ratio Transformed Values for the control library
-        exp_raw: A Dictionary of PAM/TAM counts for the experimental library
-        exp_clr: A List of  center Log Ratio transformed Values for the experimental library
-
-    Returns:
-        A Pandas dataframe with rows sorted by their deviation from controls
-    """
-    data = {"seqs": list(cont_raw.keys()),
-            "cont_raw": list(cont_raw.values()),
-            "exp_raw": list(exp_raw.values()),
-            "cont_clr": list(cont_clr),
-            "exp_clr": list(exp_clr)}
-    df = pandas.DataFrame.from_dict(data)
-    df["diff"] = df["cont_clr"] - df["exp_clr"]
-    df["zscore"] = (df['diff'] - df['diff'].mean())/ df['diff'].std()
-    # ERROR in use of CDF!!!!
-    df["pvalue"] = scipy.stats.norm.pdf(df['zscore'])
-    df["signifigant"], df["p_adjust_BH"] = fdrcorrection(df["pvalue"], alpha=0.05)
-    print(df)
-    df = df.sort_values(by=["p_adjust_BH"])
-    return df
 
 def make_logo(df: pandas.DataFrame, padjust: float, filename: str, ) -> None:
     """
@@ -247,10 +202,7 @@ def make_logo(df: pandas.DataFrame, padjust: float, filename: str, ) -> None:
     """
     try:
         df_filtered = df[df["p_adjust_BH"] <= padjust]
-        print("df_filtered")
-        print(df_filtered)
         prob_df = logomaker.alignment_to_matrix(sequences=df_filtered['seqs'], to_type = 'probability', pseudocount = 0)
-        print(prob_df)
         logo_fig = logomaker.Logo(prob_df, color_scheme='classic')
         plt.savefig(filename)
     except Exception as e:
@@ -258,15 +210,12 @@ def make_logo(df: pandas.DataFrame, padjust: float, filename: str, ) -> None:
         raise e
 
 
-def main(args=None):
-    """Run the TAM/PAM identif≈ication workflow
-
+def main(args: argparse.Namespace=None) -> None:
+    """Run the TAM/PAM identification workflow
     Args:
         args: arg parse args to pass in (used for unit testing)
-
     Returns:
         None
-
     """
     parser = myparser()
     if not args:
@@ -275,16 +224,25 @@ def main(args=None):
     logging.info("Begin processing PAM/TAM sequencing libraries")
     logging.info(args)
     logging.info("Processing control reads")
-    tempdir = tempfile.mkdtemp()
-    cont_raw, cont_clr = process(fastq=args.cont1, fastq2=args.cont2, pamlen=args.length, tempdir=tempdir,
-                               spacer=spacer_dict[args.library], orientation='5prime')
-    tempdir2 = tempfile.mkdtemp()
+    if args.library:
+        spacer = spacer_dict[args.library]["spacer"]
+        orientation = spacer_dict[args.library]["orientation"]
+    else:
+        spacer = args.spacer
+        orientation = args.orientation
+    cont_raw = process(fastq=args.cont1, fastq2=args.cont2, pamlen=args.length, tempdir=tempfile.mkdtemp(),
+                               spacer=spacer, orientation=orientation)
     logging.info("Processing experimental reads")
-    exp_raw, exp_clr = process(fastq=args.exp1, fastq2=args.exp2, pamlen=args.length, tempdir=tempdir2,
-                               spacer=spacer_dict[args.library], orientation='5prime')
-    df = make_df(cont_raw=cont_raw, cont_clr=cont_clr, exp_raw=exp_raw, exp_clr=exp_clr)
-    make_logo(df=df, padjust=0.05, filename="logo.pdf" )
-    df.to_csv(filename="dataframe.csv")
+    exp_raw = process(fastq=args.exp1, fastq2=args.exp2, pamlen=args.length, tempdir=tempfile.mkdtemp(),
+                               spacer=spacer, orientation=orientation)
+    #df = make_df(cont_raw=cont_raw, cont_clr=cont_clr, exp_raw=exp_raw, exp_clr=exp_clr)
+    logging.info("creating a PamSeqExp object")
+    pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw,position=orientation)
+    breakpoint = pamexpobj.find_breakpoint(length=args.length, type='diff')
+    largestk = pamexpobj.multikmerdict[int(args.length)]
+    cleaved_seqs = largestk[largestk['diff'] < breakpoint]
+    degenerate_seqs = degenerate.seqs_to_degenerates(list(cleaved_seqs['kmers']))
+    logging.info("the Pam sequences are {}".format(degenerate_seqs))
 
 
 if __name__ == "__main__":

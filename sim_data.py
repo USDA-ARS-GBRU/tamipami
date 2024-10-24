@@ -5,14 +5,9 @@ A script to generate synthetic data
 
 """
 
-from typing import Dict, List
-
-
+import numpy as np
 from skbio.stats import composition
 from scipy.stats import nbinom
-
-import numpy as np
-import pandas
 
 import main
 

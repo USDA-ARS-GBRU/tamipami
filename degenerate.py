@@ -21,7 +21,7 @@ codes = {
         'Y': {'C', 'T'}
     }
 
-def expand_degenerate_strings(degenerate_strings list[str])->list[str]:
+def expand_degenerate_strings(degenerate_strings: list[str])->list[str]:
     """ Takes a list of degenerate sequences in IUPAC notation and expands it to a list of the sequences that make up that degenerate list
         Args:
             degenerate_strings:  a list of IUPAC degenerate sequences
@@ -59,7 +59,7 @@ def unique_characters(expanded_strings: set|list[str]) -> list[set]:
             position_to_chars[index].add(char)
     return position_to_chars
 
-def degererate_represenation(position_to_chars: list[set]) -> :
+def degererate_represenation(position_to_chars: list[set]) -> list:
     # Create a list to hold potential representatives
     minimal_representations = []
 
@@ -93,7 +93,11 @@ def gen_all_combo(minimal_representations: list[set|list] ) ->set[str]:
 
 
 def create_degenerate(subset: set[str]) -> str|None:
-    """returns a degernate seqence if exactly all members of the set can be represented by one  degenrate sequence  else returns None
+    """Create a degernate sequence if exactly all members of the set can be represented by one degenrate sequence, else returns None
+        Args:
+            subset: takes a set of kmer strings
+        Returns:
+            a single degenerate sequence string or None if no string can be formed
          
     """
     position_to_chars = unique_characters(subset)
@@ -106,7 +110,11 @@ def create_degenerate(subset: set[str]) -> str|None:
 ### The next setep is to apply a subset selection algrorithm that can  tst possible groups efficiently 
 
 def hammingdist(strings: list) -> np.array:
-    """ take a lit of strings and retuurn a condensed hamming distance matrix and thse strings as labels
+    """ take a list of strings and retuurn a condensed hamming distance matrix and thse strings as labels
+        Args:
+            strings: a list of equel length sequence strings
+        Returns:
+            a condenced scipy distance matrix as a numpy array
     """
     # prepare 2 dimensional array M x N (M entries (3) with N dimensions (1)) 
     transformed_strings = np.array(strings).reshape(-1,1)
@@ -115,16 +123,13 @@ def hammingdist(strings: list) -> np.array:
     # get square matrix
     return distance_matrix
 
-def create_tree(labels, distance_matrix):
-    """
-    Convert the output of scipy.cluster.hierarchy.to_tree() into a treelib.Tree object.
-
-    Parameters:
-    - distance_matrix: A condenced scipy distance matrix 
-    - labels: A list of strings used as tags for the nodes in the same order as the nodes list.
-
-    Returns:
-    - A treelib.Tree object representing the hierarchical structure.
+def create_tree(labels: list[str], distance_matrix: np.array) -> treelib.Tree:
+    """Convert the output of scipy.cluster.hierarchy.to_tree() into a treelib.Tree object.
+        Args:
+            distance_matrix: A condenced scipy distance matrix 
+            labels: A list of strings used as tags for the nodes in the same order as the nodes list.
+        Returns:
+            A treelib.Tree object representing the hierarchical structure.
     """
 
     Z = scipy.cluster.hierarchy.linkage(distance_matrix, method="ward")
@@ -172,7 +177,7 @@ def create_tree(labels, distance_matrix):
     return tree
 
 #notworking creates genrates  but they are not redundant
-def find_degenerates(tree):
+def find_degenerates(tree: treelib.Tree) -> list[str]:
     """
     Perform a breadth-first traversal of the treelib tree and process leaves.
 

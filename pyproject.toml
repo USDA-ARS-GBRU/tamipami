@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tamipami"
+dynamic = ["version"]
+
+description = "Software to identify the PAM or TAM sites from high-throughput cleavage screaning experiments"
+authors = [
+    {name = "Adam R. Rivers", email =  "adam.rivers@usda.gov"},]
+maintainers = [
+    {name = "Adam R. Rivers", email =  "adam.rivers@usda.gov"},]
+license = {file = "LICENSE.txt"}
+readme = "README.md"
+keywords = ["CRISPR","Cas"]
+requires-python = ">=3.10"
+
+dependencies = [
+    "biopython",
+    "scipy",
+    "pandas",
+    "ckmeans",
+    "matplotlib",
+    "skbio"
+    "treelib",
+    "textdistance",
+    "logomaker",
+    "seaborn"
+]
+
+
+[project.urls]
+repository = "http://github.com/usda-ars-gbru/tamipami"
+
+[project.optional-dependencies]
+tests = [
+"pytest"
+]
+
+[tool.setuptools_scm]
+version_file = "tamipami/_version.py"
+
+[project.scripts]
+itsxpress="tamipami.main:main"
+
