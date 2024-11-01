@@ -1,0 +1,45 @@
+spacer_dict:
+  RTW572:
+      spacer: GGAATCCCTTCTGCAGCACCTGG
+      orientation: 3prime
+  RTW554:
+      spacer: GGGCACGGGCAGCTTGCCGG
+      orientation: 3prime
+  RTW555:
+      spacer: GTCGCCCTCGAACTTCACCT
+      orientation: 5prime
+  RTW574:
+      spacer: CTGATGGTCCATGTCTGTTACTC
+      orientation: 5prime
+
+codes:
+  'B': !!set 
+    {'C', 'G', 'T'}
+  'D': !!set
+    {'A', 'G', 'T'}
+  'H': !!set
+    {'A', 'C', 'T'}   
+  'K': !!set
+    {'G', 'T'}
+  'M': !!set
+    {'A', 'C'}
+  'N': !!set
+      {'A', 'C', 'G', 'T'}
+  'R': !!set
+    {'A', 'G'}
+  'S': !!set
+    {'C', 'G'}
+  'V': !!set
+    {'A', 'C', 'G'}
+  'W': !!set
+    {'A', 'T'}
+  'Y': !!set
+    {'C', 'T'}
+
+bbmerge:
+  - 'ecco=t'
+  - 'mix=f'
+  - 'usejni=t'
+  - 'nn=t'
+  - 'cutoff=0.901041'
+  - 'pfilter=1'

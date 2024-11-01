@@ -14,14 +14,18 @@ import os
 import re
 import itertools
 import statistics
+import gzip
 
-import matplotlib.pyplot as plt
-import pandas
+#import matplotlib.pyplot as plt
+#import pandas
 from Bio import SeqIO
-import logomaker
+#import logomaker
 
 import pam
 import degenerate
+
+from config import config
+
 
 def _logger_setup(logfile: str) -> None:
     """Set up logging to a logfile and the terminal standard out.
@@ -80,10 +84,7 @@ def myparser() -> argparse.ArgumentParser:
     # parser.add_argument('--threads', help="Number of processor threads to use.", type=int, default=1)
     return parser
 
-spacer_dict = {'RTW572': {'spacer': 'GGAATCCCTTCTGCAGCACCTGG','orientation': '3prime'},
-               'RTW554': {'spacer': 'GGGCACGGGCAGCTTGCCGG', 'orientation': '3prime'},
-               'RTW555': {'spacer': 'GTCGCCCTCGAACTTCACCT', 'orientation': '5prime'},
-               'RTW574': {'spacer': 'CTGATGGTCCATGTCTGTTACTC', 'orientation': '5prime'}}
+spacer_dict  = config["spacer_dict"]
 
 
 def iterate_kmer(k: int) -> dict[str,int]:
@@ -113,9 +114,8 @@ def merge_reads(fastq, fastq2, outfile) -> str:
     try:
         parameters = ['bbmerge.sh', 'in=' + fastq,
                       'in2=' + fastq2,
-                      'out=' + outfile,
-                      'ecco=t',
-                      'mix=f']
+                      'out=' + outfile,]
+        parameters.extend(config["bbmerge"])
         p3 = subprocess.run(parameters, stderr=subprocess.PIPE)
         return p3.stderr.decode('utf-8')
     except RuntimeError:
@@ -135,20 +135,21 @@ def count_pam(spacer: str, fastq: str, pamlen: int, orientation: str) -> dict[st
         A dictionary of kmer counts
     """
     kmer_dict = iterate_kmer(pamlen)
-    for record in SeqIO.parse(fastq, "fastq"):
-        seqstr = str(record.seq)
-        result = re.search(spacer, seqstr)
-        if result:
-            if orientation == '5prime':
-                spacerstart = result.start()
-                pamstart = spacerstart - int(pamlen)
-                pamseq = seqstr[pamstart:spacerstart]
-            elif orientation== '3prime':
-                spacerend = result.end()
-                pamend = spacerend + int(pamlen)
-                pamseq = seqstr[spacerend:pamend]
-            if pamseq in kmer_dict:
-                kmer_dict[pamseq] += 1
+    with gzip.open(fastq, "rt") as handle:
+        for record in SeqIO.parse(handle, "fastq"):
+            seqstr = str(record.seq)
+            result = re.search(spacer, seqstr)
+            if result:
+                if orientation == '5prime':
+                    spacerstart = result.start()
+                    pamstart = spacerstart - int(pamlen)
+                    pamseq = seqstr[pamstart:spacerstart]
+                elif orientation== '3prime':
+                    spacerend = result.end()
+                    pamend = spacerend + int(pamlen)
+                    pamseq = seqstr[spacerend:pamend]
+                if pamseq in kmer_dict:
+                    kmer_dict[pamseq] += 1
     return kmer_dict
 
 
@@ -165,7 +166,7 @@ def process(fastq: str, fastq2: str, pamlen: int, tempdir: str, spacer: str, ori
     Returns:
     A  Dictionay contining counts of every  PAM/TAM in a sample
 """
-    mergedfile = os.path.join(tempdir, "merged.fastq")
+    mergedfile = os.path.join(tempdir, "merged.fastq.gz")
     logging.info("Merging reads.")
     stdout = merge_reads(fastq=fastq, fastq2=fastq2, outfile=mergedfile)
     logging.info(stdout)
@@ -189,25 +190,25 @@ def check_N(vect: list) -> float:
         return 0.0
     return math.sqrt(statistics.mean(vect)) / statistics.stdev(vect)
 
-def make_logo(df: pandas.DataFrame, padjust: float, filename: str, ) -> None:
-    """
-    Takes a pandas dataframe and saves a Sequence motif logo of the signifigant
+# def make_logo(df: pandas.DataFrame, padjust: float, filename: str, ) -> None:
+#     """
+#     Takes a pandas dataframe and saves a Sequence motif logo of the signifigant
 
-    Args:
-        df: A data frame genrated by the make_df function
-        padjust: the threshold for adjusted pvalues to include in the motif
-        filename:  a path for the pdf, jpg or png of figure
-    Returns:
-        None
-    """
-    try:
-        df_filtered = df[df["p_adjust_BH"] <= padjust]
-        prob_df = logomaker.alignment_to_matrix(sequences=df_filtered['seqs'], to_type = 'probability', pseudocount = 0)
-        logo_fig = logomaker.Logo(prob_df, color_scheme='classic')
-        plt.savefig(filename)
-    except Exception as e:
-        logging.warning( "could not generate sequence motif graphic")
-        raise e
+#     Args:
+#         df: A data frame genrated by the make_df function
+#         padjust: the threshold for adjusted pvalues to include in the motif
+#         filename:  a path for the pdf, jpg or png of figure
+#     Returns:
+#         None
+#     """
+#     try:
+#         df_filtered = df[df["p_adjust_BH"] <= padjust]
+#         prob_df = logomaker.alignment_to_matrix(sequences=df_filtered['seqs'], to_type = 'probability', pseudocount = 0)
+#         logo_fig = logomaker.Logo(prob_df, color_scheme='classic')
+#         plt.savefig(filename)
+#     except Exception as e:
+#         logging.warning( "could not generate sequence motif graphic")
+#         raise e
 
 
 def main(args: argparse.Namespace=None) -> None:
@@ -223,13 +224,13 @@ def main(args: argparse.Namespace=None) -> None:
     _logger_setup(args.log)
     logging.info("Begin processing PAM/TAM sequencing libraries")
     logging.info(args)
-    logging.info("Processing control reads")
     if args.library:
         spacer = spacer_dict[args.library]["spacer"]
         orientation = spacer_dict[args.library]["orientation"]
     else:
         spacer = args.spacer
         orientation = args.orientation
+    logging.info("Processing control reads")
     cont_raw = process(fastq=args.cont1, fastq2=args.cont2, pamlen=args.length, tempdir=tempfile.mkdtemp(),
                                spacer=spacer, orientation=orientation)
     logging.info("Processing experimental reads")
@@ -238,6 +239,7 @@ def main(args: argparse.Namespace=None) -> None:
     #df = make_df(cont_raw=cont_raw, cont_clr=cont_clr, exp_raw=exp_raw, exp_clr=exp_clr)
     logging.info("creating a PamSeqExp object")
     pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw,position=orientation)
+    pamexpobj.plot_kmer_summary(attribute='zscore', save_path="summaryplot.pdf")
     breakpoint = pamexpobj.find_breakpoint(length=args.length, type='diff')
     largestk = pamexpobj.multikmerdict[int(args.length)]
     cleaved_seqs = largestk[largestk['diff'] < breakpoint]

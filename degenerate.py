@@ -6,20 +6,9 @@ import treelib
 from scipy.spatial.distance import pdist
 import scipy.cluster.hierarchy 
 
+from config import config
 
-codes = {
-        'B': {'C', 'G', 'T'},
-        'D': {'A', 'G', 'T'},
-        'H': {'A', 'C', 'T'},
-        'K': {'G', 'T'},
-        'M': {'A', 'C'},
-        'N': {'A', 'C', 'G', 'T'},
-        'R': {'A', 'G'},
-        'S': {'C', 'G'},
-        'V': {'A', 'C', 'G'},
-        'W': {'A', 'T'},
-        'Y': {'C', 'T'}
-    }
+codes = config["codes"]
 
 def expand_degenerate_strings(degenerate_strings: list[str])->list[str]:
     """ Takes a list of degenerate sequences in IUPAC notation and expands it to a list of the sequences that make up that degenerate list
