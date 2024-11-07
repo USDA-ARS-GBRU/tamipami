@@ -1,7 +1,4 @@
 spacer_dict:
-  RTW572:
-      spacer: GGAATCCCTTCTGCAGCACCTGG
-      orientation: 3prime
   RTW554:
       spacer: GGGCACGGGCAGCTTGCCGG
       orientation: 3prime
@@ -10,7 +7,12 @@ spacer_dict:
       orientation: 5prime
   RTW574:
       spacer: CTGATGGTCCATGTCTGTTACTC
+      #spacer: 'CTCATTGTCTGTACCTGGTAGTC' #reverse
+      #spacer: GAGTAACAGACATGGACCATCAG # reverse comlement
       orientation: 5prime
+  RTW572:
+    spacer: GGAATCCCTTCTGCAGCACCTGG
+    orientation: 3prime
 
 codes:
   'B': !!set 

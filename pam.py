@@ -2,11 +2,15 @@
 """
 
 import pandas as pd
-from skbio.stats import composition
 import scipy
 import seaborn as sns
 import matplotlib.pyplot as plt
 import ckmeans
+from skbio.stats import composition
+import math
+import statistics 
+import logging
+import logomaker
 
 class pamSeqExp():
     """ A class for saving and processing kmer cound data from PAM/TAM library sequencing experiments
@@ -109,38 +113,81 @@ class pamSeqExp():
         grouped_df.rename(columns={"grouped_kmer": "kmers"}, inplace=True)
         return grouped_df.set_index('kmers')['ctl_raw'].to_dict(), grouped_df.set_index('kmers')['exp_raw'].to_dict()
 
-    def _create_multilevel(self) -> None:
+    def _create_multilevel(self, mink: int = 3) -> None:
         multikmerdict = {}
         kl = self._kmer_len(self.ctl)
         ctlsum = self._kmersummary(self.ctl)
         expsum = self._kmersummary(self.exp)
         multikmerdict[kl] = self._combine_single_pair(exper=expsum, ctl=ctlsum)
-        while kl > 1:
+        while kl > mink:
             short_ctl, short_exp = self._group_and_sum_kmers(df=multikmerdict[kl], N=kl - 1, position=self.position)
-            multikmerdict[kl -1 ] = self._combine_single_pair(self._kmersummary(short_ctl), self._kmersummary(short_exp))
+            multikmerdict[kl -1 ] = self._combine_single_pair(self._kmersummary(short_exp), self._kmersummary(short_ctl))
             kl = kl - 1
         self.multikmerdict = multikmerdict
 
-    def plot_kmer_summary(self, attribute='zscore', save_path=None):
-        data_dict = self.multikmerdict
-        num_plots = len(data_dict)
-        grid_size = int(num_plots**0.5 + 0.5)  # Calculate the square grid size
-        fig, axes = plt.subplots(grid_size, grid_size, figsize=(15, 15))
-        axes = axes.flatten()  # Flatten the grid of axes
-        assert attribute in ["zscore", "pvalue", "p_adjust_BH", "diff", "ctl_raw","ctl_clr","exp_raw","exp_clr"],"values of 'attribute' must be in ['zscore', 'pvalue', 'p_adjust_BH', 'diff', 'ctl_raw','ctl_clr','exp_raw','exp_clr']"
-        for i, (kmer_length, df) in enumerate(data_dict.items()):
-            sns.histplot(df[attribute], kde=True, ax=axes[i])
-            axes[i].set_title(f'Kmer Length: {kmer_length}')        
-        # Remove any empty subplots if num_plots is not a perfect square
-        for j in range(i + 1, grid_size * grid_size):
-            fig.delaxes(axes[j])       
-        plt.tight_layout()      
-        if save_path:
-            plt.savefig(save_path, format='pdf')      
-        plt.show()
+    # def plot_kmer_summary(self, attribute='zscore', save_path=None):
+    #     data_dict = self.multikmerdict
+    #     num_plots = len(data_dict)
+    #     grid_size = int(num_plots**0.5 + 0.5)  # Calculate the square grid size
+    #     fig, axes = plt.subplots(grid_size, grid_size, figsize=(15, 15))
+    #     axes = axes.flatten()  # Flatten the grid of axes
+    #     assert attribute in ["zscore", "pvalue", "p_adjust_BH", "diff", "ctl_raw","ctl_clr","exp_raw","exp_clr"],"values of 'attribute' must be in ['zscore', 'pvalue', 'p_adjust_BH', 'diff', 'ctl_raw','ctl_clr','exp_raw','exp_clr']"
+    #     for i, (kmer_length, df) in enumerate(data_dict.items()):
+    #         sns.histplot(df[attribute], kde=True, ax=axes[i])
+    #         axes[i].set_title(f'Kmer Length: {kmer_length}')        
+    #     # Remove any empty subplots if num_plots is not a perfect square
+    #     for j in range(i + 1, grid_size * grid_size):
+    #         fig.delaxes(axes[j])       
+    #     plt.tight_layout()      
+    #     if save_path:
+    #         plt.savefig(save_path, format='pdf')      
+    #     plt.show()
     
+# exapnd this to include multiple methods cmeans, Quantile or exact
+
     def find_breakpoint(self, length, type='zscore'):
         assert type in ['zscore','diff'], "Parameter 'type' should be 'diff' or 'zscore'"
         data = self.multikmerdict[int(length)][type].to_numpy()
         return ckmeans.breaks(data, 2)[0]
     
+    def check_N(self, n: int) -> tuple[float]:
+        """ Estimate the fraction of SD expected to come from shot noise
+        The fraction of the SD expected to be attributable to Poisson or shot noise.
+        A large value indicates that more reads or a shorter length value are required.  
+        Args:
+        vect (list): A list of kmer counts  
+        Returns:
+        a tuple of two floats showing  he fraction of SD attributable Poisson Noise in the control and experimental data sets
+        """
+        def check(vect):
+            if vect.empty:
+                return 0.0
+            return math.sqrt(statistics.mean(vect)) / statistics.stdev(vect)
+        ctl_raw_sd = check(self.multikmerdict[n]["ctl_raw"])
+        exp_raw_sd = check(self.multikmerdict[n]["exp_raw"])
+        return ctl_raw_sd, exp_raw_sd
+    
+    def make_logo(self, length: int, cutoff: float, type: str='zscore', above: bool=True) -> None:
+        """
+        Takes a pandas dataframe and saves a Sequence motif logo of the signifigant
+
+        Args:
+            length: the length of the kmers
+            cutoff: the threshold for selected column to include in the motif
+            filename:  a path for the pdf, jpg or png of figure
+        Returns:
+            None
+        """
+        try:
+            df = self.multikmerdict[length]
+            if above:
+                df_filtered = df[df[type] < cutoff]
+            else:
+                df_filtered = df[df[type] >= cutoff]
+            prob_df = logomaker.alignment_to_matrix(sequences=df_filtered['kmers'], to_type = 'probability', pseudocount = 0)
+            logo_fig = logomaker.Logo(prob_df, color_scheme='classic')
+            #plt.savefig(filename)
+            return plt
+        except Exception as e:
+            logging.warning( "could not generate sequence motif graphic")
+            raise e

@@ -28,7 +28,8 @@ dependencies = [
     "logomaker",
     "seaborn",
     "pyyaml"
-]
+    "streamlit"
+    ]
 
 
 [project.urls]

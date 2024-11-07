@@ -9,7 +9,7 @@ import numpy as np
 from skbio.stats import composition
 from scipy.stats import nbinom
 
-import main
+import fastq
 
 def create_sigvect(sig_pams, kmers):
     if sig_pams:
@@ -44,7 +44,7 @@ def make_mu_vect(reads, kmers, log_reduction):
 
 def make_data(length, sig_pams, reads, size):
     def process(length, sig_pams, reads, size, control):
-        kmers = main.iterate_kmer(length)
+        kmers = fastq.iterate_kmer(length)
         if control:
             sig_pams = None
         log_reduction = create_sigvect(sig_pams, kmers)
@@ -68,7 +68,7 @@ length = 3
 sig_pams = {"AGG": -5, "TGG":-5.1, "CGG": -5.2, "GGG":-5.5, 'ATA':-6,'ATT':-6.05,'ATC':-4.75}
 
 cont_raw, cont_clr, exp_raw, exp_clr = make_data(length, sig_pams, reads, size)
-df = main.make_df(cont_raw=cont_raw, cont_clr=cont_clr, exp_raw=exp_raw, exp_clr=exp_clr)
+df = fastq.make_df(cont_raw=cont_raw, cont_clr=cont_clr, exp_raw=exp_raw, exp_clr=exp_clr)
 print(df)
-main.make_logo(df=df, padjust=0.05, filename="sim_logo.pdf" )
+fastq.make_logo(df=df, padjust=0.05, filename="sim_logo.pdf" )
 df.to_csv("sim_dataframe.csv")
