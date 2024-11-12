@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
+# #!/usr/bin/local python
+
 import yaml
-import os
 
 def load_config(config_file='config.yaml'):
     with open(config_file, 'r') as file:

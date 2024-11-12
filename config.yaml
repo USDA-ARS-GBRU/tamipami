@@ -45,3 +45,7 @@ bbmerge:
   - 'nn=t'
   - 'cutoff=0.901041'
   - 'pfilter=1'
+
+shot_cutoff: 0.25
+histogram_bins: 100
+min_target_frac: 0.25

@@ -1,10 +1,10 @@
-import itertools
 # -*- coding: utf-8 -*-
 # #!/usr/bin/local python
 """
-A script to process High throghput PAM/TAM sequencing libraries
+fastq: A tamipami module for processing FASTQs from  PAM/TAM sequencing libraries
 
 """
+import itertools
 import subprocess
 import logging
 import re
@@ -66,8 +66,9 @@ def count_pam(spacer: str, fastq: str, pamlen: int, orientation: str) -> dict[st
         A dictionary of kmer counts
     """
     kmer_dict = iterate_kmer(pamlen)
+    guide_detections = 0
     with gzip.open(fastq, "rt") as handle:
-        for record in SeqIO.parse(handle, "fastq"):
+        for tot_reads,record in enumerate(SeqIO.parse(handle, "fastq")):
             seqstr = str(record.seq)
             result = re.search(spacer, seqstr)
             if result:
@@ -75,13 +76,16 @@ def count_pam(spacer: str, fastq: str, pamlen: int, orientation: str) -> dict[st
                     spacerstart = result.start()
                     pamstart = spacerstart - int(pamlen)
                     pamseq = seqstr[pamstart:spacerstart]
+                    guide_detections += 1
                 elif orientation== '3prime':
                     spacerend = result.end()
                     pamend = spacerend + int(pamlen)
                     pamseq = seqstr[spacerend:pamend]
+                    guide_detections += 1
                 if pamseq in kmer_dict:
                     kmer_dict[pamseq] += 1
-    return kmer_dict
+
+    return kmer_dict, tot_reads, guide_detections
 
 
 def process(fastq: str, fastq2: str, pamlen: int, mergedfile: str, spacer: str, orientation: str) -> dict[str, int]:
@@ -103,10 +107,10 @@ def process(fastq: str, fastq2: str, pamlen: int, mergedfile: str, spacer: str, 
     #logging.info(stdout)
     print(stdout)
     logging.info("Counting PAM/TAM sites.")
-    pamcount = count_pam(pamlen=pamlen, spacer=spacer, fastq=mergedfile, orientation=orientation)
+    pamcount, tot_reads, target_detections = count_pam(pamlen=pamlen, spacer=spacer, fastq=mergedfile, orientation=orientation)
     #ref_n = check_N(list(pamcount.values()))
     #logging.info("Poisson noise is expected to be {:5.1f} % of total at N={}".format(ref_n * 100, pamlen))
-    return pamcount
+    return pamcount, tot_reads, target_detections
 
 
 

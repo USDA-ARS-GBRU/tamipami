@@ -1,15 +1,19 @@
-"""A class for working with pam spacer sequence counts using Padas dataframes
+# -*- coding: utf-8 -*-
+# #!/usr/bin/local python
+"""pam:  a TamiPami module for working with pam spacer sequence 
 """
 
-import pandas as pd
-import scipy
-import seaborn as sns
-import matplotlib.pyplot as plt
-import ckmeans
-from skbio.stats import composition
 import math
 import statistics 
 import logging
+
+
+import scipy
+import pandas as pd
+import matplotlib.pyplot as plt
+from skbio.stats import composition
+import ckmeans
+
 import logomaker
 
 class pamSeqExp():
@@ -56,6 +60,7 @@ class pamSeqExp():
         """
         kmers = kmer_dict.keys()
         counts = list(kmer_dict.values())
+        assert sum(counts) > 0, "No targets were identified in your data, Please check your Library, spacer ,and orientation settings"
         refmc = composition.multi_replace(counts)
         clr = composition.clr(refmc).tolist()
         return {"kmers": kmers, "counts": counts, "clr": clr}
@@ -124,26 +129,6 @@ class pamSeqExp():
             multikmerdict[kl -1 ] = self._combine_single_pair(self._kmersummary(short_exp), self._kmersummary(short_ctl))
             kl = kl - 1
         self.multikmerdict = multikmerdict
-
-    # def plot_kmer_summary(self, attribute='zscore', save_path=None):
-    #     data_dict = self.multikmerdict
-    #     num_plots = len(data_dict)
-    #     grid_size = int(num_plots**0.5 + 0.5)  # Calculate the square grid size
-    #     fig, axes = plt.subplots(grid_size, grid_size, figsize=(15, 15))
-    #     axes = axes.flatten()  # Flatten the grid of axes
-    #     assert attribute in ["zscore", "pvalue", "p_adjust_BH", "diff", "ctl_raw","ctl_clr","exp_raw","exp_clr"],"values of 'attribute' must be in ['zscore', 'pvalue', 'p_adjust_BH', 'diff', 'ctl_raw','ctl_clr','exp_raw','exp_clr']"
-    #     for i, (kmer_length, df) in enumerate(data_dict.items()):
-    #         sns.histplot(df[attribute], kde=True, ax=axes[i])
-    #         axes[i].set_title(f'Kmer Length: {kmer_length}')        
-    #     # Remove any empty subplots if num_plots is not a perfect square
-    #     for j in range(i + 1, grid_size * grid_size):
-    #         fig.delaxes(axes[j])       
-    #     plt.tight_layout()      
-    #     if save_path:
-    #         plt.savefig(save_path, format='pdf')      
-    #     plt.show()
-    
-# exapnd this to include multiple methods cmeans, Quantile or exact
 
     def find_breakpoint(self, length, type='zscore'):
         assert type in ['zscore','diff'], "Parameter 'type' should be 'diff' or 'zscore'"

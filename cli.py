@@ -4,10 +4,6 @@ import argparse
 import logging
 import tempfile
 
-#import matplotlib.pyplot as plt
-#import pandas
-#import logomaker
-
 import pam
 import degenerate
 import fastq
@@ -53,24 +49,36 @@ def myparser() -> argparse.ArgumentParser:
         A filled ArgumentParser object
     """
     parser = argparse.ArgumentParser(description='tamipami: a script to parse High throughput PAM sequences')
-    parser.add_argument('--cont1', '-c', type=str, required=False,
+    parser.add_argument('--log', help="Log file", default="tamipami.log")
+    sub_parsers = parser.add_subparsers(help='sub-command help')
+    # create the parser for the process sub-command
+    parser_process = sub_parsers.add_parser('process', help='Use this commcan to process FASQ data into a summarized json output')
+    parser_process.add_argument('--cont1', '-c', type=str, required=False,
                         help='A forward .fastq, .fq, .fastq.gz or .fq.gz file. .')
-    parser.add_argument('--cont2', '-c2', type=str, required=False,
+    parser_process.add_argument('--cont2', '-c2', type=str, required=False,
                         help='A reverse .fastq, .fq, .fastq.gz or .fq.gz file.')
-    parser.add_argument('--exp1', '-e', type=str, required=False,
+    parser_process.add_argument('--exp1', '-e', type=str, required=False,
                         help='A forward .fastq, .fq, .fastq.gz or .fq.gz file.')
-    parser.add_argument('--exp2', '-e2', type=str, default=None,
+    parser_process.add_argument('--exp2', '-e2', type=str, default=None,
                         help='A reverse .fastq, .fq, .fastq.gz or .fq.gz file.'),
-    parser.add_argument('--outfile', type=str, help='A path to a json file of the results'),
-    parser.add_argument('--library', type=str, choices=["RTW554", "RTW555", "RTW572", "RTW574"],
+    parser_process.add_argument('--outfile', type=str, help='A path to a json file of the results'),
+    parser_process.add_argument('--library', type=str, choices=["RTW554", "RTW555", "RTW572", "RTW574"],
                         help='The Addgene library pool. For custom pools use the --spacer and --orientation flags'
                         )
-    parser.add_argument('--spacer', type=str,  help='The spacee sequence for the guide RNA. Not needed if ---library is used' )
-    parser.add_argument('--orientation', type=str, choices=["3prime", "5prime"], help='the side of the sacer the PAM/TAM is on')
-    parser.add_argument('--log', help="Log file", default="tamipami.log")
-    parser.add_argument('--length', choices=range(1, 11), metavar="[1-10]",
-                        help=" The length of the PAM or TAM sequences", default=4, type=int)
-    # parser.add_argument('--threads', help="Number of processor threads to use.", type=int, default=1)
+    parser_process.add_argument('--spacer', type=str,  help='The spacee sequence for the guide RNA. Not needed if ---library is used' )
+    parser_process.add_argument('--orientation', type=str, choices=["3prime", "5prime"], help='the side of the sacer the PAM/TAM is on')
+
+    parser_process.add_argument('--length', choices=range(3, 9), metavar="[3-8]",
+                        help=" The length of the PAM or TAM sequences", default=6, type=int)
+    #create a subparser to provide the degenerate sequences and output data  given a cutoff and length 
+    parser_predict = sub_parsers.add_parser('predict', help='return predicted PAMs/TAMs for a selected length and cutoff value')
+    parser_predict.add_argument('--input', type=str, required=True, help="A json file containing the data from a tamipami process run or downloaded from the web app")
+    parser_predict.add_argument('--cutoff', type=int, required=True, help="A cutoff Zscore value above which, kmers are considered part of the PAM/TAM")
+    parser_predict.add_argument('--autocutoff', action='store_true', help="Automatically calulate the A cutoff Zscore with a univarite clustering algorithm")
+    parser_predict.add_argument('--outfile', type=str, required=False, help="A json file path containing the PAM/TAM and degenerate sequences identified")
+    parser_predict.add_argument('--logo', type=str, required=False, help="A pdf file path the sequence motif logo")
+    parser_predict.add_argument('--histogram', type=str, required=False, help="A pdf file path containing the histogram of the data at the selected length and cutoff")
+    parser_predict = sub_parsers.add_parser('webapp', help='launch the TamiPami web application in a web browser')
     return parser
 
 spacer_dict  = config["spacer_dict"]
@@ -114,3 +122,6 @@ def main(args: argparse.Namespace=None) -> None:
 
 if __name__ == "__main__":
     main()
+
+#process = subprocess.Popen(["streamlit", "run", os.path.join(
+#            'application', 'main', 'services', 'streamlit_app.py')])

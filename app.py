@@ -1,10 +1,14 @@
-
+# -*- coding: utf-8 -*-
+# #!/usr/bin/local python
+""" app: a TamiPami module for a Streamlit app interfac to TamiPami
+"""
 
 import os
 import uuid
 import gzip
 import shutil
 from pathlib import Path
+import json
 
 import streamlit as st
 import altair as alt
@@ -15,10 +19,6 @@ import pam
 import fastq 
 import degenerate
 
-st.logo("USDAARSIdentityRGB3.png", size= "large")
-apptitle = 'TamiPami'
-st.set_page_config(page_title=apptitle, page_icon=":eyeglasses:")
-st.sidebar.markdown("## Select Parameters to identiy the PAM/TAM")
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # This is your Project Root
 
@@ -32,51 +32,64 @@ def create_session_dir():
 
 def delete_session_dir():
     if 'datadir' in st.session_state:
-        session_dir = st.session_State['datadir']
+        session_dir = st.session_state['datadir']
     if os.path.exists(session_dir):
         shutil.rmtree(session_dir)
-        st.info(f"Deleted session directory: {session_dir}")
+    del st.session_state['datadir']
 
 #Define input parameters and widgets
 
-st.title('TamiPami')
-st.subheader("Identify PAM or TAM sites in new Cas enzymes or  TnpB Transposoons")
+st.logo("USDAARSIdentityRGB3.png", size= "large")
+apptitle = 'TamiPami'
+st.set_page_config(page_title=apptitle, page_icon=":dna:")
+st.image("tami_postcard.jpeg")
+st.subheader("Identify the PAMs of new Cas enzymes or TAMs in TnpB endonucleases")
 
 st.markdown('''
             ## Overview 
-            When a new Cas or IS200 transposon is discovered or engineered one of the first tasks is identifying its PAM or TAM recognition site. 
-             This can be done by treating a pool of plasmids containing a target site adjacent to a random region. The random regains containing 
-            the PAM/TAM site are recognized and cut. These become depleted in the sequencing library.  By comparing an uncut library to a cut 
-            library it is possible to identify the PAM site.  The method was introduced by [Walton et al. 2021]( https://doi.org/10.1038/s41596-020-00465-2).
+            When a new Cas or TnpB guided endonuclease is discovered or engineered, one of the first tasks is identifying its PAM or TAM recognition site. 
+             This can be done by treating a pool of plasmid DNA containing a target site adjacent to a random region. The random regions containing 
+            the PAM/TAM site are recognized and cut in the presence of the endonuclease and a guide RNA. These become depleted in the sequencing library. By comparing an uncut control library  to a cut 
+            experimental library it is possible to identify the PAM/TAM site.  The method was introduced by [Walton et al. 2021]( https://doi.org/10.1038/s41596-020-00465-2).
              That work deposited the plasmid pools with [Addgene]( https://www.addgene.org/pooled-library/kleinstiver-ht-pamda/), making the lab protocol accessible.   
             
-            This web application builds on the work by simplifying the analysis of the sequencing data and adding rich interactive visualizations for seleting the PAM/TAM site.
+            This web application builds on the work by creating TamiPami, a Web application that simplifies the analysis of the sequencing data and adds rich interactive 
+            visualizations for seleting the PAM/TAM site.
 
          ''')
 
-with st.expander("Instructions"):
+with st.expander("Use Instructions"):
     st.markdown('''
-                1. Load the forward and reverse FASTQ files for a single control and experimental library in the four input boxes on the sidebar
-                2. Select the Addgene library used for the experiment OR
-                3. If no library is selected, enter the target sequence and the orientation (5prime is PAM-Target, 3prime is Target-PAM (like spCas9))
-                4. Select the maximum length to analize. 5or 6 is a good length. you can compare all smaller lengths once you have analized the data
-                5. Hit Run. This will process your files.
-                6. After you have hit run you can explore your data interactivly.  The key interface is the Zscore slider bar. Moving that will set the cutoff.
-                   This will update the histogram of seuence abundance, the  table of reads  the degenerate sequences created and the sequence motif.
+                1. Load the forward and reverse FASTQ files for a single control and experimental library in the four input boxes on the sidebar.
+                2. Select the Addgene library used for the experiment. Or...
+                3. If no library is selected, enter the target sequence and the orientation (5prime is PAM-Target, 3prime is Target-PAM (like spCas9)).
+                4. Select the maximum length to analize. You can compare all smaller lengths once you have analized the data
+                5. Hit 'Submit'. This will process your files.
+                6. After you have hit 'Submit' you can explore your data interactivly. The key interface is the Zscore slider bar. Moving that will set the 
+                   cutoff value to separate kmers that cut from thise that did not. This will update the histogram of sequence zscores, the table of reads  the degenerate sequences created and the sequence motif.
                 7. Be sure to explore each length tab, to select the PAM/TAM site best supported by your data.
                 8. Export the raw run data.  
     ''')
 
 args = {}
-args['cont1'] = st.sidebar.file_uploader('Control library forward .fastq, .fq, .fastq.gz or .fq.gz file.', type=['.gz', '.fastq', '.fq'], key='cont1' )
-args['cont2'] = st.sidebar.file_uploader('Control library reverse .fastq, .fq, .fastq.gz or .fq.gz file.',  type=['.gz', '.fastq', '.fq'],  key='cont2')
-args['exp1'] = st.sidebar.file_uploader('Experimental library forward .fastq, .fq, .fastq.gz or .fq.gz file.',type=['.gz', '.fastq', '.fq'], key='exp1')
-args['exp2'] = st.sidebar.file_uploader('Experimental library reverse .fastq, .fq, .fastq.gz or .fq.gz file.',type=['.gz', '.fastq', '.fq'], key='exp2',)
-args['library'] = st.sidebar.selectbox('The Addgene library pool. For custom pools use the --spacer and --orientation flags', ["RTW554", "RTW555", "RTW572", "RTW574"], index=None)
-args['spacer'] = st.sidebar.text_input('The spacer sequence for the guide RNA. Not needed if ---library is used', key='spacer')
-args['orientation'] = st.sidebar.selectbox('The side of the spacer the PAM/TAM is on', ["3prime", "5prime"],index=None, key='orientation')
-# args['log'] = st.sidebar.text_input('Log file', value=os.path.join(DATA_DIR,'tamipami.log'), key='log')
-args['length'] = st.sidebar.select_slider('The Maxumum length of the PAM or TAM sequences', options=list(range(3, 9)), value=6, key='length')
+with st.sidebar:
+    with st.form(key='newdata'):
+        st.markdown("## Analize new FASTQ data")
+        args['cont1'] = st.file_uploader('Control library forward .fastq, .fq, .fastq.gz or .fq.gz file.', type=['.gz', '.fastq', '.fq'], key='cont1' )
+        args['cont2'] = st.file_uploader('Control library reverse .fastq, .fq, .fastq.gz or .fq.gz file.',  type=['.gz', '.fastq', '.fq'],  key='cont2')
+        args['exp1'] = st.file_uploader('Experimental library forward .fastq, .fq, .fastq.gz or .fq.gz file.',type=['.gz', '.fastq', '.fq'], key='exp1')
+        args['exp2'] = st.file_uploader('Experimental library reverse .fastq, .fq, .fastq.gz or .fq.gz file.',type=['.gz', '.fastq', '.fq'], key='exp2',)
+        # args['log'] = st.sidebar.text_input('Log file', value=os.path.join(DATA_DIR,'tamipami.log'), key='log')
+        args['length'] = st.select_slider('The Maxumum length of the PAM or TAM sequences', options=list(range(3, 9)), value=6, key='length')
+        args['library'] = st.selectbox('The Addgene library pool. For custom pools use the --spacer and --orientation flags', ["RTW554", "RTW555", "RTW572", "RTW574"], index=None)
+        st.markdown("_OR_")
+        args['spacer'] = st.text_input('The spacer sequence for the guide RNA. Not needed if ---library is used', key='spacer')
+        args['orientation'] = st.selectbox('The side of the spacer the PAM/TAM is on', ["3prime", "5prime"],index=None, key='orientation')
+        newrun = st.form_submit_button('Submit' )
+    # with st.form(key='olddata'):
+    #    st.markdown("## Or, visualize a previous run")
+    #    args['olddata'] = st.file_uploader('a Tamipami output file in .json format', type=['.json'], key='olddata' )
+    #    oldrun = st.form_submit_button('Submit' )
 
 
 def write_input_file(datadir: str, stream, fname) -> None:
@@ -104,116 +117,174 @@ def save_input_files(datadir: str, args: dict) -> None:
             st.exception(e)
 
 
-#@st.cache_data
+
 def histogram_plot(source, maxbins, cutoff=None):
     # Base chart with bars
     chart = alt.Chart(source).mark_bar(binSpacing=0).encode(
         alt.X("zscore", bin=alt.BinParams(maxbins=maxbins)),
         y='count()',
     ).properties(
-        width=800,
-        height=600
+        width=700,
+        height=500
     ).interactive()
-
     if cutoff is not None:
         # Vertical line to indicate the cutoff
         cutoff_line = alt.Chart(pd.DataFrame({'cutoff': [cutoff]})).mark_rule(color='red').encode(
             x='cutoff:Q'
         )
         chart = chart + cutoff_line
-
     return chart
 
 
+# downloads
+def download_json(dfdict):
+    tempdict = {}
+    for length, df in dfdict.items():
+        tempdict[length] = df.to_dict()
+    json_data = json.dumps(tempdict)
+    json_bytes = json_data.encode('utf-8') 
+    return json_bytes
+
+
 @st.cache_data
-def process(datadir, args):
-    with st.expander("Run Configuration"):
-        st.dataframe({"Parameter" :  args.keys(), "Value":args.values()},hide_index=True)
-        st.write("Data directory: {}".format(DATA_DIR))
-    if args['library']:
-        spacer = config['spacer_dict'][args['library']]['spacer']
-        orientation = config['spacer_dict'][args['library']]['orientation']
-    else:
-        spacer = args['spacer']
-        orientation = ['orientation']
-    cont_raw = fastq.process(fastq=os.path.join(datadir, "cont1.fastq.gz"),
-                             fastq2=os.path.join(datadir, "cont2.fastq.gz"),
-                             pamlen=args['length'],
-                             mergedfile=os.path.join(datadir,"cont_merged.fastq.gz"),
-                             spacer=spacer,
-                             orientation=orientation,
-                             )
-    exp_raw = fastq.process(fastq=os.path.join(datadir, "exp1.fastq.gz"),
-                            fastq2=os.path.join(datadir, "exp2.fastq.gz"),
-                            pamlen=args['length'],
-                            mergedfile=os.path.join(datadir,"exp_merged.fastq.gz"),
-                            spacer=spacer,
-                            orientation=orientation,
-                            )
-    pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw, position=orientation)
-    return pamexpobj
+def process(args):
+    try:
+        create_session_dir()
+        datadir = st.session_state['datadir']
+        save_input_files(datadir, args)
+        with st.expander("Run Configuration"):
+            st.dataframe({"Parameter" :  args.keys(), "Value":args.values()},hide_index=True)
+            st.write("Data directory: {}".format(datadir))
+        if args['library']:
+            spacer = config['spacer_dict'][args['library']]['spacer']
+            orientation = config['spacer_dict'][args['library']]['orientation']
+        else:
+            spacer = args['spacer']
+            orientation = ['orientation']
+        run_summ = {'cont': {}, 'exp': {}}
+        cont_raw, run_summ['cont']['tot'], run_summ['cont']['targets'] = fastq.process(fastq=os.path.join(datadir, "cont1.fastq.gz"),
+                                fastq2=os.path.join(datadir, "cont2.fastq.gz"),
+                                pamlen=args['length'],
+                                mergedfile=os.path.join(datadir,"cont_merged.fastq.gz"),
+                                spacer=spacer,
+                                orientation=orientation,
+                                )
+        exp_raw, run_summ['exp']['tot'], run_summ['exp']['targets'] = fastq.process(fastq=os.path.join(datadir, "exp1.fastq.gz"),
+                                fastq2=os.path.join(datadir, "exp2.fastq.gz"),
+                                pamlen=args['length'],
+                                mergedfile=os.path.join(datadir,"exp_merged.fastq.gz"),
+                                spacer=spacer,
+                                orientation=orientation,
+                                )
+        pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw, position=orientation)
+        return pamexpobj, run_summ
+    finally:
+        delete_session_dir()
+
 
 def update_slider(n, sliderkey):
     breakpoint = st.session_state.pamexpobj.find_breakpoint(length=n, type='zscore')
     st.session_state[sliderkey] = breakpoint
 
+def data_checks(length, sdcutoff):
+    results = st.session_state.pamexpobj.check_N(length)
+    mess = "Shot (Poisson) noise of the control library is {:.1%} and the experimental library is {:.1%}.".format(results[0],results[1])
+    recc = "Consider analizing your data at a shorter length or sequencing more deeply"
+    print(results)
+    if any([x > sdcutoff for x in results]):
+        return st.warning(mess + recc)
+    else:
+        return st.info(mess)
+
+def read_count_check(run_summ, minfrac):
+    expfrac =  run_summ['exp']['targets'] / run_summ['exp']['targets']
+    contfrac = run_summ['cont']['targets'] / run_summ['cont']['targets']
+    if (expfrac or contfrac) <  minfrac:
+        return st.warning("Only {:.1%} of merged experimental reads and {:.1%} \
+                          of merged control reads contained a target. Please verify your Library, Spacer and Orientation settings".format(expfrac, contfrac))  
+
 def main(args):
-    if st.sidebar.button("Run"):
-        save_input_files(DATA_DIR, args)
-        pamexpobj= process(DATA_DIR, args)
+    if newrun:
+        pamexpobj, run_summ = process(args)
         #if 'pamexpobj' not in st.session_state:
+        st.session_state['run_summ'] = run_summ
         st.session_state['pamexpobj'] = pamexpobj
 
     # Check if pamdict is in session_state
     if 'pamexpobj' in st.session_state:
         tablabels = ["Length " + str(x) for x in st.session_state.pamexpobj.multikmerdict.keys()]
+        st.markdown('### Select the PAM length to review')
         tabs = st.tabs(tablabels)
-
         for n, (key, df) in enumerate(st.session_state.pamexpobj.multikmerdict.items()):
+            with tabs[n]:
+                # Warning box
+                data_checks(key, config['shot_cutoff'])
+                read_count_check(st.session_state['run_summ'], config['min_target_frac'])
+                st.markdown('### Select the cutoff point on the histogram')
+                slider_key = f"slider_{key}"
+                slider, slidebutton  = st.columns(spec = [0.8,0.2], vertical_alignment='center')
 
-            # Warning box
-            ctl_raw_sd, exp_raw_sd = st.session_state.pamexpobj.check_N(key)
-            if ctl_raw_sd > 0.25:
-                tabs[n].warning("Poisson noise of the control library is expected to be {:.1%} of the total variance. Consider using smaller length or sequencing more deeply".format(ctl_raw_sd))
-            else:
-                tabs[n].info("Poisson noise of the control library is expected to be {:.1%} of the total variance".format(ctl_raw_sd))
-            if exp_raw_sd > 0.25:
-                tabs[n].warning("Poisson noise of the experimental library is expected to be {:.1%} of the total variance. Consider using smaller length or sequencing more deeply".format(ctl_raw_sd))
-            else:
-                tabs[n].info("Poisson noise of the experimental library is expected to be {:.1%} of the total variance".format(ctl_raw_sd))
-            # Update the slider value in session state
-            slider_key = f"slider_{key}"
-            #defaultval = st.session_state.pamexpobj.find_breakpoint(length=key, type='zscore')
-            defaultval = 0.0
-            tabs[n].slider(
-                label="Select the Zscore cutoff:",
-                min_value=float(df['zscore'].min()),
-                max_value=float(df['zscore'].max()),
-                value=st.session_state.get(slider_key, defaultval),
-                key=slider_key
-            )
-            tabs[n].button("Auto Split", on_click=update_slider, kwargs={"n":key, "sliderkey":slider_key}, key=f"autosplit_{key}")
-            # Filtered DataFrame based on slider value
-            cutoff = st.session_state[slider_key]
-            filtered_df = df[df['zscore'] >= cutoff]
+                with slider:
+                    defaultval = 0.0
+                    st.slider(
+                        label="Select the Zscore cutoff:",
+                        min_value=float(df['zscore'].min()),
+                        max_value=float(df['zscore'].max()),
+                        value=st.session_state.get(slider_key, defaultval),
+                        key=slider_key
+                    )
+                with slidebutton:
+                    st.button("Auto Split", on_click=update_slider, kwargs={"n":key, "sliderkey":slider_key}, key=f"autosplit_{key}")
 
-            # create degernerate represenations
-            dseqs = degenerate.seqs_to_degenerates(filtered_df['kmers'].tolist())
-            # Plot histogram with vertical line at cutoff
-            althist = histogram_plot(df, maxbins=100, cutoff=cutoff)
-            tabs[n].col1.altair_chart(althist)
+                # Filtered DataFrame based on slider value
+                cutoff = st.session_state[slider_key]
+                filtered_df = df[df['zscore'] >= cutoff]
 
-            tabs[n].subheader(f"Data for length {key}:")
-            tabs[n].write(filtered_df)
+                # create degernerate represenations
+                althist = histogram_plot(df, maxbins=config['histogram_bins'], cutoff=cutoff)
+                dseqs = degenerate.seqs_to_degenerates(filtered_df['kmers'].tolist())
+                # Plot histogram with vertical line at cutoff
+                hist, degenerates  = st.columns(spec = [0.8,0.2])
+                with hist:
+                    st.altair_chart(althist)
+                with degenerates:
+                    st.dataframe({"PAM/TAM site":dseqs}, hide_index=True)
 
-            tabs[n].markdown("## Degenerate PAM/TAM sequences")
-            tabs[n].dataframe({"PAM/TAM site":dseqs}, hide_index=True)
-            tabs[n].markdown('## Sequence motif')
-            logo = st.session_state.pamexpobj.make_logo(length=key, cutoff=cutoff, type='zscore',above=False)
-            tabs[n].pyplot(logo)
+                st.subheader (f" Review filtered data for length {key}:")
+                st.write(filtered_df)
 
+
+                st.subheader (f" Review sequence motif for length {key} and selected cutoff:")
+                logo = st.session_state.pamexpobj.make_logo(length=key, cutoff=cutoff, type='zscore',above=False)
+                st.pyplot(logo)
+        st.divider()
+        st.markdown('''
+                    ### Data Export
+                    Data from the run can be exported as a json for further analysis.  This file contains the 
+                    unfiltered data tables for each length. It does not contain the selected cutoffs, plots 
+                    or degenerate sequences. Those can be downloaded by selecting the elements on the screen.
+                    ''')
+        st.download_button(
+                            label="📥 Download full run data ",
+                            data=download_json(st.session_state.pamexpobj.multikmerdict),
+                            file_name="tamipami.json",
+                            mime='application/json',
+                            key=f"download"
+)
 
 if __name__ == "__main__":
     main(args)
-
+    with st.expander("CCO Licence Information"):
+        st.write('''
+                As a work of the United States government, [USDA Agricultural Research Service](https://www.ars.usda.gov/), this project is in the public domain within the United States of America.
+                Additionally, we waive copyright and related rights in the work worldwide through the CC0 1.0 Universal public domain dedication.
+                ## CC0 1.0 Universal Summary
+                This is a human-readable summary of the [Legal Code (read the full text)](https://creativecommons.org/publicdomain/zero/1.0/legalcode).
+                ### No Copyright
+                The person who associated a work with this deed has dedicated the work to the public domain by waiving all of their rights to the work worldwide under copyright law, including all related and neighboring rights, to the extent allowed by law.
+                You can copy, modify, distribute, and perform the work, even for commercial purposes, all without asking permission.
+                ### Other Information
+                In no way are the patent or trademark rights of any person affected by CC0, nor are the rights that other persons may have in the work or in how the work is used, such as publicity or privacy rights.
+                Unless expressly stated otherwise, the person who associated a work with this deed makes no warranties about the work, and disclaims liability for all uses of the work, to the fullest extent permitted by applicable law. When using or citing the work, you should not imply endorsement by the author or the affirmer.
+                            ''')
 
