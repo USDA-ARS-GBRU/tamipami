@@ -6,8 +6,8 @@ build-backend = "setuptools.build_meta"
 name = "tamipami"
 dynamic = ["version"]
 
-description = "Software to identify the PAM or TAM sites from high-throughput cleavage screaning experiments"
-authors = [
+description = "Software to identify the PAM or TAM sites from high-throughput cleavage screening experiments"
+authors = [ß
     {name = "Adam R. Rivers", email =  "adam.rivers@usda.gov"},]
 maintainers = [
     {name = "Adam R. Rivers", email =  "adam.rivers@usda.gov"},]
@@ -22,15 +22,19 @@ dependencies = [
     "pandas",
     "ckmeans",
     "matplotlib",
-    "skbio"
+    "skbio",
     "treelib",
     "textdistance",
     "logomaker",
-    "altair,
-    "pyyaml"
+    "altair",
+    "pyyaml",
     "streamlit"
     ]
 
+[external]
+  dependencies = [
+    "pkg:sourceforge:BBMap@39.13"
+  ]
 
 [project.urls]
 repository = "http://github.com/usda-ars-gbru/tamipami"
@@ -44,5 +48,5 @@ tests = [
 version_file = "tamipami/_version.py"
 
 [project.scripts]
-itsxpress="tamipami.main:main"
+tamipami="tamipami.cli.main"
 

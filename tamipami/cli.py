@@ -48,7 +48,7 @@ def myparser() -> argparse.ArgumentParser:
     Returns:
         A filled ArgumentParser object
     """
-    parser = argparse.ArgumentParser(description='tamipami: a script to parse High throughput PAM sequences')
+    parser = argparse.ArgumentParser(description='TamiPami: a CLI application to parse High throughput PAM sequences')
     parser.add_argument('--log', help="Log file", default="tamipami.log")
     sub_parsers = parser.add_subparsers(help='sub-command help')
     # create the parser for the process sub-command
@@ -66,15 +66,15 @@ def myparser() -> argparse.ArgumentParser:
                         help='The Addgene library pool. For custom pools use the --spacer and --orientation flags'
                         )
     parser_process.add_argument('--spacer', type=str,  help='The spacee sequence for the guide RNA. Not needed if ---library is used' )
-    parser_process.add_argument('--orientation', type=str, choices=["3prime", "5prime"], help='the side of the sacer the PAM/TAM is on')
+    parser_process.add_argument('--orientation', type=str, choices=["3prime", "5prime"], help='the side of the spacer the PAM/TAM is on')
 
     parser_process.add_argument('--length', choices=range(3, 9), metavar="[3-8]",
                         help=" The length of the PAM or TAM sequences", default=6, type=int)
     #create a subparser to provide the degenerate sequences and output data  given a cutoff and length 
     parser_predict = sub_parsers.add_parser('predict', help='return predicted PAMs/TAMs for a selected length and cutoff value')
-    parser_predict.add_argument('--input', type=str, required=True, help="A json file containing the data from a tamipami process run or downloaded from the web app")
+    parser_predict.add_argument('--input', type=str, required=True, help="A json file containing the data from a TamiPami process run or downloaded from the web app")
     parser_predict.add_argument('--cutoff', type=int, required=True, help="A cutoff Zscore value above which, kmers are considered part of the PAM/TAM")
-    parser_predict.add_argument('--autocutoff', action='store_true', help="Automatically calulate the A cutoff Zscore with a univarite clustering algorithm")
+    parser_predict.add_argument('--autocutoff', action='store_true', help="Automatically calculate the A cutoff Zscore with a univariate clustering algorithm")
     parser_predict.add_argument('--outfile', type=str, required=False, help="A json file path containing the PAM/TAM and degenerate sequences identified")
     parser_predict.add_argument('--logo', type=str, required=False, help="A pdf file path the sequence motif logo")
     parser_predict.add_argument('--histogram', type=str, required=False, help="A pdf file path containing the histogram of the data at the selected length and cutoff")
@@ -104,20 +104,20 @@ def main(args: argparse.Namespace=None) -> None:
         spacer = args.spacer
         orientation = args.orientation
     logging.info("Processing control reads")
-    cont_raw = process(fastq=args.cont1, fastq2=args.cont2, pamlen=args.length, tempdir=tempfile.mkdtemp(),
-                               spacer=spacer, orientation=orientation)
-    logging.info("Processing experimental reads")
-    exp_raw = process(fastq=args.exp1, fastq2=args.exp2, pamlen=args.length, tempdir=tempfile.mkdtemp(),
-                               spacer=spacer, orientation=orientation)
-    #df = make_df(cont_raw=cont_raw, cont_clr=cont_clr, exp_raw=exp_raw, exp_clr=exp_clr)
-    logging.info("creating a PamSeqExp object")
-    pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw,position=orientation)
-    pamexpobj.plot_kmer_summary(attribute='zscore', save_path="summaryplot.pdf")
-    breakpoint = pamexpobj.find_breakpoint(length=args.length, type='diff')
-    largestk = pamexpobj.multikmerdict[int(args.length)]
-    cleaved_seqs = largestk[largestk['diff'] < breakpoint]
-    degenerate_seqs = degenerate.seqs_to_degenerates(list(cleaved_seqs['kmers']))
-    logging.info("the Pam sequences are {}".format(degenerate_seqs))
+    # cont_raw = process(fastq=args.cont1, fastq2=args.cont2, pamlen=args.length, tempdir=tempfile.mkdtemp(),
+    #                            spacer=spacer, orientation=orientation)
+    # logging.info("Processing experimental reads")
+    # exp_raw = process(fastq=args.exp1, fastq2=args.exp2, pamlen=args.length, tempdir=tempfile.mkdtemp(),
+    #                            spacer=spacer, orientation=orientation)
+    # #df = make_df(cont_raw=cont_raw, cont_clr=cont_clr, exp_raw=exp_raw, exp_clr=exp_clr)
+    # logging.info("creating a PamSeqExp object")
+    # pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw,position=orientation)
+    # pamexpobj.plot_kmer_summary(attribute='zscore', save_path="summaryplot.pdf")
+    # breakpoint = pamexpobj.find_breakpoint(length=args.length, type='diff')
+    # largestk = pamexpobj.multikmerdict[int(args.length)]
+    # cleaved_seqs = largestk[largestk['diff'] < breakpoint]
+    # degenerate_seqs = degenerate.seqs_to_degenerates(list(cleaved_seqs['kmers']))
+    # logging.info("the Pam sequences are {}".format(degenerate_seqs))
 
 
 if __name__ == "__main__":

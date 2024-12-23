@@ -17,13 +17,13 @@ import ckmeans
 import logomaker
 
 class pamSeqExp():
-    """ A class for saving and processing kmer cound data from PAM/TAM library sequencing experiments
+    """ A class for saving and processing kmer count data from PAM/TAM library sequencing experiments
     """
     def __init__(self, ctl: dict[str, int], exp: dict[str, int], position: str) -> None:
         """ 
             Args:
                 ctl: a single count dictionary of kmers and their counts from the uncut control sequencing library
-                exp: a single count dictionary of kmers and their counts fro mthe library cut with the endonuclease
+                exp: a single count dictionary of kmers and their counts from the library cut with the endonuclease
                 position: positional information on the orientation of the pam relative to the guide site: 3prime or 5prime
             Returns:
                 None
@@ -66,8 +66,8 @@ class pamSeqExp():
         return {"kmers": kmers, "counts": counts, "clr": clr}
     
     def _combine_single_pair(self, exper: dict[str:list], ctl: dict[str,list]) -> pd.DataFrame:
-        """Takes the control and experimental count and clr data and substracts the clrs, 
-           and estimates zscores and signifigance, returning results as a dataframe.
+        """Takes the control and experimental count and clr data and subtracts the CLRs, 
+           and estimates zscores and significance, returning results as a dataframe.
 
         Args:
             exper: the experimental dict
@@ -154,7 +154,7 @@ class pamSeqExp():
     
     def make_logo(self, length: int, cutoff: float, type: str='zscore', above: bool=True) -> None:
         """
-        Takes a pandas dataframe and saves a Sequence motif logo of the signifigant
+        Takes a pandas dataframe and saves a Sequence motif logo of the significance
 
         Args:
             length: the length of the kmers
@@ -170,7 +170,7 @@ class pamSeqExp():
             else:
                 df_filtered = df[df[type] >= cutoff]
             prob_df = logomaker.alignment_to_matrix(sequences=df_filtered['kmers'], to_type = 'probability', pseudocount = 0)
-            logo_fig = logomaker.Logo(prob_df, color_scheme='classic')
+            logo_fig = logomaker.Logo(prob_df, color_scheme='colorblind_safe')
             #plt.savefig(filename)
             return plt
         except Exception as e:

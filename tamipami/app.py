@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # #!/usr/bin/local python
-""" app: a TamiPami module for a Streamlit app interfac to TamiPami
+""" app: a TamiPami module for a Streamlit app interface to TamiPami
 """
 
 import os
@@ -39,11 +39,11 @@ def delete_session_dir():
 
 #Define input parameters and widgets
 
-st.logo("USDAARSIdentityRGB3.png", size= "large")
+st.logo("assets/USDAARSIdentityRGB3.png", size= "large")
 apptitle = 'TamiPami'
 st.set_page_config(page_title=apptitle, page_icon=":dna:")
-st.image("tami_postcard.jpeg")
-st.subheader("Identify the PAMs of new Cas enzymes or TAMs in TnpB endonucleases")
+st.image("assets/tami_postcard.jpeg")
+st.subheader("Identify the PAMs of new Cas enzymes or TAMs of TnpB endonucleases")
 
 st.markdown('''
             ## Overview 
@@ -54,7 +54,7 @@ st.markdown('''
              That work deposited the plasmid pools with [Addgene]( https://www.addgene.org/pooled-library/kleinstiver-ht-pamda/), making the lab protocol accessible.   
             
             This web application builds on the work by creating TamiPami, a Web application that simplifies the analysis of the sequencing data and adds rich interactive 
-            visualizations for seleting the PAM/TAM site.
+            visualizations for selecting the PAM/TAM site.
 
          ''')
 
@@ -63,10 +63,10 @@ with st.expander("Use Instructions"):
                 1. Load the forward and reverse FASTQ files for a single control and experimental library in the four input boxes on the sidebar.
                 2. Select the Addgene library used for the experiment. Or...
                 3. If no library is selected, enter the target sequence and the orientation (5prime is PAM-Target, 3prime is Target-PAM (like spCas9)).
-                4. Select the maximum length to analize. You can compare all smaller lengths once you have analized the data
+                4. Select the maximum length to analyze. You can compare all smaller lengths once you have analyzed the data
                 5. Hit 'Submit'. This will process your files.
-                6. After you have hit 'Submit' you can explore your data interactivly. The key interface is the Zscore slider bar. Moving that will set the 
-                   cutoff value to separate kmers that cut from thise that did not. This will update the histogram of sequence zscores, the table of reads  the degenerate sequences created and the sequence motif.
+                6. After you have hit 'Submit' you can explore your data interactively. The key interface is the Zscore slider bar. Moving that will set the 
+                   cutoff value to separate kmers that cut from those that did not. This will update the histogram of sequence zscores, the table of reads  the degenerate sequences created and the sequence motif.
                 7. Be sure to explore each length tab, to select the PAM/TAM site best supported by your data.
                 8. Export the raw run data.  
     ''')
@@ -74,18 +74,19 @@ with st.expander("Use Instructions"):
 args = {}
 with st.sidebar:
     with st.form(key='newdata'):
-        st.markdown("## Analize new FASTQ data")
+        st.markdown("## Upload your FASTQ data")
         args['cont1'] = st.file_uploader('Control library forward .fastq, .fq, .fastq.gz or .fq.gz file.', type=['.gz', '.fastq', '.fq'], key='cont1' )
         args['cont2'] = st.file_uploader('Control library reverse .fastq, .fq, .fastq.gz or .fq.gz file.',  type=['.gz', '.fastq', '.fq'],  key='cont2')
         args['exp1'] = st.file_uploader('Experimental library forward .fastq, .fq, .fastq.gz or .fq.gz file.',type=['.gz', '.fastq', '.fq'], key='exp1')
         args['exp2'] = st.file_uploader('Experimental library reverse .fastq, .fq, .fastq.gz or .fq.gz file.',type=['.gz', '.fastq', '.fq'], key='exp2',)
         # args['log'] = st.sidebar.text_input('Log file', value=os.path.join(DATA_DIR,'tamipami.log'), key='log')
-        args['length'] = st.select_slider('The Maxumum length of the PAM or TAM sequences', options=list(range(3, 9)), value=6, key='length')
+        st.markdown("## Set your search settings")
+        args['length'] = st.select_slider('The Maximum length of the PAM or TAM sequences', options=list(range(3, 9)), value=6, key='length')
         args['library'] = st.selectbox('The Addgene library pool. For custom pools use the --spacer and --orientation flags', ["RTW554", "RTW555", "RTW572", "RTW574"], index=None)
         st.markdown("_OR_")
         args['spacer'] = st.text_input('The spacer sequence for the guide RNA. Not needed if ---library is used', key='spacer')
         args['orientation'] = st.selectbox('The side of the spacer the PAM/TAM is on', ["3prime", "5prime"],index=None, key='orientation')
-        newrun = st.form_submit_button('Submit' )
+        newrun = st.form_submit_button('Submit')
     # with st.form(key='olddata'):
     #    st.markdown("## Or, visualize a previous run")
     #    args['olddata'] = st.file_uploader('a Tamipami output file in .json format', type=['.json'], key='olddata' )
@@ -145,6 +146,14 @@ def download_json(dfdict):
     json_bytes = json_data.encode('utf-8') 
     return json_bytes
 
+def parse_lib(args: dict) -> tuple[str]:
+    if args['library']:
+        spacer = config['spacer_dict'][args['library']]['spacer']
+        orientation = config['spacer_dict'][args['library']]['orientation']
+    else:
+        spacer = args['spacer']
+        orientation = args['orientation']
+    return spacer, orientation
 
 @st.cache_data
 def process(args):
@@ -155,12 +164,9 @@ def process(args):
         with st.expander("Run Configuration"):
             st.dataframe({"Parameter" :  args.keys(), "Value":args.values()},hide_index=True)
             st.write("Data directory: {}".format(datadir))
-        if args['library']:
-            spacer = config['spacer_dict'][args['library']]['spacer']
-            orientation = config['spacer_dict'][args['library']]['orientation']
-        else:
-            spacer = args['spacer']
-            orientation = ['orientation']
+        spacer, orientation = parse_lib(args)
+        print("spacer: {}".format(spacer))
+        print("orientation: {}".format(orientation))
         run_summ = {'cont': {}, 'exp': {}}
         cont_raw, run_summ['cont']['tot'], run_summ['cont']['targets'] = fastq.process(fastq=os.path.join(datadir, "cont1.fastq.gz"),
                                 fastq2=os.path.join(datadir, "cont2.fastq.gz"),
@@ -189,7 +195,7 @@ def update_slider(n, sliderkey):
 def data_checks(length, sdcutoff):
     results = st.session_state.pamexpobj.check_N(length)
     mess = "Shot (Poisson) noise of the control library is {:.1%} and the experimental library is {:.1%}.".format(results[0],results[1])
-    recc = "Consider analizing your data at a shorter length or sequencing more deeply"
+    recc = "Consider analyzing your data at a shorter length or sequencing more deeply"
     print(results)
     if any([x > sdcutoff for x in results]):
         return st.warning(mess + recc)
@@ -209,7 +215,18 @@ def main(args):
         #if 'pamexpobj' not in st.session_state:
         st.session_state['run_summ'] = run_summ
         st.session_state['pamexpobj'] = pamexpobj
-
+        st.markdown("## Library information")
+        spacer, orientation = parse_lib(args)
+        if 'library' in args:
+            st.write("Plasmid Library: {}".format(args['library']))
+        st.write("Library spacer sequence: {}".format(spacer))
+        st.write("PAM/TAM orientation: {}".format(orientation))
+        if orientation == '5prime':
+            st.image('assets/5prime.jpg')
+            st.write("image from [Walton et al. 2021]( https://doi.org/10.1038/s41596-020-00465-2)")
+        elif orientation == '3prime':
+            st.image('assets/3prime.jpg')
+            st.write("image from [Walton et al. 2021]( https://doi.org/10.1038/s41596-020-00465-2)")
     # Check if pamdict is in session_state
     if 'pamexpobj' in st.session_state:
         tablabels = ["Length " + str(x) for x in st.session_state.pamexpobj.multikmerdict.keys()]

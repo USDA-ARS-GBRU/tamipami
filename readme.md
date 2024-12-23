@@ -11,6 +11,6 @@ depleted in the sample library relative to the control.
 
 To launch a the streamlit web application locally at http://localhost:8501 run this commmand:
 
-```{bach}
+```{bash}
 streamlit run app.py 
 ```

@@ -34,7 +34,7 @@ def expand_degenerate_strings(degenerate_strings: list[str])->list[str]:
 
 
 def unique_characters(expanded_strings: set|list[str]) -> list[set]:
-    """ Given a set of strings returns the uniue characters at each position
+    """ Given a set of strings returns the unique characters at each position
     Args:
         expanded_string: A set of strings of equal length
     returns:
@@ -69,10 +69,10 @@ def degererate_represenation(position_to_chars: list[set]) -> list:
 
 
 def gen_all_combo(minimal_representations: list[set|list] ) ->set[str]:
-    """ Takees a list of nucleoides at  each position and returns the full set of expanded strings
+    """ Takes a list of nucleotides at  each position and returns the full set of expanded strings
         Args:
-            minimal_representations  a list of possible nuclotides at each position e.g. [{'A', 'C'}, {'G'}, {'T', 'C'}]
-        Rerurns:
+            minimal_representations  a list of possible nucleotides at each position e.g. [{'A', 'C'}, {'G'}, {'T', 'C'}]
+        Returns:
             a list of all sequences in expanded notation
     """
     all_possible_representations = set()
@@ -82,7 +82,7 @@ def gen_all_combo(minimal_representations: list[set|list] ) ->set[str]:
 
 
 def create_degenerate(subset: set[str]) -> str|None:
-    """Create a degernate sequence if exactly all members of the set can be represented by one degenrate sequence, else returns None
+    """Create a degenerate sequence if exactly all members of the set can be represented by one degenerate sequence, else returns None
         Args:
             subset: takes a set of kmer strings
         Returns:
@@ -99,11 +99,11 @@ def create_degenerate(subset: set[str]) -> str|None:
 ### The next setep is to apply a subset selection algrorithm that can  tst possible groups efficiently 
 
 def hammingdist(strings: list) -> np.array:
-    """ take a list of strings and retuurn a condensed hamming distance matrix and thse strings as labels
+    """ take a list of strings and return a condensed hamming distance matrix and the strings as labels
         Args:
-            strings: a list of equel length sequence strings
+            strings: a list of equal length sequence strings
         Returns:
-            a condenced scipy distance matrix as a numpy array
+            a condensed scipy distance matrix as a numpy array
     """
     # prepare 2 dimensional array M x N (M entries (3) with N dimensions (1)) 
     transformed_strings = np.array(strings).reshape(-1,1)
@@ -115,7 +115,7 @@ def hammingdist(strings: list) -> np.array:
 def create_tree(labels: list[str], distance_matrix: np.array) -> treelib.Tree:
     """Convert the output of scipy.cluster.hierarchy.to_tree() into a treelib.Tree object.
         Args:
-            distance_matrix: A condenced scipy distance matrix 
+            distance_matrix: A condensed scipy distance matrix 
             labels: A list of strings used as tags for the nodes in the same order as the nodes list.
         Returns:
             A treelib.Tree object representing the hierarchical structure.
@@ -165,7 +165,7 @@ def create_tree(labels: list[str], distance_matrix: np.array) -> treelib.Tree:
     
     return tree
 
-#notworking creates genrates  but they are not redundant
+
 def find_degenerates(tree: treelib.Tree) -> list[str]:
     """
     Perform a breadth-first traversal of the treelib tree and process leaves.
@@ -191,10 +191,11 @@ def find_degenerates(tree: treelib.Tree) -> list[str]:
                 node_skip_list.extend( list(tree.subtree(node).nodes))
     return results
 
+
 def seqs_to_degenerates(seqs: list[str]) -> list[str]:
-    """ Takes a list of equal length sequences and finds a minimal set of degenerate codes  taht represnets them.
+    """ Takes a list of equal length sequences and finds a minimal set of degenerate codes  that represents them.
         Args:
-            seqs: A list of equences
+            seqs: A list of sequences
         Returns: 
             a list of degenerate sequences representing the input list
     """
