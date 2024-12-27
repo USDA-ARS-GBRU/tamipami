@@ -39,10 +39,10 @@ def delete_session_dir():
 
 #Define input parameters and widgets
 
-st.logo("assets/USDAARSIdentityRGB3.png", size= "large")
+st.logo("tamipami/assets/USDAARSIdentityRGB3.png", size= "large")
 apptitle = 'TamiPami'
 st.set_page_config(page_title=apptitle, page_icon=":dna:")
-st.image("assets/tami_postcard.jpeg")
+st.image("tamipami/assets/tami_postcard.jpeg")
 st.subheader("Identify the PAMs of new Cas enzymes or TAMs of TnpB endonucleases")
 
 st.markdown('''

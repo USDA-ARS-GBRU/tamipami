@@ -1,0 +1,10 @@
+streamlit == 1.41.1
+altair  == 5.4.1
+pyyaml == 6.0.2 
+ckmeans == 0.2.7
+biopython == 1.84
+treelib == 1.7.0
+textdistance == 4.6.3
+logomaker @ git+https://github.com/usda-ars-gbru/logomaker
+scipy == 1.14.1
+scikit-bio == 0.6.2

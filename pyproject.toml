@@ -7,7 +7,7 @@ name = "tamipami"
 dynamic = ["version"]
 
 description = "Software to identify the PAM or TAM sites from high-throughput cleavage screening experiments"
-authors = [ß
+authors = [
     {name = "Adam R. Rivers", email =  "adam.rivers@usda.gov"},]
 maintainers = [
     {name = "Adam R. Rivers", email =  "adam.rivers@usda.gov"},]
@@ -22,7 +22,7 @@ dependencies = [
     "pandas",
     "ckmeans",
     "matplotlib",
-    "skbio",
+    "scikit-bio",
     "treelib",
     "textdistance",
     "logomaker",
@@ -47,6 +47,9 @@ tests = [
 [tool.setuptools_scm]
 version_file = "tamipami/_version.py"
 
-[project.scripts]
-tamipami="tamipami.cli.main"
+[tool.setuptools]
+packages = ['tamipami']
+
+# [project.scripts]
+# tamipami =" tamipami.cli.main"
 
