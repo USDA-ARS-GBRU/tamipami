@@ -223,10 +223,10 @@ def main(args):
         st.write("Library spacer sequence: {}".format(spacer))
         st.write("PAM/TAM orientation: {}".format(orientation))
         if orientation == '5prime':
-            st.image('assets/5prime.jpg')
+            st.image(os.path.join(ROOT_DIR,'assets/5prime.jpg'))
             st.write("image from [Walton et al. 2021]( https://doi.org/10.1038/s41596-020-00465-2)")
         elif orientation == '3prime':
-            st.image('assets/3prime.jpg')
+            st.image(os.path.join(ROOT_DIR,'assets/3prime.jpg'))
             st.write("image from [Walton et al. 2021]( https://doi.org/10.1038/s41596-020-00465-2)")
     # Check if pamdict is in session_state
     if 'pamexpobj' in st.session_state:
