@@ -52,7 +52,7 @@ def myparser() -> argparse.ArgumentParser:
     parser.add_argument('--log', help="Log file", default="tamipami.log")
     sub_parsers = parser.add_subparsers(help='sub-command help')
     # create the parser for the process sub-command
-    parser_process = sub_parsers.add_parser('process', help='Use this commcan to process FASQ data into a summarized json output')
+    parser_process = sub_parsers.add_parser('process', help='Use "process" command to process FASTQ data into a summarized json output')
     parser_process.add_argument('--cont1', '-c', type=str, required=False,
                         help='A forward .fastq, .fq, .fastq.gz or .fq.gz file. .')
     parser_process.add_argument('--cont2', '-c2', type=str, required=False,
@@ -65,14 +65,14 @@ def myparser() -> argparse.ArgumentParser:
     parser_process.add_argument('--library', type=str, choices=["RTW554", "RTW555", "RTW572", "RTW574"],
                         help='The Addgene library pool. For custom pools use the --spacer and --orientation flags'
                         )
-    parser_process.add_argument('--spacer', type=str,  help='The spacee sequence for the guide RNA. Not needed if ---library is used' )
+    parser_process.add_argument('--spacer', type=str,  help='The spacer sequence for the guide RNA. Not needed if ---library is used' )
     parser_process.add_argument('--orientation', type=str, choices=["3prime", "5prime"], help='the side of the spacer the PAM/TAM is on')
 
     parser_process.add_argument('--length', choices=range(3, 9), metavar="[3-8]",
                         help=" The length of the PAM or TAM sequences", default=6, type=int)
     #create a subparser to provide the degenerate sequences and output data  given a cutoff and length 
     parser_predict = sub_parsers.add_parser('predict', help='return predicted PAMs/TAMs for a selected length and cutoff value')
-    parser_predict.add_argument('--input', type=str, required=True, help="A json file containing the data from a TamiPami process run or downloaded from the web app")
+    parser_predict.add_argument('--input', type=str, required=True, help="A json file containing the data from a TamiPami process run or downloaded data from the web app")
     parser_predict.add_argument('--cutoff', type=int, required=True, help="A cutoff Zscore value above which, kmers are considered part of the PAM/TAM")
     parser_predict.add_argument('--autocutoff', action='store_true', help="Automatically calculate the A cutoff Zscore with a univariate clustering algorithm")
     parser_predict.add_argument('--outfile', type=str, required=False, help="A json file path containing the PAM/TAM and degenerate sequences identified")
