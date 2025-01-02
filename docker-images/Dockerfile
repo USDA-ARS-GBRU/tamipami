@@ -12,11 +12,11 @@ RUN apt-get update && \
 # Install conda dependencies
 RUN mamba install -y -c bioconda bbmap
 
-# Copy the itsxpress package files and install dependencies
+# Copy the tamipami package files and install dependencies
 LABEL org.opencontainers.image.source="https://github.com/usda-ars-gbru/tamipami"
 #COPY . /app
-RUN cd /app && git clone https://github.com/USDA-ARS-GBRU/tamipami.git && cd tamipami && pip install --no-cache-dir -r requirements.txt
-RUN pip install .
+RUN cd /app && git clone https://github.com/USDA-ARS-GBRU/tamipami.git && cd tamipami
+RUN pip install --no-cache-dir -r requirements.txt && pip install .
 
 EXPOSE 8501
 
