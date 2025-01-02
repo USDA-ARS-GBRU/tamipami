@@ -45,7 +45,7 @@ tests = [
 ]
 
 [tool.setuptools_scm]
-version_file = "tamipami/_version.py"
+# version_file = "tamipami/_version.py"
 
 [tool.setuptools]
 packages = ['tamipami']
