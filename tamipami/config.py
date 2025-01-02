@@ -2,8 +2,10 @@
 # #!/usr/bin/local python
 
 import yaml
+import os
 
-def load_config(config_file='tamipami/assets/config.yaml'):
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+def load_config(config_file=os.path.join(ROOT_DIR, 'assets/config.yaml')):
     with open(config_file, 'r') as file:
         return yaml.safe_load(file)
 

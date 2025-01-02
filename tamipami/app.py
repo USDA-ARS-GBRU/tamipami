@@ -21,7 +21,8 @@ import degenerate
 
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # This is your Project Root
-
+#print("ROOT DIR")
+#print(ROOT_DIR)
 # create session-specific data dir
 
 def create_session_dir():
@@ -39,10 +40,10 @@ def delete_session_dir():
 
 #Define input parameters and widgets
 
-st.logo("tamipami/assets/USDAARSIdentityRGB3.png", size= "large")
+st.logo(os.path.join(ROOT_DIR, "assets/USDAARSIdentityRGB3.png"), size= "large")
 apptitle = 'TamiPami'
 st.set_page_config(page_title=apptitle, page_icon=":dna:")
-st.image("tamipami/assets/tami_postcard.jpeg")
+st.image(os.path.join(ROOT_DIR, "assets/tami_postcard.jpeg"))
 st.subheader("Identify the PAMs of new Cas enzymes or TAMs of TnpB endonucleases")
 
 st.markdown('''

@@ -14,9 +14,9 @@ RUN mamba install -y -c bioconda bbmap
 
 # Copy the itsxpress package files and install dependencies
 LABEL org.opencontainers.image.source="https://github.com/usda-ars-gbru/tamipami"
-# COPY . /app
-RUN cd /app && git clone https://github.com/USDA-ARS-GBRU/tamipami.git && cd tamipami 
-RUN pip install --no-cache-dir -r requirements.txt && pip install .
+COPY . /app
+RUN cd /app && pip install --no-cache-dir -r requirements.txt
+RUN git clone https://github.com/USDA-ARS-GBRU/tamipami.git && cd tamipami  && pip install .
 
 EXPOSE 8501
 
@@ -31,4 +31,4 @@ HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 #LC_ALL=C
 
     # Set the default command to run itsxpress
-ENTRYPOINT ["streamlit", "run", "/app/tamipami/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "/app/tamipami/tamipami/app.py", "--server.port=8501", "--server.address=127.0.0.1"]
