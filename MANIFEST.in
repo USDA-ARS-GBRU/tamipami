@@ -1,1 +1,4 @@
 include requirements.txt
+include tamipami/assets/*
+include README.md
+include LICENSE.txt
