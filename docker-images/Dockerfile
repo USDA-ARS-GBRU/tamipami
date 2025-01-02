@@ -16,6 +16,7 @@ RUN mamba install -y -c bioconda bbmap
 LABEL org.opencontainers.image.source="https://github.com/usda-ars-gbru/tamipami"
 #COPY . /app
 RUN cd /app && git clone https://github.com/USDA-ARS-GBRU/tamipami.git && cd tamipami
+RUN ls -la
 RUN pip install --no-cache-dir -r requirements.txt && pip install .
 
 EXPOSE 8501
