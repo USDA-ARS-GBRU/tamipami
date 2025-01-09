@@ -12,7 +12,7 @@ import gzip
 
 from Bio import SeqIO
 
-from config import config
+from .config import config
 
 
 def iterate_kmer(k: int) -> dict[str, int]:

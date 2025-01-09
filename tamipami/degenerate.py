@@ -7,7 +7,7 @@ import treelib
 from scipy.spatial.distance import pdist
 import scipy.cluster.hierarchy
 
-from config import config
+from .config import config
 
 codes = config["codes"]
 

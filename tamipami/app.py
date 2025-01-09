@@ -15,11 +15,11 @@ import streamlit as st
 import altair as alt
 import pandas as pd
 
-from config import config
-import pam
-import fastq
-import degenerate
-import tpio
+from .config import config
+from . import pam
+from . import fastq
+from . import degenerate
+from . import tpio
 
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # This is your Project Root
