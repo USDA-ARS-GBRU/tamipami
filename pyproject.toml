@@ -28,7 +28,8 @@ dependencies = [
     "logomaker",
     "altair",
     "pyyaml",
-    "streamlit"
+    "streamlit",
+    "tables"
     ]
 
 [external]
@@ -50,6 +51,6 @@ tests = [
 [tool.setuptools]
 packages = ['tamipami']
 
-# [project.scripts]
-# tamipami =" tamipami.cli.main"
+[project.scripts]
+tamipami = "tamipami.cli:main"
 

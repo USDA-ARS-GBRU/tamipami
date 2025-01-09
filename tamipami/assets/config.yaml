@@ -8,7 +8,7 @@ spacer_dict:
   RTW574:
       spacer: CTGATGGTCCATGTCTGTTACTC
       #spacer: 'CTCATTGTCTGTACCTGGTAGTC' #reverse
-      #spacer: GAGTAACAGACATGGACCATCAG # reverse comlement
+      #spacer: GAGTAACAGACATGGACCATCAG # reverse complement
       orientation: 5prime
   RTW572:
     spacer: GGAATCCCTTCTGCAGCACCTGG
@@ -49,3 +49,5 @@ bbmerge:
 shot_cutoff: 0.25
 histogram_bins: 100
 min_target_frac: 0.25
+
+logo_file_type: 'pdf' # ['svg,'eps', 'ps', 'png', 'jpeg', 'tiff']
