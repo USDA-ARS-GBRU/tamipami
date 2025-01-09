@@ -23,10 +23,6 @@ from . import tpio
 
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # This is your Project Root
-# print("ROOT DIR")
-# print(ROOT_DIR)
-# create session-specific data dir
-
 
 def create_session_dir():
     datadir = Path(os.path.join(ROOT_DIR, str(uuid.uuid4())))
@@ -131,7 +127,7 @@ with st.sidebar:
         newrun = st.form_submit_button("Submit")
     # with st.form(key='olddata'):
     #    st.markdown("## Or, visualize a previous run")
-    #    args['olddata'] = st.file_uploader('a Tamipami output file in .json format', type=['.json'], key='olddata' )
+    #    args['olddata'] = st.file_uploader('a Tamipami output file in HDF5 format', type=['.h5'], key='olddata' )
     #    oldrun = st.form_submit_button('Submit' )
 
 
