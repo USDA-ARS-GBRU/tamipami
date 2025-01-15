@@ -12,11 +12,11 @@ import json
 
 import pandas as pd
 
-from . import pam
-from . import degenerate
-from . import fastq
-from . import tpio
-from .config import config
+from tamipami import pam
+from tamipami import degenerate
+from tamipami import fastq
+from tamipami import tpio
+from tamipami.config import config
 
 
 def _logger_setup(logfile: str) -> None:

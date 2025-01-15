@@ -15,22 +15,44 @@ import streamlit as st
 import altair as alt
 import pandas as pd
 
-from .config import config
-from . import pam
-from . import fastq
-from . import degenerate
-from . import tpio
+from tamipami.config import config
+from tamipami import pam
+from tamipami import fastq
+from tamipami import degenerate
+from tamipami import tpio
 
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # This is your Project Root
 
 def create_session_dir():
-    datadir = Path(os.path.join(ROOT_DIR, str(uuid.uuid4())))
-    datadir.mkdir(parents=True, exist_ok=True)
-    st.session_state["datadir"] = datadir
+    """
+    Creates a unique session directory for storing session-specific data.
+
+    Generates a secure UUID to name the directory, creates the directory
+    within the ROOT_DIR, and stores the path in Streamlit's session state.
+    If directory creation fails, an error message is displayed.
+
+    Raises:
+        Exception: If the session directory cannot be created.
+    """
+    try:
+        # Ensure UUID is generated securely
+        session_id = uuid.uuid4()
+        datadir = Path(os.path.join(ROOT_DIR, str(session_id)))
+        datadir.mkdir(parents=True, exist_ok=True)
+        st.session_state["datadir"] = datadir
+    except Exception as e:
+        st.error(f"Failed to create session directory: {e}")
 
 
 def delete_session_dir():
+    """
+Delete the session directory stored in Streamlit's session state.
+
+This function checks if a 'datadir' key exists in the session state.
+If it does, it retrieves the directory path, deletes the directory
+if it exists, and then removes the 'datadir' key from the session state.
+"""
     if "datadir" in st.session_state:
         session_dir = st.session_state["datadir"]
     if os.path.exists(session_dir):
@@ -39,10 +61,9 @@ def delete_session_dir():
 
 
 # Define input parameters and widgets
-
-st.logo(os.path.join(ROOT_DIR, "assets/USDAARSIdentityRGB3.png"), size="large")
 apptitle = "TamiPami"
 st.set_page_config(page_title=apptitle, page_icon=":dna:")
+st.logo(os.path.join(ROOT_DIR, "assets/USDAARSIdentityRGB3.png"), size="large")
 st.image(os.path.join(ROOT_DIR, "assets/tami_postcard.jpeg"))
 st.subheader("Identify the PAMs of new Cas enzymes or TAMs of TnpB endonucleases")
 
@@ -125,11 +146,6 @@ with st.sidebar:
             key="orientation",
         )
         newrun = st.form_submit_button("Submit")
-    # with st.form(key='olddata'):
-    #    st.markdown("## Or, visualize a previous run")
-    #    args['olddata'] = st.file_uploader('a Tamipami output file in HDF5 format', type=['.h5'], key='olddata' )
-    #    oldrun = st.form_submit_button('Submit' )
-
 
 def write_input_file(datadir: str, stream, fname) -> None:
     try:
@@ -191,8 +207,6 @@ def process(args):
             )
             st.write("Data directory: {}".format(datadir))
         spacer, orientation = parse_lib(args)
-        print("spacer: {}".format(spacer))
-        print("orientation: {}".format(orientation))
         run_summ = {"cont": {}, "exp": {}}
         cont_raw, run_summ["cont"]["tot"], run_summ["cont"]["targets"] = fastq.process(
             fastq=os.path.join(datadir, "cont1.fastq.gz"),
@@ -227,7 +241,6 @@ def data_checks(length, sdcutoff):
         results[0], results[1]
     )
     recc = "Consider analyzing your data at a shorter length or sequencing more deeply"
-    print(results)
     if any([x > sdcutoff for x in results]):
         return st.warning(mess + recc)
     else:
@@ -294,7 +307,7 @@ def main(args):
                         label="Select the Zscore cutoff:",
                         min_value=float(df["zscore"].min()),
                         max_value=float(df["zscore"].max()),
-                        value=st.session_state.get(slider_key, defaultval),
+                        #value=st.session_state.get(slider_key, defaultval),
                         key=slider_key,
                     )
                 with slidebutton:
@@ -361,7 +374,7 @@ if __name__ == "__main__":
     with st.expander("CCO Licence Information"):
         st.write(
             """
-                As a work of the United States government, [USDA Agricultural Research Service](https://www.ars.usda.gov/), this project is in the public domain within the United States of America.
+                As a work of the United States government, [USDA Agricultural Research Service](https://www.ars.usda.gov/), this project is in the public domain within the United States of America under 17 U.S.C. 105.
                 Additionally, we waive copyright and related rights in the work worldwide through the CC0 1.0 Universal public domain dedication.
                 ## CC0 1.0 Universal Summary
                 This is a human-readable summary of the [Legal Code (read the full text)](https://creativecommons.org/publicdomain/zero/1.0/legalcode).
