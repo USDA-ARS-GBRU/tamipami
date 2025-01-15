@@ -302,7 +302,7 @@ def main(args):
                 )
 
                 with slider:
-                    defaultval = 0.0
+                    #defaultval = 0.0
                     st.slider(
                         label="Select the Zscore cutoff:",
                         min_value=float(df["zscore"].min()),
@@ -341,7 +341,7 @@ def main(args):
                     f" Review sequence motif for length {key} and selected cutoff:"
                 )
                 logo = st.session_state.pamexpobj.make_logo(
-                    length=key, cutoff=cutoff, type="zscore", above=False
+                    length=key, cutoff=cutoff, score_type="zscore", above=False
                 )
                 st.pyplot(logo)
         st.divider()

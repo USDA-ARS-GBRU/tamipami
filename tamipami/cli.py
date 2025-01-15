@@ -1,7 +1,7 @@
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-"""tamipami cli module
+"""cli: a TamiPami command line interfaces application module
 """
 import argparse
 import logging
@@ -9,6 +9,7 @@ import tempfile
 import os
 import sys
 import json
+from pathlib import Path
 
 import pandas as pd
 
@@ -20,43 +21,101 @@ from tamipami.config import config
 
 
 def _logger_setup(logfile: str) -> None:
-    """Set up logging to a logfile and the terminal standard out.
+    """Set up logging configuration to output logs to a specified file and the console.
+
+    This function configures the logging system to write logs to a specified
+    logfile and also outputs logs of level INFO or higher to the console. The
+    log level, format, and date format can be customized using environment
+    variables.
 
     Args:
-        logfile: a path to a log file
+        logfile: The path to the log file where logs will be written.
 
-    Returns:
-        None
-
+    Raises:
+        FileNotFoundError: If the directory for the logfile does not exist.
     """
-    try:
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
-            datefmt="%m-%d %H:%M",
-            filename=logfile,
-            filemode="w",
-        )
-        # define a Handler which writes INFO messages or higher to the sys.stderr
-        console = logging.StreamHandler()
-        console.setLevel(logging.INFO)
-        # set a format which is simpler for console use
-        formatter = logging.Formatter("%(asctime)s: %(levelname)-8s %(message)s")
-        # tell the handler to use this format
-        console.setFormatter(formatter)
-        # add the handler to the root logger
-        logging.getLogger("").addHandler(console)
-    except Exception as e:
-        print("An error occurred setting up logging")
-        raise e
+    if not os.path.exists(os.path.dirname(logfile)):
+        raise FileNotFoundError(f"Logfile path does not exist: {logfile}")
+
+    log_level = os.getenv("LOG_LEVEL", "DEBUG")
+    log_format = os.getenv("LOG_FORMAT", "%(asctime)s %(name)-12s %(levelname)-8s %(message)s")
+    date_format = os.getenv("DATE_FORMAT", "%m-%d %H:%M")
+
+    logging.basicConfig(
+        level=getattr(logging, log_level),
+        format=log_format,
+        datefmt=date_format,
+        filename=logfile,
+        filemode="w",
+    )
+    # define a Handler which writes INFO messages or higher to the sys.stderr
+    console: logging.StreamHandler = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    # set a format which is simpler for console use
+    formatter: logging.Formatter = logging.Formatter("%(asctime)s: %(levelname)-8s %(message)s")
+    # tell the handler to use this format
+    console.setFormatter(formatter)
+    # add the handler to the root logger
+    logging.getLogger("").addHandler(console)
+
+
+parser_predict = argparse.ArgumentParser()
+parser_predict.add_argument(
+    "--cutoff",
+    type=json.loads,
+    required=False,
+    help="""A json string containing the kmer lengths and the Zscore cutoff values above which kmers are considered part of the PAM/TAM.
+                           If no cutoff is provided it will be automatically calculated using univariate k means clustering. example input : '{'4': 0.7, '5': 1.35}'
+                           """,
+)
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--log", help="Log file", default=os.path.join(tempfile.gettempdir(), 'tamipami.log'))
+
+parser_process = argparse.ArgumentParser()
+parser_process.add_argument(
+    "--cont1",
+    "-c",
+    type=str,
+    required=True,
+    help="A forward .fastq, .fq, .fastq.gz or .fq.gz file. .",
+)
+# Validate file path
+if not os.path.isfile(args.cont1):
+    parser.error(f"The file {args.cont1} does not exist.")
+
+parser_process.add_argument(
+    "--outfile",
+    type=argparse.FileType('w'),
+    help="A path to a hdf5 file of the results, if missing binary data will be sent to STDOUT.",
+)
+parser_predict.add_argument(
+    "--input",
+    type=argparse.FileType('r'),
+    required=False,
+    help="An file containing the data from a TamiPami process run or downloaded data from the web ap, if not input is provided STDIN will be assumed",
+)
+parser_predict.add_argument(
+    "--predict_out",
+    type=argparse.FileType('w'),
+    required=True,
+    help="A file directory containing the PAM/TAM and degenerate sequences identified",
+)
 
 
 def myparser() -> argparse.ArgumentParser:
-    """Set up logging to a logfile and the terminal standard out.
-    Args:
-        None
+    """
+    Creates and configures an ArgumentParser for the TamiPami CLI application.
+
+    This function sets up the argument parser with subcommands and options
+    for processing and predicting PAM/TAM sequences from high throughput
+    sequencing data. It includes options for specifying input files, output
+    locations, and various parameters related to the sequencing data and
+    analysis.
+
     Returns:
-        A filled ArgumentParser object
+        argparse.ArgumentParser: A configured ArgumentParser object with
+        subcommands and arguments for the TamiPami CLI.
     """
     parser = argparse.ArgumentParser(
         description="TamiPami: a CLI application to parse High throughput PAM/TAM site sequencing data"
@@ -163,10 +222,22 @@ def myparser() -> argparse.ArgumentParser:
 spacer_dict = config["spacer_dict"]
 
 
-def parse_lib(args: argparse.Namespace) -> tuple[str]:
+def parse_lib(args: argparse.Namespace) -> tuple[str, str]:
+    """
+    Parse library-specific configuration for spacer and orientation.
+
+    Args:
+        args (argparse.Namespace): The command-line arguments containing library,
+        spacer, and orientation information.
+
+    Returns:
+        tuple[str, str]: A tuple containing the spacer and orientation values.
+        If a library is specified, these values are retrieved from the configuration;
+        otherwise, they default to the provided arguments.
+    """
     if args.library:
-        spacer = config["spacer_dict"][args.library]["spacer"]
-        orientation = config["spacer_dict"][args.library]["orientation"]
+        spacer = config["spacer_dict"].get(args.library, {}).get("spacer", args.spacer)
+        orientation = config["spacer_dict"].get(args.library, {}).get("orientation", args.orientation)
     else:
         spacer = args.spacer
         orientation = args.orientation
@@ -174,64 +245,92 @@ def parse_lib(args: argparse.Namespace) -> tuple[str]:
 
 
 def process(args: argparse.Namespace = None) -> tuple[pam.pamSeqExp, dict]:
+    """
+    Processes FASTQ files to generate a pamSeqExp object and summary statistics.
+
+    This function merges and processes control and experimental FASTQ files, counts
+    PAM/TAM sequences, and initializes a pamSeqExp object with the resulting data.
+
+    Args:
+        args (argparse.Namespace, optional): Command-line arguments containing paths
+        to FASTQ files, PAM/TAM sequence length, and library configuration.
+
+    Returns:
+        tuple[pam.pamSeqExp, dict]: A tuple containing the pamSeqExp object and a
+        dictionary with summary statistics of the control and experimental data.
+
+    Raises:
+        FileNotFoundError: If any specified file is not found.
+        ValueError: If there is an issue with the input values.
+        Exception: For any unexpected errors during processing.
+    """
     try:
         with tempfile.TemporaryDirectory() as datadir:
+            os.chmod(datadir, 0o700)  # Ensure the directory is only accessible by the owner
             spacer, orientation = parse_lib(args)
-            logging.info("spacer: {}".format(spacer))
-            logging.info("orientation: {}".format(orientation))
+            logging.info(f"spacer: {spacer}")
+            logging.info(f"orientation: {orientation}")
             run_summ = {"cont": {}, "exp": {}}
-            cont_raw, run_summ["cont"]["tot"], run_summ["cont"]["targets"] = (
-                fastq.process(
-                    fastq=args.cont1,
-                    fastq2=args.cont2,
+
+            def process_fastq(fastq1, fastq2, mergedfile, spacer, orientation):
+                return fastq.process(
+                    fastq=fastq1,
+                    fastq2=fastq2,
                     pamlen=args.length,
-                    mergedfile=os.path.join(datadir, "cont_merged.fastq.gz"),
+                    mergedfile=mergedfile,
                     spacer=spacer,
                     orientation=orientation,
                 )
+
+            cont_raw, run_summ["cont"]["tot"], run_summ["cont"]["targets"] = process_fastq(
+                args.cont1, args.cont2, os.path.join(datadir, "cont_merged.fastq.gz"), spacer, orientation
             )
-            exp_raw, run_summ["exp"]["tot"], run_summ["exp"]["targets"] = fastq.process(
-                fastq=args.exp1,
-                fastq2=args.exp2,
-                pamlen=args.length,
-                mergedfile=os.path.join(datadir, "exp_merged.fastq.gz"),
-                spacer=spacer,
-                orientation=orientation,
+            exp_raw, run_summ["exp"]["tot"], run_summ["exp"]["targets"] = process_fastq(
+                args.exp1, args.exp2, os.path.join(datadir, "exp_merged.fastq.gz"), spacer, orientation
             )
+
             pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw, position=orientation)
             return pamexpobj, run_summ
+    except FileNotFoundError as e:
+        logging.error(f"File not found: {e}")
+        raise
+    except ValueError as e:
+        logging.error(f"Value error: {e}")
+        raise
     except Exception as e:
-        logging.error("Error processing the fastq files")
-        raise e
+        logging.error("Unexpected error processing the fastq files")
+        raise
 
 
 import os
 import logging
 
 
-def _create_directories(outdir: str, subdir_list: list) -> str:
-    """Create output dir
+def _create_directories(outdir: str, subdir_list: list) -> None:
+    """Create a main output directory and specified subdirectories.
+
     Args:
-        outdir: the path to the outputdir
-        subdir_list: a list of subdirs to create
+        outdir (str): The path to the main output directory.
+        subdir_list (list): A list of subdirectories to create within the main directory.
 
-    Returns:
-    str: the mane of the outdir filepath
+    Raises:
+        FileExistsError: If the output directory already exists.
+        OSError: If there is an error creating the directory.
+
+    Logs a warning if the subdir_list is empty and logs errors for exceptions.
     """
-
     try:
-        # Check if the main directory exists
-        if os.path.exists(outdir):
-            logging.error(f"Directory '{outdir}' already exists.")
-            raise FileExistsError(f"Directory '{outdir}' already exists.")
-
         # Create the main directory
-        os.makedirs(outdir)
+        Path(outdir).mkdir(parents=True, exist_ok=True)
+
+        # Check if subdir_list is empty
+        if not subdir_list:
+            logging.warning("The subdir_list is empty. No subdirectories will be created.")
 
         # Create the subdirectories
         for subdir in subdir_list:
-            subdir_path = os.path.join(outdir, subdir)
-            os.makedirs(subdir_path, exist_ok=True)
+            subdir_path = Path(outdir) / subdir
+            subdir_path.mkdir(parents=True, exist_ok=True)
 
     except FileExistsError as fee:
         logging.error(
@@ -243,10 +342,34 @@ def _create_directories(outdir: str, subdir_list: list) -> str:
         logging.error(f"Error creating directory '{outdir}': {e}")
         raise
 
-    return outdir
-
 
 def _mk_outputs(pamseqobj: pam.pamSeqExp, outdir: str, lenval: int, cutoff: float):
+    """
+    Generates and saves outputs for a given PAM/TAM sequence experiment.
+
+    This function processes kmer data from a pamSeqExp object, generating a sequence
+    motif logo, histogram plot, and degenerate sequence file for a specified kmer length
+    and cutoff. It saves these outputs to a specified directory.
+
+    Args:
+        pamseqobj (pam.pamSeqExp): The pamSeqExp object containing multikmer data.
+        outdir (str): The directory path where outputs will be saved.
+        lenval (int): The kmer length to process.
+        cutoff (float): The z-score cutoff for filtering kmers.
+
+    Raises:
+        ValueError: If `outdir` is not a valid directory, `lenval` is not a positive
+        integer, or `cutoff` is negative.
+        KeyError: If the specified kmer length is not found in multikmerdict.
+        FileNotFoundError: If a file cannot be saved in the specified directory.
+        Exception: For any unexpected errors during processing.
+    """
+    if not isinstance(outdir, str) or not os.path.isdir(outdir):
+        raise ValueError("`outdir` must be a valid directory path.")
+    if not isinstance(lenval, int) or lenval <= 0:
+        raise ValueError("`lenval` must be a positive integer.")
+    if not isinstance(cutoff, (int, float)) or cutoff < 0:
+        raise ValueError("`cutoff` must be a non-negative number.")
     try:
         df = pamseqobj.multikmerdict[lenval]
         pamseqobj.make_logo(
@@ -258,10 +381,12 @@ def _mk_outputs(pamseqobj: pam.pamSeqExp, outdir: str, lenval: int, cutoff: floa
                 outdir, str(lenval), "logo." + config["logo_file_type"]
             ),
         )
+        os.makedirs(os.path.join(outdir, str(lenval)), exist_ok=True)
         df.to_csv(os.path.join(outdir, str(lenval), "data.csv"), index=False)
+        maxbins = config.get("histogram_bins", 10)  # Default to 10 if not found
         tpio.histogram_plot(
             df,
-            maxbins=config["histogram_bins"],
+            maxbins=maxbins,
             cutoff=cutoff,
             filename=os.path.join(outdir, str(lenval), "histogram.html"),
         )
@@ -271,83 +396,117 @@ def _mk_outputs(pamseqobj: pam.pamSeqExp, outdir: str, lenval: int, cutoff: floa
         degen_df.to_csv(
             os.path.join(outdir, str(lenval), "degenerate_pam_tam.csv"), index=False
         )
+    except KeyError as e:
+        logging.error(
+            f"KeyError: Could not find kmer length {lenval} in multikmerdict."
+        )
+        raise e
+    except FileNotFoundError as e:
+        logging.error(
+            f"FileNotFoundError: Could not save file in directory {outdir}."
+        )
+        raise e
     except Exception as e:
         logging.error(
-            "could not generate summarized export data for kmern length {}".format(
-                lenval
-            )
+            f"Unexpected error occurred for kmer length {lenval}: {str(e)}"
         )
         raise e
 
 
 def predict(args: argparse.Namespace = None) -> None:
-    if args.input:
-        data = tpio.import_hdf(from_buffer=False, filename=args.input)
-    else:
-        data = tpio.import_hdf(from_buffer=True)
+    """
+    Predicts TAM/PAM sites using input data from an HDF file or stream.
+
+    This function imports multikmer data, applies a cutoff value to filter
+    the data, and generates output directories and files for each kmer length.
+    If no cutoff is provided, it calculates cutoff breakpoints for each kmer length.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing input
+        file paths and cutoff values.
+
+    Raises:
+        AssertionError: If the provided cutoff lengths do not match the
+        available kmer lengths in the data.
+    """
+    data = tpio.import_hdf(from_buffer=not args.input, filename=args.input)
     pamseqobj = pam.pamSeqExp(multikmerdict=data)
-    kmdkeys = list(pamseqobj.multikmerdict.keys())
-    print(kmdkeys)
+    kmdkeys = pamseqobj.multikmerdict.keys()
+
     if args.cutoff:
         cutoff = json.loads(args.cutoff)
-        assert set(cutoff.keys()) == set(
-            kmdkeys
-        ), "a length listed in the --cutoff input does not match the lengths available in "
-    else:
-        cutoff = {}
-        for lenval in kmdkeys:
-            cutoff[lenval] = pamseqobj.find_breakpoint(length=lenval)
-    pd_out = _create_directories(
-        args.predict_out, [str(i) for i in list(pamseqobj.multikmerdict.keys())]
-    )
-    for lenval in kmdkeys:
-        _mk_outputs(
-            pamseqobj=pamseqobj, outdir=pd_out, lenval=lenval, cutoff=cutoff[lenval]
+        assert set(cutoff.keys()) == set(kmdkeys), (
+            "A length listed in the --cutoff input does not match the lengths available."
         )
+    else:
+        cutoff = {lenval: pamseqobj.find_breakpoint(length=lenval) for lenval in kmdkeys}
+
+    pd_out = _create_directories(args.predict_out, map(str, kmdkeys))
+
+    for lenval in kmdkeys:
+        _mk_outputs(pamseqobj=pamseqobj, outdir=pd_out, lenval=lenval, cutoff=cutoff[lenval])
+
+
+
 
 
 def main(args: argparse.Namespace = None) -> None:
-    """Run the TAM/PAM identification workflow
+    """
+    Executes the main workflow for identifying PAM/TAM sequences.
+
+    This function initializes the argument parser, sets up logging, and
+    executes the appropriate subcommand ('process' or 'predict') based on
+    the provided command-line arguments.
+
     Args:
-        args: arg parse args to pass in (used for unit testing)
+        args (argparse.Namespace, optional): Command-line arguments for
+        unit testing. If not provided, arguments are parsed from sys.argv.
+
     Returns:
         None
     """
     parser = myparser()
-    if not args:
-        args = parser.parse_args()
+    args = args or parser.parse_args()
+    
     _logger_setup(args.log)
     logging.info("Begin processing PAM/TAM sequencing libraries")
     logging.info(args)
+    
     if args.subcommand == "process":
         pamexpobj, run_summ = process(args)
-        logging.info(
-            "Control data: {} reads merged, {} contained targets.".format(
-                run_summ["cont"]["tot"], run_summ["cont"]["targets"]
-            )
-        )
-        logging.info(
-            "Experimental data: {} reads merged, {} contained targets.".format(
-                run_summ["exp"]["tot"], run_summ["exp"]["targets"]
-            )
-        )
-        logging.info("Writing results to {}".format(args.outfile))
-        if args.outfile:
-            tpio.export_hdf(
-                multikmerdict=pamexpobj.multikmerdict,
-                to_buffer=False,
-                filename=args.outfile,
-            )
-        else:
-            sys.stdout.buffer.write(
-                tpio.export_hdf(
-                    multikmerdict=pamexpobj.multikmerdict,
-                    to_buffer=True,
-                    filename="tamipami.h5",
-                )
-            )
+        log_run_summary(run_summ)
+        export_results(pamexpobj, args.outfile)
     elif args.subcommand == "predict":
         predict(args)
+
+def log_run_summary(run_summ):
+    logging.info(
+        "Control data: {} reads merged, {} contained targets.".format(
+            run_summ["cont"]["tot"], run_summ["cont"]["targets"]
+        )
+    )
+    logging.info(
+        "Experimental data: {} reads merged, {} contained targets.".format(
+            run_summ["exp"]["tot"], run_summ["exp"]["targets"]
+        )
+    )
+
+def export_results(pamexpobj, outfile):
+    logging.info("Writing results to {}".format(outfile))
+    if outfile:
+        tpio.export_hdf(
+            multikmerdict=pamexpobj.multikmerdict,
+            to_buffer=False,
+            filename=outfile,
+        )
+    else:
+        sys.stdout.buffer.write(
+            tpio.export_hdf(
+                multikmerdict=pamexpobj.multikmerdict,
+                to_buffer=True,
+                filename="tamipami.h5",
+            )
+        )
 
 
 if __name__ == "__main__":

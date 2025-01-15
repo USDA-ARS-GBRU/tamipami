@@ -1,3 +1,6 @@
+from typing import List
+import logging
+from typing import Iterable
 # -*- coding: utf-8 -*-
 from itertools import product
 
@@ -11,22 +14,19 @@ from tamipami.config import config
 
 codes = config["codes"]
 
-
 def expand_degenerate_strings(degenerate_strings: list[str]) -> list[str]:
-    """Takes a list of degenerate sequences in IUPAC notation and expands it to a list of the sequences that make up that degenerate list
+    """
+    Expand a list of degenerate sequences in IUPAC notation into all possible sequences.
+
     Args:
-        degenerate_strings:  a list of IUPAC degenerate sequences
+        degenerate_strings (list[str]): A list of IUPAC degenerate sequences.
+
     Returns:
-        a list of sequences that make up the degenerate sequences.
+        list[str]: A list of all possible sequences derived from the degenerate sequences.
     """
 
     def expand_string(degenerate_string):
-        expanded = []
-        for char in degenerate_string:
-            if char in codes:
-                expanded.append(codes[char])
-            else:
-                expanded.append({char})
+        expanded = [codes[char] if char in codes else {char} for char in degenerate_string]
         return ["".join(chars) for chars in product(*expanded)]
 
     expanded_strings = set()
@@ -34,6 +34,22 @@ def expand_degenerate_strings(degenerate_strings: list[str]) -> list[str]:
         expanded_strings.update(expand_string(degenerate_string))
 
     return list(expanded_strings)
+
+def degenerate_representation(position_to_chars: list[set]) -> str:
+    # Create a dictionary for fast lookup
+    chars_to_code = {frozenset(options): code for code, options in codes.items()}
+    
+    # Create a list to hold potential representatives
+    minimal_representations = []
+
+    for chars in map(frozenset, position_to_chars):
+        if len(chars) == 1:
+            minimal_representations.append(next(iter(chars)))
+        else:
+            # Use the dictionary for fast lookup
+            code = chars_to_code.get(frozenset(chars), chars)
+            minimal_representations.append(code)
+    return "".join(minimal_representations)
 
 
 def unique_characters(expanded_strings: set | list[str]) -> list[set]:
@@ -50,6 +66,7 @@ def unique_characters(expanded_strings: set | list[str]) -> list[set]:
         for index, char in enumerate(string):
             position_to_chars[index].add(char)
     return position_to_chars
+
 
 
 def degenerate_representation(position_to_chars: list[set]) -> list:
@@ -109,13 +126,15 @@ def create_degenerate(subset: set[str]) -> str | None:
 ### The next setep is to apply a subset selection algorithm that can  tst possible groups efficiently
 
 
-def hammingdist(strings: list) -> np.array:
+def calculate_hamming_distance(strings: List[str]) -> np.array:
     """take a list of strings and return a condensed hamming distance matrix and the strings as labels
     Args:
         strings: a list of equal length sequence strings
     Returns:
         a condensed scipy distance matrix as a numpy array
     """
+    if not all(len(s) == len(strings[0]) for s in strings):
+        raise ValueError("All strings must be of equal length")
     # prepare 2 dimensional array M x N (M entries (3) with N dimensions (1))
     transformed_strings = np.array(strings).reshape(-1, 1)
     # calculate condensed distance matrix by wrapping the hamming distance function
@@ -137,92 +156,93 @@ def create_tree(labels: list[str], distance_matrix: np.array) -> treelib.Tree:
 
     Z = scipy.cluster.hierarchy.linkage(distance_matrix, method="ward")
     # Convert linkage matrix to a tree structure
-    root, nodes = scipy.cluster.hierarchy.to_tree(Z, rd=True)
+    root = scipy.cluster.hierarchy.to_tree(Z, rd=False)
 
-    # Create a treelib tree
-    tree = treelib.Tree()
+    def convert_scipy_tree_to_treelib(root, labels):
+        """
+        Convert a tree from scipy.cluster.hierarchy.to_tree to a treelib.Tree.
 
-    # Create a dictionary to store the nodes
-    node_dict = {}
+        Args:
+            root: The root node of the scipy hierarchical tree.
+            labels: A list of labels for the leaf nodes.
 
-    # Add the nodes to the dictionary
-    for i, node in enumerate(nodes):
-        node_dict[node.id] = node
+        Returns:
+            A treelib.Tree object representing the hierarchical structure.
+        """
+        tree = treelib.Tree()
+        node_dict = {}
 
-    # Add the root node to the tree with the tag "root"
-    tree.create_node(tag="root", identifier=str(root.id))
-
-    # Recursive function to add child nodes
-    def add_children(parent_node, parent_id, labels):
-        if parent_node.left is not None:
-            # Add left child
-            left_node = node_dict[parent_node.left.id]
-            if left_node.left is None and left_node.right is None:
-                # Leaf node, add label using its index in the nodes list
-                tree.create_node(
-                    tag=labels[left_node.id],
-                    identifier=str(left_node.id),
-                    parent=parent_id,
-                )
+        def add_children(scipy_node, parent_id=None):
+            node_id = str(scipy_node.id)
+            if scipy_node.is_leaf():
+                tag = labels[scipy_node.id] if scipy_node.id < len(labels) else f"Leaf {scipy_node.id}"
             else:
-                tree.create_node(tag="", identifier=str(left_node.id), parent=parent_id)
-                add_children(left_node, str(left_node.id), labels)
+                tag = f"Node {scipy_node.id}"
 
-        if parent_node.right is not None:
-            # Add right child
-            right_node = node_dict[parent_node.right.id]
-            if right_node.left is None and right_node.right is None:
-                # Leaf node, add label using its index in the nodes list
-                tree.create_node(
-                    tag=labels[right_node.id],
-                    identifier=str(right_node.id),
-                    parent=parent_id,
-                )
-            else:
-                tree.create_node(
-                    tag="", identifier=str(right_node.id), parent=parent_id
-                )
-                add_children(right_node, str(right_node.id), labels)
+            tree.create_node(tag=tag, identifier=node_id, parent=parent_id)
+            node_dict[scipy_node.id] = node_id
 
-    # Start adding children from the root node
-    add_children(root, str(root.id), labels)
+            if scipy_node.left is not None:
+                add_children(scipy_node.left, node_id)
+            if scipy_node.right is not None:
+                add_children(scipy_node.right, node_id)
 
-    return tree
-
+        add_children(root)
+        return tree
+    return convert_scipy_tree_to_treelib(root, labels)
 
 def find_degenerates(tree: treelib.Tree) -> list[str]:
     """
-    Perform a breadth-first traversal of the treelib tree and process leaves.
+    Traverse a tree using breadth-first search to identify and process leaf nodes.
+
+    This function performs a breadth-first traversal of a given treelib.Tree
+    object, processing each leaf node to determine if a degenerate sequence
+    can be created from the leaf tags. If a degenerate sequence is found,
+    it is added to the results list.
 
     Parameters:
-    - tree: A treelib.Tree object.
+    - tree: A treelib.Tree object representing the hierarchical structure to be traversed.
 
     Returns:
-    - A list of strings returned by the create_degenerate function.
+    - A list of degenerate sequence strings generated from the leaf nodes of the tree.
     """
     # Temporary list to store results from create_degenerate
     results = []
     # Expand the tree in breadth-first order to list tree node numbers as strings
-    nodes = tree.expand_tree(mode=treelib.Tree.WIDTH)
-    node_skip_list = []
+    nodes = (node for node in tree.expand_tree(mode=treelib.Tree.WIDTH))
+    node_skip_list = set()
     for node in nodes:
         if node not in node_skip_list:
             # Call create_degenerate with leaf tags
-            seqs = [item.tag for item in tree.leaves(node)]
-            result = create_degenerate(set(seqs))
+            seqs: set[str] = {item.tag for item in tree.leaves(node)}
+            result = create_degenerate(seqs)
             if result is not None:  # If it returns a string, save it
                 results.append(result)
-                node_skip_list.extend(list(tree.subtree(node).nodes))
+                node_skip_list.update(tree.subtree(node).nodes.keys())
     return results
 
 
+
+
 def seqs_to_degenerates(seqs: list[str]) -> list[str]:
-    """Takes a list of equal length sequences and finds a minimal set of degenerate codes  that represents them.
+    """Takes a list of equal length sequences and finds a minimal set of degenerate codes that represents them.
     Args:
-        seqs: A list of sequences
+        seqs: A list of sequences where each sequence is a string of equal length. The sequences should only contain valid nucleotide characters (e.g., A, T, C, G).
     Returns:
         a list of degenerate sequences representing the input list
     """
-    distance_matrix = hammingdist(seqs)
-    tree = create_tree(seqs, distance_matrix)
-    return find_degenerates(tree)
+    if not seqs:
+        return []
+
+    try:
+        logging.debug("Calculating Hamming distance matrix.")
+        distance_matrix = calculate_hamming_distance(seqs)
+        logging.debug("Creating tree from distance matrix.")
+        tree = create_tree(seqs, distance_matrix)
+        logging.debug("Finding degenerate sequences.")
+        return find_degenerates(tree)
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        return []
+
+
