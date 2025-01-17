@@ -68,18 +68,17 @@ def merge_reads(fastq: str, fastq2: str, outfile: str) -> str:
         ]
         parameters.extend(config["bbmerge"])
         logging.info(parameters)
-        p3 = subprocess.run(
-            parameters, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
+        result = subprocess.run(
+            parameters, capture_output=True, check=True
         )
-        stdout_output = p3.stdout.decode("utf-8")
-        stderr_output = p3.stderr.decode("utf-8")
-        logging.info(stderr_output)
-        return stdout_output
+        stderr_output = result.stderr.decode("utf-8")
+        return stderr_output
     except subprocess.CalledProcessError as e:
-        logging.error(f"Subprocess error: {e.stderr.decode('utf-8')}")
+        logging.error(f"Could not merge Forward and reverse reads with BBmerge, Check if you have provided the correct read files in the correct order: {e.stderr.decode('utf-8')}")
         raise e
     except RuntimeError as e:
-        logging.warning("could not perform read merging with BBmerge")
+        logging.error("could not perform read merging with BBmerge")
+        logging.error(f"stderr:{e.stderr.decode('utf-8')}")
         raise e
 
 
@@ -162,10 +161,8 @@ def process(
     logging.info("Merging reads and correcting sequencing errors.")
     try:
         stdout = merge_reads(fastq=fastq, fastq2=fastq2, outfile=mergedfile)
-        print(stdout)
     except Exception as e:
-        logging.error(f"Error during merging reads: {e}")
-        return {}
+        raise e
 
     logging.info("Counting PAM/TAM sites.")
     try:

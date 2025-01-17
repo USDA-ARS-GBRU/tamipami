@@ -148,16 +148,37 @@ with st.sidebar:
         newrun = st.form_submit_button("Submit")
 
 def write_input_file(datadir: str, stream, fname) -> None:
+    """
+    Writes a FASTQ file to the specified directory from a given stream.
+
+    This function checks if the specified directory exists and is writable.
+    If the directory does not exist, it creates it. The function then writes
+    the content of the provided stream to a gzipped FASTQ file in the directory.
+    The file is named using the provided filename with a '.fastq.gz' extension.
+
+    Parameters:
+        datadir (str): The directory path where the file will be saved.
+        stream: The input stream containing the file data.
+        fname: The base name for the output file.
+
+    Raises:
+        PermissionError: If the directory is not writable.
+        IOError: If an I/O error occurs during file operations.
+    """
     try:
-        filename = os.path.join(datadir, fname + ".fastq.gz")
+        if not os.path.exists(datadir):
+            os.makedirs(datadir)
+        if not os.access(datadir, os.W_OK):
+            raise PermissionError(f"Directory {datadir} is not writable.")
+        
+        filename = os.path.join(datadir, f'{fname}.fastq.gz')
         if stream.__getattribute__("type") == "application/x-gzip":
             with open(filename, "wb") as temp1:
                 temp1.write(stream.getbuffer())
         else:
             with gzip.open(filename, "wb") as temp1:
                 temp1.write(stream.getbuffer())
-        temp1.close()
-    except IOError as e:
+    except (IOError, PermissionError) as e:
         st.exception(e)
         raise (e)
 
@@ -226,6 +247,10 @@ def process(args):
         )
         pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw, position=orientation)
         return pamexpobj, run_summ
+    except Exception as e:
+        st.error(f"There was an error processing the FASTQ files, Please verify your input files.")
+        st.error(f"Error from BBmerge:  {e.stderr.decode('utf-8')}")
+        raise e
     finally:
         delete_session_dir()
 
