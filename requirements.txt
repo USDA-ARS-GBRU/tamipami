@@ -1,13 +1,13 @@
-streamlit == 1.41.1
+streamlit == 1.44.1
 altair  == 5.5.0
 pyyaml == 6.0.2 
 ckmeans == 0.2.7
-biopython == 1.84
-treelib == 1.7.0
+biopython == 1.85
+treelib == 1.7.1
 textdistance == 4.6.3
-logomaker == 0.8.0 # git+https://github.com/usda-ars-gbru/logomaker
-scipy == 1.14.1
+logomaker == 0.8.7 
+scipy == 1.15.2
 scikit-bio == 0.6.2
 tables == 3.10.2
-pytest == 8.3.2
+pytest == 8.3.5
 pytest-mock == 3.14.0
