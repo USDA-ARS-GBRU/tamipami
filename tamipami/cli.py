@@ -18,6 +18,7 @@ from tamipami import degenerate
 from tamipami import fastq
 from tamipami import tpio
 from tamipami.config import config
+from tamipami._version import __version__
 
 
 def _logger_setup(logfile: str) -> None:
@@ -59,49 +60,6 @@ def _logger_setup(logfile: str) -> None:
     logging.getLogger("").addHandler(console)
 
 
-parser_predict = argparse.ArgumentParser()
-parser_predict.add_argument(
-    "--cutoff",
-    type=json.loads,
-    required=False,
-    help="""A json string containing the kmer lengths and the Zscore cutoff values above which kmers are considered part of the PAM/TAM.
-                           If no cutoff is provided it will be automatically calculated using univariate k means clustering. example input : '{'4': 0.7, '5': 1.35}'
-                           """,
-)
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--log", help="Log file", default=os.path.join(tempfile.gettempdir(), 'tamipami.log'))
-
-parser_process = argparse.ArgumentParser()
-parser_process.add_argument(
-    "--cont1",
-    "-c",
-    type=str,
-    required=True,
-    help="A forward .fastq, .fq, .fastq.gz or .fq.gz file. .",
-)
-# Validate file path
-if not os.path.isfile(args.cont1):
-    parser.error(f"The file {args.cont1} does not exist.")
-
-parser_process.add_argument(
-    "--outfile",
-    type=argparse.FileType('w'),
-    help="A path to a hdf5 file of the results, if missing binary data will be sent to STDOUT.",
-)
-parser_predict.add_argument(
-    "--input",
-    type=argparse.FileType('r'),
-    required=False,
-    help="An file containing the data from a TamiPami process run or downloaded data from the web ap, if not input is provided STDIN will be assumed",
-)
-parser_predict.add_argument(
-    "--predict_out",
-    type=argparse.FileType('w'),
-    required=True,
-    help="A file directory containing the PAM/TAM and degenerate sequences identified",
-)
-
 
 def myparser() -> argparse.ArgumentParser:
     """
@@ -123,7 +81,8 @@ def myparser() -> argparse.ArgumentParser:
     parser.add_argument("--log", help="Log file", default="tamipami.log")
     sub_parsers = parser.add_subparsers(dest="subcommand")
 
-    # create the subparser for the process command
+    parser.add_argument('-V', '--version', action='version', version=__version__)
+
     parser_process = sub_parsers.add_parser(
         "process",
         help='Sub-command "process": used to process FASTQ data into a summarized json output',

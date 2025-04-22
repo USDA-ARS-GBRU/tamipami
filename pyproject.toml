@@ -40,10 +40,6 @@ dependencies = [
 [project.urls]
 repository = "http://github.com/usda-ars-gbru/tamipami"
 
-[project.optional-dependencies]
-tests = [
-"pytest"
-]
 
 [tool.setuptools_scm]
 # version_file = "tamipami/_version.py"

@@ -20,6 +20,9 @@ from tamipami import pam
 from tamipami import fastq
 from tamipami import degenerate
 from tamipami import tpio
+from tamipami._version import  __version__
+
+
 
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # This is your Project Root
@@ -71,15 +74,15 @@ st.markdown(
     """
             ## Overview 
             When a new Cas or TnpB guided endonuclease is discovered or engineered, one of the first tasks is identifying its PAM or TAM recognition site. 
-             This can be done by treating a pool of plasmid DNA containing a target site adjacent to a random region. The random regions containing 
+            This can be done by treating a pool of plasmid DNA containing a target site adjacent to a random region. The random regions containing 
             the PAM/TAM site are recognized and cut in the presence of the endonuclease and a guide RNA. These become depleted in the sequencing library. By comparing an uncut control library  to a cut 
             experimental library it is possible to identify the PAM/TAM site.  The method was introduced by [Walton et al. 2021]( https://doi.org/10.1038/s41596-020-00465-2).
-             That work deposited the plasmid pools with [Addgene]( https://www.addgene.org/pooled-library/kleinstiver-ht-pamda/), making the lab protocol accessible.   
+            That work deposited the plasmid pools with [Addgene]( https://www.addgene.org/pooled-library/kleinstiver-ht-pamda/), making the lab protocol accessible.   
             
             This web application builds on the work by creating TamiPami, a Web application that simplifies the analysis of the sequencing data and adds rich interactive 
             visualizations for selecting the PAM/TAM site.
 
-         """
+        """
 )
 
 with st.expander("Use Instructions"):
@@ -91,7 +94,7 @@ with st.expander("Use Instructions"):
                 4. Select the maximum length to analyze. You can compare all smaller lengths once you have analyzed the data
                 5. Hit 'Submit'. This will process your files.
                 6. After you have hit 'Submit' you can explore your data interactively. The key interface is the Zscore slider bar. Moving that will set the 
-                   cutoff value to separate kmers that cut from those that did not. This will update the histogram of sequence zscores, the table of reads  the degenerate sequences created and the sequence motif.
+                cutoff value to separate kmers that cut from those that did not. This will update the histogram of sequence zscores, the table of reads  the degenerate sequences created and the sequence motif.
                 7. Be sure to explore each length tab, to select the PAM/TAM site best supported by your data.
                 8. Export the raw run data.  
     """
@@ -125,7 +128,7 @@ with st.sidebar:
         st.markdown("## Set your search settings")
         args["length"] = st.select_slider(
             "The Maximum length of the PAM or TAM sequences",
-            options=list(range(3, 9)),
+            options=list(range(3, 7)),
             value=6,
             key="length",
         )
@@ -278,7 +281,7 @@ def read_count_check(run_summ, minfrac):
     if (expfrac or contfrac) < minfrac:
         return st.warning(
             "Only {:.1%} of merged experimental reads and {:.1%} \
-                          of merged control reads contained a target. Please verify your Library, Spacer and Orientation settings".format(
+                        of merged control reads contained a target. Please verify your Library, Spacer and Orientation settings".format(
                 expfrac, contfrac
             )
         )
@@ -327,12 +330,12 @@ def main(args):
                 )
 
                 with slider:
-                    #defaultval = 0.0
+                    defaultval = 0.0
                     st.slider(
                         label="Select the Zscore cutoff:",
                         min_value=float(df["zscore"].min()),
                         max_value=float(df["zscore"].max()),
-                        #value=st.session_state.get(slider_key, defaultval),
+                        value=st.session_state.get(slider_key, defaultval),
                         key=slider_key,
                     )
                 with slidebutton:
@@ -351,11 +354,12 @@ def main(args):
                 althist = tpio.histogram_plot(
                     df, maxbins=config["histogram_bins"], cutoff=cutoff
                 )
-                dseqs = degenerate.seqs_to_degenerates(filtered_df["kmers"].tolist())
+                
                 # Plot histogram with vertical line at cutoff
                 hist, degenerates = st.columns(spec=[0.8, 0.2])
                 with hist:
                     st.altair_chart(althist)
+                dseqs = degenerate.seqs_to_degenerates(filtered_df["kmers"].tolist())
                 with degenerates:
                     st.dataframe({"PAM/TAM site": dseqs}, hide_index=True)
 
@@ -411,3 +415,4 @@ if __name__ == "__main__":
                 Unless expressly stated otherwise, the person who associated a work with this deed makes no warranties about the work, and disclaims liability for all uses of the work, to the fullest extent permitted by applicable law. When using or citing the work, you should not imply endorsement by the author or the affirmer.
                             """
         )
+    st.write("Tamipami version {}".format(__version__))

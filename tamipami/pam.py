@@ -2,7 +2,6 @@
 """pam:  a TamiPami module for working with PAM/TAM spacer sequences 
 """
 
-from collections import defaultdict
 import logging
 from typing import Dict, List
 from typing import Optional
@@ -14,6 +13,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from skbio.stats import composition
 import ckmeans
+
 
 import logomaker
 
