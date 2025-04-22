@@ -129,7 +129,7 @@ with st.sidebar:
         args["length"] = st.select_slider(
             "The Maximum length of the PAM or TAM sequences",
             options=list(range(3, 7)),
-            value=6,
+            value=5,
             key="length",
         )
         args["library"] = st.selectbox(
@@ -252,7 +252,6 @@ def process(args):
         return pamexpobj, run_summ
     except Exception as e:
         st.error(f"There was an error processing the FASTQ files, Please verify your input files.")
-        st.error(f"Error from BBmerge:  {e.stderr.decode('utf-8')}")
         raise e
     finally:
         delete_session_dir()
@@ -325,17 +324,20 @@ def main(args):
                 )
                 st.markdown("### Select the cutoff point on the histogram")
                 slider_key = f"slider_{key}"
+                defaultval = 0.0
+                if slider_key not in st.session_state:
+                    update_slider(key, slider_key)
                 slider, slidebutton = st.columns(
                     spec=[0.8, 0.2], vertical_alignment="center"
                 )
-
+                
                 with slider:
-                    defaultval = 0.0
+                    
                     st.slider(
                         label="Select the Zscore cutoff:",
                         min_value=float(df["zscore"].min()),
                         max_value=float(df["zscore"].max()),
-                        value=st.session_state.get(slider_key, defaultval),
+                        value=st.session_state[slider_key],
                         key=slider_key,
                     )
                 with slidebutton:
@@ -364,7 +366,8 @@ def main(args):
                     st.dataframe({"PAM/TAM site": dseqs}, hide_index=True)
 
                 st.subheader(f" Review filtered data for length {key}:")
-                st.write(filtered_df)
+                styled_df = df.style.format({'pvalue': '{:.3e}', 'p_adjust_BH': '{:.3e}'})
+                st.write(styled_df)
 
                 st.subheader(
                     f" Review sequence motif for length {key} and selected cutoff:"
