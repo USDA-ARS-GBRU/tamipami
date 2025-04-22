@@ -96,7 +96,9 @@ with st.expander("Use Instructions"):
                 6. After you have hit 'Submit' you can explore your data interactively. The key interface is the Zscore slider bar. Moving that will set the 
                 cutoff value to separate kmers that cut from those that did not. This will update the histogram of sequence zscores, the table of reads  the degenerate sequences created and the sequence motif.
                 7. Be sure to explore each length tab, to select the PAM/TAM site best supported by your data.
-                8. Export the raw run data.  
+                8. Export the raw run data.
+
+                If you need help or encounter errors please request support on the [Tamipami Github issues page](https://github.com/USDA-ARS-GBRU/tamipami/issues)   
     """
     )
 
