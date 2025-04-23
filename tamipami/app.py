@@ -368,7 +368,7 @@ def main(args):
                     st.dataframe({"PAM/TAM site": dseqs}, hide_index=True)
 
                 st.subheader(f" Review filtered data for length {key}:")
-                styled_df = df.style.format({'pvalue': '{:.3e}', 'p_adjust_BH': '{:.3e}'})
+                styled_df = filtered_df.style.format({'pvalue': '{:.3e}', 'p_adjust_BH': '{:.3e}'})
                 st.write(styled_df)
 
                 st.subheader(

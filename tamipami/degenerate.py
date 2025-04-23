@@ -236,14 +236,11 @@ def seqs_to_degenerates(seqs: list[str]) -> list[str]:
     elif len(seqs) == 1:
         return seqs
     try:
-        print("Calculating Hamming distance matrix.")
-        #logging.debug("Calculating Hamming distance matrix.")
+        logging.debug("Calculating Hamming distance matrix.")
         distance_matrix = calculate_hamming_distance(seqs)
-        print("Creating tree from distance matrix.")
         logging.debug("Creating tree from distance matrix.")
         tree = create_tree(seqs, distance_matrix)
         logging.debug("Finding degenerate sequences.")
-        print("Finding degenerate sequences.")
         return find_degenerates(tree)
     except Exception as e:
         logging.error(f"An error occurred: {e}")
