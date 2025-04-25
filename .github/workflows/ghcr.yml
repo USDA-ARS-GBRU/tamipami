@@ -16,8 +16,16 @@ jobs:
         
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      -
-        name: Login to Github Container Registry
+        
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+            
+      - name: Login to Github Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -35,3 +43,5 @@ jobs:
           tags: ghcr.io/usda-ars-gbru/tamipami:sha-${{ env.SHORT_SHA }}
           build-args: |
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=true
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
