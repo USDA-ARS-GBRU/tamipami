@@ -1,6 +1,7 @@
 from typing import List
 import logging
 from typing import Iterable
+
 # -*- coding: utf-8 -*-
 from itertools import product
 
@@ -14,6 +15,7 @@ from tamipami.config import config
 
 codes = config["codes"]
 
+
 def expand_degenerate_strings(degenerate_strings: list[str]) -> list[str]:
     """
     Expand a list of degenerate sequences in IUPAC notation into all possible sequences.
@@ -26,7 +28,9 @@ def expand_degenerate_strings(degenerate_strings: list[str]) -> list[str]:
     """
 
     def expand_string(degenerate_string):
-        expanded = [codes[char] if char in codes else {char} for char in degenerate_string]
+        expanded = [
+            codes[char] if char in codes else {char} for char in degenerate_string
+        ]
         return ["".join(chars) for chars in product(*expanded)]
 
     expanded_strings = set()
@@ -35,10 +39,11 @@ def expand_degenerate_strings(degenerate_strings: list[str]) -> list[str]:
 
     return list(expanded_strings)
 
+
 def degenerate_representation(position_to_chars: list[set]) -> str:
     # Create a dictionary for fast lookup
     chars_to_code = {frozenset(options): code for code, options in codes.items()}
-    
+
     # Create a list to hold potential representatives
     minimal_representations = []
 
@@ -66,7 +71,6 @@ def unique_characters(expanded_strings: set | list[str]) -> list[set]:
         for index, char in enumerate(string):
             position_to_chars[index].add(char)
     return position_to_chars
-
 
 
 def degenerate_representation(position_to_chars: list[set]) -> list:
@@ -175,7 +179,11 @@ def create_tree(labels: list[str], distance_matrix: np.array) -> treelib.Tree:
         def add_children(scipy_node, parent_id=None):
             node_id = str(scipy_node.id)
             if scipy_node.is_leaf():
-                tag = labels[scipy_node.id] if scipy_node.id < len(labels) else f"Leaf {scipy_node.id}"
+                tag = (
+                    labels[scipy_node.id]
+                    if scipy_node.id < len(labels)
+                    else f"Leaf {scipy_node.id}"
+                )
             else:
                 tag = f"Node {scipy_node.id}"
 
@@ -189,7 +197,9 @@ def create_tree(labels: list[str], distance_matrix: np.array) -> treelib.Tree:
 
         add_children(root)
         return tree
+
     return convert_scipy_tree_to_treelib(root, labels)
+
 
 def find_degenerates(tree: treelib.Tree) -> list[str]:
     """
@@ -222,8 +232,6 @@ def find_degenerates(tree: treelib.Tree) -> list[str]:
     return results
 
 
-
-
 def seqs_to_degenerates(seqs: list[str]) -> list[str]:
     """Takes a list of equal length sequences and finds a minimal set of degenerate codes that represents them.
     Args:
@@ -245,5 +253,3 @@ def seqs_to_degenerates(seqs: list[str]) -> list[str]:
     except Exception as e:
         logging.error(f"An error occurred: {e}")
         return []
-
-

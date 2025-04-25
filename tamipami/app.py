@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" app: a TamiPami module for a Streamlit app interface to TamiPami
-"""
+"""app: a TamiPami module for a Streamlit app interface to TamiPami"""
 
 import os
 import uuid
@@ -20,12 +19,11 @@ from tamipami import pam
 from tamipami import fastq
 from tamipami import degenerate
 from tamipami import tpio
-from tamipami._version import  __version__
-
-
+from tamipami._version import __version__
 
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # This is your Project Root
+
 
 def create_session_dir():
     """
@@ -50,12 +48,12 @@ def create_session_dir():
 
 def delete_session_dir():
     """
-Delete the session directory stored in Streamlit's session state.
+    Delete the session directory stored in Streamlit's session state.
 
-This function checks if a 'datadir' key exists in the session state.
-If it does, it retrieves the directory path, deletes the directory
-if it exists, and then removes the 'datadir' key from the session state.
-"""
+    This function checks if a 'datadir' key exists in the session state.
+    If it does, it retrieves the directory path, deletes the directory
+    if it exists, and then removes the 'datadir' key from the session state.
+    """
     if "datadir" in st.session_state:
         session_dir = st.session_state["datadir"]
     if os.path.exists(session_dir):
@@ -152,6 +150,7 @@ with st.sidebar:
         )
         newrun = st.form_submit_button("Submit")
 
+
 def write_input_file(datadir: str, stream, fname) -> None:
     """
     Writes a FASTQ file to the specified directory from a given stream.
@@ -175,8 +174,8 @@ def write_input_file(datadir: str, stream, fname) -> None:
             os.makedirs(datadir)
         if not os.access(datadir, os.W_OK):
             raise PermissionError(f"Directory {datadir} is not writable.")
-        
-        filename = os.path.join(datadir, f'{fname}.fastq.gz')
+
+        filename = os.path.join(datadir, f"{fname}.fastq.gz")
         if stream.__getattribute__("type") == "application/x-gzip":
             with open(filename, "wb") as temp1:
                 temp1.write(stream.getbuffer())
@@ -253,7 +252,9 @@ def process(args):
         pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw, position=orientation)
         return pamexpobj, run_summ
     except Exception as e:
-        st.error(f"There was an error processing the FASTQ files, Please verify your input files.")
+        st.error(
+            f"There was an error processing the FASTQ files, Please verify your input files."
+        )
         raise e
     finally:
         delete_session_dir()
@@ -332,9 +333,9 @@ def main(args):
                 slider, slidebutton = st.columns(
                     spec=[0.8, 0.2], vertical_alignment="center"
                 )
-                
+
                 with slider:
-                    
+
                     st.slider(
                         label="Select the Zscore cutoff:",
                         min_value=float(df["zscore"].min()),
@@ -358,7 +359,7 @@ def main(args):
                 althist = tpio.histogram_plot(
                     df, maxbins=config["histogram_bins"], cutoff=cutoff
                 )
-                
+
                 # Plot histogram with vertical line at cutoff
                 hist, degenerates = st.columns(spec=[0.8, 0.2])
                 with hist:
@@ -368,7 +369,9 @@ def main(args):
                     st.dataframe({"PAM/TAM site": dseqs}, hide_index=True)
 
                 st.subheader(f" Review filtered data for length {key}:")
-                styled_df = filtered_df.style.format({'pvalue': '{:.3e}', 'p_adjust_BH': '{:.3e}'})
+                styled_df = filtered_df.style.format(
+                    {"pvalue": "{:.3e}", "p_adjust_BH": "{:.3e}"}
+                )
                 st.write(styled_df)
 
                 st.subheader(

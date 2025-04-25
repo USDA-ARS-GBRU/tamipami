@@ -42,7 +42,7 @@ repository = "http://github.com/usda-ars-gbru/tamipami"
 
 
 [tool.setuptools_scm]
-# version_file = "tamipami/_version.py"
+write_to = "tamipami/_version.py"
 
 [tool.setuptools]
 packages = ['tamipami']

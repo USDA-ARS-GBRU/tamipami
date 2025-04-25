@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Utility functions to import and export shared data and graphics 
-"""
+"""Utility functions to import and export shared data and graphics"""
 import sys
 import tempfile
 import logging
@@ -52,7 +51,13 @@ def export_hdf(
                 return out._handle.get_file_image()
             else:
                 out.close()
-    except (OSError, KeyError, ValueError, TypeError, pd.errors.PossibleDataLossError) as e:
+    except (
+        OSError,
+        KeyError,
+        ValueError,
+        TypeError,
+        pd.errors.PossibleDataLossError,
+    ) as e:
         logging.error(f"Could not export the HDF5 file: {e}")
         raise e
 

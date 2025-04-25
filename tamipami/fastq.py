@@ -68,19 +68,18 @@ def merge_reads(fastq: str, fastq2: str, outfile: str) -> str:
         ]
         parameters.extend(config["bbmerge"])
         logging.info(parameters)
-        result = subprocess.run(
-            parameters, capture_output=True, check=True
-        )
+        result = subprocess.run(parameters, capture_output=True, check=True)
         stderr_output = result.stderr.decode("utf-8")
         return stderr_output
     except subprocess.CalledProcessError as e:
-        logging.error(f"Could not merge Forward and reverse reads with BBmerge, Check if you have provided the correct read files in the correct order: {e.stderr.decode('utf-8')}")
+        logging.error(
+            f"Could not merge Forward and reverse reads with BBmerge, Check if you have provided the correct read files in the correct order: {e.stderr.decode('utf-8')}"
+        )
         raise e
     except RuntimeError as e:
         logging.error("could not perform read merging with BBmerge")
         logging.error(f"stderr:{e.stderr.decode('utf-8')}")
         raise e
-
 
 
 def count_pam(
@@ -128,7 +127,9 @@ def count_pam(
 
         return kmer_dict, tot_reads, guide_detections
     except (ValueError, TypeError) as e:
-        logging.error("Could not read the merged FASTQ file. please verify the input FASTQ and merged FASTQ files ere not empty.")
+        logging.error(
+            "Could not read the merged FASTQ file. please verify the input FASTQ and merged FASTQ files ere not empty."
+        )
         raise e
     except (gzip.BadGzipFile, OSError, EOFError) as e:
         logging.error("Could not open the gzipped, merged FASTQ file")
@@ -139,6 +140,7 @@ def count_pam(
     else:
         logging.error("An unexpected error occurred")
         raise e
+
 
 def process(
     fastq: str, fastq2: str, pamlen: int, mergedfile: str, spacer: str, orientation: str

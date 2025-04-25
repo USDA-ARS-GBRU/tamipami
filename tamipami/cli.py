@@ -1,8 +1,6 @@
-
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""cli: a TamiPami command line interfaces application module
-"""
+"""cli: a TamiPami command line interfaces application module"""
 import argparse
 import logging
 import tempfile
@@ -39,7 +37,9 @@ def _logger_setup(logfile: str) -> None:
         raise FileNotFoundError(f"Logfile path does not exist: {logfile}")
 
     log_level = os.getenv("LOG_LEVEL", "DEBUG")
-    log_format = os.getenv("LOG_FORMAT", "%(asctime)s %(name)-12s %(levelname)-8s %(message)s")
+    log_format = os.getenv(
+        "LOG_FORMAT", "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"
+    )
     date_format = os.getenv("DATE_FORMAT", "%m-%d %H:%M")
 
     logging.basicConfig(
@@ -53,12 +53,13 @@ def _logger_setup(logfile: str) -> None:
     console: logging.StreamHandler = logging.StreamHandler()
     console.setLevel(logging.INFO)
     # set a format which is simpler for console use
-    formatter: logging.Formatter = logging.Formatter("%(asctime)s: %(levelname)-8s %(message)s")
+    formatter: logging.Formatter = logging.Formatter(
+        "%(asctime)s: %(levelname)-8s %(message)s"
+    )
     # tell the handler to use this format
     console.setFormatter(formatter)
     # add the handler to the root logger
     logging.getLogger("").addHandler(console)
-
 
 
 def myparser() -> argparse.ArgumentParser:
@@ -81,7 +82,7 @@ def myparser() -> argparse.ArgumentParser:
     parser.add_argument("--log", help="Log file", default="tamipami.log")
     sub_parsers = parser.add_subparsers(dest="subcommand")
 
-    parser.add_argument('-V', '--version', action='version', version=__version__)
+    parser.add_argument("-V", "--version", action="version", version=__version__)
 
     parser_process = sub_parsers.add_parser(
         "process",
@@ -196,7 +197,11 @@ def parse_lib(args: argparse.Namespace) -> tuple[str, str]:
     """
     if args.library:
         spacer = config["spacer_dict"].get(args.library, {}).get("spacer", args.spacer)
-        orientation = config["spacer_dict"].get(args.library, {}).get("orientation", args.orientation)
+        orientation = (
+            config["spacer_dict"]
+            .get(args.library, {})
+            .get("orientation", args.orientation)
+        )
     else:
         spacer = args.spacer
         orientation = args.orientation
@@ -225,7 +230,9 @@ def process(args: argparse.Namespace = None) -> tuple[pam.pamSeqExp, dict]:
     """
     try:
         with tempfile.TemporaryDirectory() as datadir:
-            os.chmod(datadir, 0o700)  # Ensure the directory is only accessible by the owner
+            os.chmod(
+                datadir, 0o700
+            )  # Ensure the directory is only accessible by the owner
             spacer, orientation = parse_lib(args)
             logging.info(f"spacer: {spacer}")
             logging.info(f"orientation: {orientation}")
@@ -241,11 +248,21 @@ def process(args: argparse.Namespace = None) -> tuple[pam.pamSeqExp, dict]:
                     orientation=orientation,
                 )
 
-            cont_raw, run_summ["cont"]["tot"], run_summ["cont"]["targets"] = process_fastq(
-                args.cont1, args.cont2, os.path.join(datadir, "cont_merged.fastq.gz"), spacer, orientation
+            cont_raw, run_summ["cont"]["tot"], run_summ["cont"]["targets"] = (
+                process_fastq(
+                    args.cont1,
+                    args.cont2,
+                    os.path.join(datadir, "cont_merged.fastq.gz"),
+                    spacer,
+                    orientation,
+                )
             )
             exp_raw, run_summ["exp"]["tot"], run_summ["exp"]["targets"] = process_fastq(
-                args.exp1, args.exp2, os.path.join(datadir, "exp_merged.fastq.gz"), spacer, orientation
+                args.exp1,
+                args.exp2,
+                os.path.join(datadir, "exp_merged.fastq.gz"),
+                spacer,
+                orientation,
             )
 
             pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw, position=orientation)
@@ -284,7 +301,9 @@ def _create_directories(outdir: str, subdir_list: list) -> None:
 
         # Check if subdir_list is empty
         if not subdir_list:
-            logging.warning("The subdir_list is empty. No subdirectories will be created.")
+            logging.warning(
+                "The subdir_list is empty. No subdirectories will be created."
+            )
 
         # Create the subdirectories
         for subdir in subdir_list:
@@ -361,14 +380,10 @@ def _mk_outputs(pamseqobj: pam.pamSeqExp, outdir: str, lenval: int, cutoff: floa
         )
         raise e
     except FileNotFoundError as e:
-        logging.error(
-            f"FileNotFoundError: Could not save file in directory {outdir}."
-        )
+        logging.error(f"FileNotFoundError: Could not save file in directory {outdir}.")
         raise e
     except Exception as e:
-        logging.error(
-            f"Unexpected error occurred for kmer length {lenval}: {str(e)}"
-        )
+        logging.error(f"Unexpected error occurred for kmer length {lenval}: {str(e)}")
         raise e
 
 
@@ -394,19 +409,20 @@ def predict(args: argparse.Namespace = None) -> None:
 
     if args.cutoff:
         cutoff = json.loads(args.cutoff)
-        assert set(cutoff.keys()) == set(kmdkeys), (
-            "A length listed in the --cutoff input does not match the lengths available."
-        )
+        assert set(cutoff.keys()) == set(
+            kmdkeys
+        ), "A length listed in the --cutoff input does not match the lengths available."
     else:
-        cutoff = {lenval: pamseqobj.find_breakpoint(length=lenval) for lenval in kmdkeys}
+        cutoff = {
+            lenval: pamseqobj.find_breakpoint(length=lenval) for lenval in kmdkeys
+        }
 
     pd_out = _create_directories(args.predict_out, map(str, kmdkeys))
 
     for lenval in kmdkeys:
-        _mk_outputs(pamseqobj=pamseqobj, outdir=pd_out, lenval=lenval, cutoff=cutoff[lenval])
-
-
-
+        _mk_outputs(
+            pamseqobj=pamseqobj, outdir=pd_out, lenval=lenval, cutoff=cutoff[lenval]
+        )
 
 
 def main(args: argparse.Namespace = None) -> None:
@@ -426,17 +442,18 @@ def main(args: argparse.Namespace = None) -> None:
     """
     parser = myparser()
     args = args or parser.parse_args()
-    
+
     _logger_setup(args.log)
     logging.info("Begin processing PAM/TAM sequencing libraries")
     logging.info(args)
-    
+
     if args.subcommand == "process":
         pamexpobj, run_summ = process(args)
         log_run_summary(run_summ)
         export_results(pamexpobj, args.outfile)
     elif args.subcommand == "predict":
         predict(args)
+
 
 def log_run_summary(run_summ):
     logging.info(
@@ -449,6 +466,7 @@ def log_run_summary(run_summ):
             run_summ["exp"]["tot"], run_summ["exp"]["targets"]
         )
     )
+
 
 def export_results(pamexpobj, outfile):
     logging.info("Writing results to {}".format(outfile))

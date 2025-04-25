@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""pam:  a TamiPami module for working with PAM/TAM spacer sequences 
-"""
+"""pam:  a TamiPami module for working with PAM/TAM spacer sequences"""
 
 import logging
 from typing import Dict, List
@@ -42,6 +41,7 @@ class pamSeqExp:
         check_N: Estimates the fraction of standard deviation due to shot noise.
         make_logo: Generates a sequence motif logo based on kmer significance.
     """
+
     def __init__(
         self,
         ctl: dict[str, int] = None,
@@ -65,7 +65,9 @@ class pamSeqExp:
             None
         """
         if not (all([ctl, exp, position]) ^ (multikmerdict is not None)):
-            raise ValueError("Please provide either `ctl`, `exp`, and `position` or a `multikmerdict` object.")
+            raise ValueError(
+                "Please provide either `ctl`, `exp`, and `position` or a `multikmerdict` object."
+            )
         if not multikmerdict:
             self.ctl = ctl
             self.exp = exp
@@ -96,19 +98,21 @@ class pamSeqExp:
                     raise ValueError("All kmers must have the same length.")
         else:
             if kmerlen is None:
-                raise ValueError("The `kmers` dictionary is empty, unable to determine kmer length.")
+                raise ValueError(
+                    "The `kmers` dictionary is empty, unable to determine kmer length."
+                )
         return kmerlen
 
     def _kmersummary(self, kmer_dict: dict[str, int]) -> Dict[str, List]:
         """
-        Summarizes kmer data into a dictionary containing kmers, their counts, 
+        Summarizes kmer data into a dictionary containing kmers, their counts,
         and the centered log ratio (CLR) of the data.
 
         Args:
             kmer_dict (dict[str, int]): A dictionary of kmers and their counts.
 
         Returns:
-            Dict[str, List]: A dictionary with keys 'kmers', 'counts', and 'clr', 
+            Dict[str, List]: A dictionary with keys 'kmers', 'counts', and 'clr',
             each containing a list of kmers, their counts, and the CLR of the data, respectively.
 
         Raises:
@@ -117,60 +121,69 @@ class pamSeqExp:
 
         kmers = list(kmer_dict.keys())
         counts = list(kmer_dict.values())
-    
+
         if sum(counts) <= 0:
-            logging.error("Sum of counts is zero or negative. Check Library, spacer, and orientation settings.")
-            raise ValueError("No targets were identified in your data, Please check your Library, spacer ,and orientation settings")
-    
+            logging.error(
+                "Sum of counts is zero or negative. Check Library, spacer, and orientation settings."
+            )
+            raise ValueError(
+                "No targets were identified in your data, Please check your Library, spacer ,and orientation settings"
+            )
+
         if any(c < 0 for c in counts):
             logging.error("Counts list contains negative integers.")
-            raise ValueError("Counts must be a non-empty list of non-negative integers.")
-    
+            raise ValueError(
+                "Counts must be a non-empty list of non-negative integers."
+            )
+
         try:
             refmc = composition.multi_replace(counts)
             clr = composition.clr(refmc).tolist()
         except Exception as e:
             logging.error(f"Error in processing kmer data: {e}")
             raise ValueError(f"Error in processing kmer data: {e}")
-    
+
         return {"kmers": kmers, "counts": counts, "clr": clr}
 
     def _combine_single_pair(
         self, exper: dict[str, Optional[list]], ctl: dict[str, Optional[list]]
     ) -> pd.DataFrame:
         """
-        Combines control and experimental kmer data, calculates the difference in 
-        centered log ratios (CLRs), and estimates z-scores and single-tailed significance. 
+        Combines control and experimental kmer data, calculates the difference in
+        centered log ratios (CLRs), and estimates z-scores and single-tailed significance.
 
         Args:
-            exper (dict[str, Optional[list]]): Experimental data dictionary containing 
+            exper (dict[str, Optional[list]]): Experimental data dictionary containing
                 'kmers', 'counts', and 'clr'.
-            ctl (dict[str, Optional[list]]): Control data dictionary containing 
+            ctl (dict[str, Optional[list]]): Control data dictionary containing
                 'kmers', 'counts', and 'clr'.
 
         Returns:
-            pd.DataFrame: A DataFrame with columns 'kmers', 'ctl_raw', 'exp_raw', 
+            pd.DataFrame: A DataFrame with columns 'kmers', 'ctl_raw', 'exp_raw',
             'ctl_clr', 'exp_clr', 'diff', 'zscore', 'pvalue', and BH adjusted p-value.
 
         Raises:
             ValueError: If kmers from the experimental and control data do not match.
         """
         if exper["kmers"] != ctl["kmers"]:
-            raise ValueError("Kmers from the experimental and control data do not match.")
+            raise ValueError(
+                "Kmers from the experimental and control data do not match."
+            )
 
-        df = pd.DataFrame({
-            "kmers": ctl["kmers"],
-            "ctl_raw": ctl["counts"],
-            "exp_raw": exper["counts"],
-            "ctl_clr": ctl["clr"],
-            "exp_clr": exper["clr"],
-        })
+        df = pd.DataFrame(
+            {
+                "kmers": ctl["kmers"],
+                "ctl_raw": ctl["counts"],
+                "exp_raw": exper["counts"],
+                "ctl_clr": ctl["clr"],
+                "exp_clr": exper["clr"],
+            }
+        )
         df["diff"] = df["ctl_clr"] - df["exp_clr"]
         df["zscore"] = (df["diff"] - df["diff"].mean()) / df["diff"].std()
         df["pvalue"] = scipy.stats.norm.sf(df["zscore"])
         df["p_adjust_BH"] = scipy.stats.false_discovery_control(df["pvalue"])
         return df.sort_values(by="kmers")
-
 
     def _group_and_sum_kmers(
         self, df: pd.DataFrame, N: int, position: str = "3prime"
@@ -250,18 +263,16 @@ class pamSeqExp:
             kl = kl - 1
         self.multikmerdict = multikmerdict
 
- 
-
     def find_breakpoint(self, length: int, type: str = "zscore") -> float:
         """
         Finds the breakpoint in kmer data for a specified length and type.
 
         This method retrieves kmer data from the multikmer dictionary for a given
         length and calculates the breakpoint using the ckmeans algorithm. The type
-        of data used for breakpoint calculation can be either 'zscore' or 'diff'. 
-        
+        of data used for breakpoint calculation can be either 'zscore' or 'diff'.
+
         For information on the algorithm see: Haizhou Wang and Mingzhou Song. 2011.
-        Ckmeans.1d.dp: Optimal k-means Clustering in One Dimension by Dynamic Programming. 
+        Ckmeans.1d.dp: Optimal k-means Clustering in One Dimension by Dynamic Programming.
         The R Journal. 3:2, pages 29-33. doi:10.32614/RJ-2011-015.
 
         Args:
@@ -308,7 +319,7 @@ class pamSeqExp:
         """
         if self.multikmerdict is None:
             raise ValueError("`multikmerdict` is not initialized.")
-    
+
         def check(vect: List[float]):
             if vect.empty:
                 return 0.0
@@ -322,7 +333,9 @@ class pamSeqExp:
             ctl_raw_sd = check(self.multikmerdict[n]["ctl_raw"])
             exp_raw_sd = check(self.multikmerdict[n]["exp_raw"])
         except KeyError as e:
-            logging.error(f"KeyError: {e} - The key {n} does not exist in multikmerdict.")
+            logging.error(
+                f"KeyError: {e} - The key {n} does not exist in multikmerdict."
+            )
             raise
         return ctl_raw_sd, exp_raw_sd
 
@@ -345,7 +358,7 @@ class pamSeqExp:
         Args:
             length (int): The length of the kmers to analyze.
             cutoff (float): The threshold for filtering kmers based on the score type.
-            score_type (str, optional): The type of score to use for filtering, 
+            score_type (str, optional): The type of score to use for filtering,
                 defaults to "zscore".
             above (bool, optional): If True, filters kmers with scores below the cutoff;
                 if False, filters kmers with scores above the cutoff. Defaults to True.
@@ -373,19 +386,27 @@ class pamSeqExp:
             )
             logo_fig = logomaker.Logo(prob_df, color_scheme="colorblind_safe")
             if filename:
-                valid_extensions = ('.pdf', '.jpg', '.png')
+                valid_extensions = (".pdf", ".jpg", ".png")
                 if filename.endswith(valid_extensions):
                     plt.savefig(filename)
                 else:
-                    logging.warning("Invalid file extension. Please use one of the following: .pdf, .jpg, .png")
+                    logging.warning(
+                        "Invalid file extension. Please use one of the following: .pdf, .jpg, .png"
+                    )
             else:
                 return plt
         except KeyError as e:
-            logging.error("KeyError: Could not find the specified length in multikmerdict.")
+            logging.error(
+                "KeyError: Could not find the specified length in multikmerdict."
+            )
             raise e
         except ValueError as e:
-            logging.error("ValueError: Invalid value encountered during logo generation.")
+            logging.error(
+                "ValueError: Invalid value encountered during logo generation."
+            )
             raise e
         except Exception as e:
-            logging.error("Unexpected error occurred during sequence motif graphic generation.")
+            logging.error(
+                "Unexpected error occurred during sequence motif graphic generation."
+            )
             raise e
