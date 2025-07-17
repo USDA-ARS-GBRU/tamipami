@@ -226,10 +226,18 @@ def process(args):
         create_session_dir()
         datadir = st.session_state["datadir"]
         save_input_files(datadir, args)
+        def safe_value(val):
+            # If it's a Streamlit UploadedFile, show its name, else show the value as string
+            if hasattr(val, "name"):
+                return val.name
+            return str(val)  # Convert everything else to string
+
         with st.expander("Run Configuration"):
-            st.dataframe(
-                {"Parameter": args.keys(), "Value": args.values()}, hide_index=True
-            )
+            param_df = pd.DataFrame({
+                "Parameter": list(args.keys()),
+                "Value": [safe_value(v) for v in args.values()]
+            })
+            st.dataframe(param_df, hide_index=True)
             st.write("Data directory: {}".format(datadir))
         spacer, orientation = parse_lib(args)
         run_summ = {"cont": {}, "exp": {}}
@@ -237,7 +245,6 @@ def process(args):
             fastq=os.path.join(datadir, "cont1.fastq.gz"),
             fastq2=os.path.join(datadir, "cont2.fastq.gz"),
             pamlen=args["length"],
-            mergedfile=os.path.join(datadir, "cont_merged.fastq.gz"),
             spacer=spacer,
             orientation=orientation,
         )
@@ -245,7 +252,6 @@ def process(args):
             fastq=os.path.join(datadir, "exp1.fastq.gz"),
             fastq2=os.path.join(datadir, "exp2.fastq.gz"),
             pamlen=args["length"],
-            mergedfile=os.path.join(datadir, "exp_merged.fastq.gz"),
             spacer=spacer,
             orientation=orientation,
         )
@@ -423,4 +429,5 @@ if __name__ == "__main__":
                 Unless expressly stated otherwise, the person who associated a work with this deed makes no warranties about the work, and disclaims liability for all uses of the work, to the fullest extent permitted by applicable law. When using or citing the work, you should not imply endorsement by the author or the affirmer.
                             """
         )
-    st.write("Tamipami version {}".format(__version__))
+
+st.write("Tamipami version {}".format(__version__))

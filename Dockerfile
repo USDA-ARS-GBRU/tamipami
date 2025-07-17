@@ -9,7 +9,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install conda dependencies
-RUN mamba install -y -c bioconda bbmap
+RUN mamba install -y -c bioconda bbmap=39.28
 
 # Copy the tamipami package files and install dependencies
 LABEL org.opencontainers.image.source="https://github.com/usda-ars-gbru/tamipami"

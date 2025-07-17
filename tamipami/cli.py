@@ -7,6 +7,7 @@ import tempfile
 import os
 import sys
 import json
+import multiprocessing
 from pathlib import Path
 
 import pandas as pd
@@ -33,8 +34,9 @@ def _logger_setup(logfile: str) -> None:
     Raises:
         FileNotFoundError: If the directory for the logfile does not exist.
     """
-    if not os.path.exists(os.path.dirname(logfile)):
-        raise FileNotFoundError(f"Logfile path does not exist: {logfile}")
+    logdir = os.path.dirname(logfile)
+    if logdir and not os.path.exists(logdir):
+        os.makedirs(logdir, exist_ok=True)
 
     log_level = os.getenv("LOG_LEVEL", "DEBUG")
     log_format = os.getenv(
@@ -207,63 +209,36 @@ def parse_lib(args: argparse.Namespace) -> tuple[str, str]:
         orientation = args.orientation
     return spacer, orientation
 
+def process_fastq_wrapper(args_tuple):
+    fastq1, fastq2, spacer, orientation, pamlen = args_tuple
+    return fastq.process(
+        fastq=fastq1,
+        fastq2=fastq2,
+        pamlen=pamlen,
+        spacer=spacer,
+        orientation=orientation,
+    )
 
 def process(args: argparse.Namespace = None) -> tuple[pam.pamSeqExp, dict]:
-    """
-    Processes FASTQ files to generate a pamSeqExp object and summary statistics.
-
-    This function merges and processes control and experimental FASTQ files, counts
-    PAM/TAM sequences, and initializes a pamSeqExp object with the resulting data.
-
-    Args:
-        args (argparse.Namespace, optional): Command-line arguments containing paths
-        to FASTQ files, PAM/TAM sequence length, and library configuration.
-
-    Returns:
-        tuple[pam.pamSeqExp, dict]: A tuple containing the pamSeqExp object and a
-        dictionary with summary statistics of the control and experimental data.
-
-    Raises:
-        FileNotFoundError: If any specified file is not found.
-        ValueError: If there is an issue with the input values.
-        Exception: For any unexpected errors during processing.
-    """
     try:
         with tempfile.TemporaryDirectory() as datadir:
-            os.chmod(
-                datadir, 0o700
-            )  # Ensure the directory is only accessible by the owner
+            os.chmod(datadir, 0o700)
             spacer, orientation = parse_lib(args)
             logging.info(f"spacer: {spacer}")
             logging.info(f"orientation: {orientation}")
             run_summ = {"cont": {}, "exp": {}}
 
-            def process_fastq(fastq1, fastq2, mergedfile, spacer, orientation):
-                return fastq.process(
-                    fastq=fastq1,
-                    fastq2=fastq2,
-                    pamlen=args.length,
-                    mergedfile=mergedfile,
-                    spacer=spacer,
-                    orientation=orientation,
-                )
+            # Prepare arguments for both calls
+            tasks = [
+                (args.cont1, args.cont2, spacer, orientation, args.length),
+                (args.exp1, args.exp2, spacer, orientation, args.length),
+            ]
 
-            cont_raw, run_summ["cont"]["tot"], run_summ["cont"]["targets"] = (
-                process_fastq(
-                    args.cont1,
-                    args.cont2,
-                    os.path.join(datadir, "cont_merged.fastq.gz"),
-                    spacer,
-                    orientation,
-                )
-            )
-            exp_raw, run_summ["exp"]["tot"], run_summ["exp"]["targets"] = process_fastq(
-                args.exp1,
-                args.exp2,
-                os.path.join(datadir, "exp_merged.fastq.gz"),
-                spacer,
-                orientation,
-            )
+            with multiprocessing.Pool(processes=2) as pool:
+                results = pool.map(process_fastq_wrapper, tasks)
+
+            (cont_raw, run_summ["cont"]["tot"], run_summ["cont"]["targets"]) = results[0]
+            (exp_raw, run_summ["exp"]["tot"], run_summ["exp"]["targets"]) = results[1]
 
             pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw, position=orientation)
             return pamexpobj, run_summ
