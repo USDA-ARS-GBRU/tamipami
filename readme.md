@@ -22,12 +22,12 @@ pip install .
 
 ## Web Application 
 
-The web application will be available soon at [https://tamipami.che.ufl.edu](https://tamipami.che.ufl.edu)
+The web application can be found at [https://tamipami.che.ufl.edu](https://tamipami.che.ufl.edu)
 
 To launch a the streamlit web application locally at http://localhost:8501 run this commmand:
 
 ```{bash}
-streamlit run app.py 
+streamlit run tamipami/app.py 
 ```
 
 
@@ -42,8 +42,8 @@ Tamipami Inputs | Tamipami results
 3. If no library is selected, enter the target sequence and the orientation (5prime is PAM-Target, 3prime is Target-PAM (like spCas9)).
 4. Select the maximum length to analyze. You can compare all smaller lengths once you have analyzed the data
 5. Hit 'Submit'. This will process your files.
-6. After you have hit 'Submit' you can explore your data interactively. The key interface is the Zscore slider bar. Moving that will set the 
-cutoff value to separate kmers that cut from those that did not. This will update the histogram of sequence zscores, the table of reads  the degenerate sequences created and the sequence motif.
+6. After you have hit 'Submit' you can explore your data interactively. The key interface is the z-score slider bar. Moving that will set the 
+cutoff value to separate kmers that cut from those that did not. This will update the histogram of sequence z-scores, the table of reads the degenerate sequences created and the sequence motif.
 7. Be sure to explore each length tab, to select the PAM/TAM site best supported by your data.
 8. Export the raw run data.
 
@@ -109,3 +109,12 @@ Coming soon...
 If you need help or encounter errors please request support on the [Tamipami Github issues page](https://github.com/USDA-ARS-GBRU/tamipami/issues)   
     
 
+## server notes
+
+```
+docker run -d \
+  -p 8501:8501 \
+  --name tamipami-app \
+  streamlit-app:latest \
+  streamlit run /app/tamipami/app.py --server.port=8501 --server.address=0.0.0.0
+```
