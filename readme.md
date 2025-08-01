@@ -111,7 +111,7 @@ options:
 
 ## Example data
 
-Example datasets are available under NCBI Bioproject [PRJNA1298332 : Tamipami: Software for determining the PAM and TAM sites of new CRISPR/Cas and TnpB nucleases ](https://www.ncbi.nlm.nih.gov/bioproject/1298332). For more information see [`data/readme.md`](`data/readme.md).
+Example datasets are available under NCBI Bioproject [PRJNA1298332 : Tamipami: Software for determining the PAM and TAM sites of new CRISPR/Cas and TnpB nucleases ](https://www.ncbi.nlm.nih.gov/bioproject/1298332). For more information see [`data/readme.md`](data/readme.md).
 
 
 ## Performance
