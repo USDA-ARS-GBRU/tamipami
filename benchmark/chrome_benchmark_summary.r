@@ -20,7 +20,7 @@ summary_df <- chrome_app %>%
   mutate(
     elapsed_time_sec = sprintf("%.2f ± %.2f", elapsed_time_sec_mean, elapsed_time_sec_sd),
     max_mem_mb = sprintf("%.2f ± %.2f", max_mem_mb_mean, max_mem_mb_sd),
-    avg_cpu_percent = sprintf("%.2f ± %.2f", avg_cpu_percent_mean, avg_cpu_percent_sd)
+    avg_cpu_percent = sprintf("%.4f ± %.4f", avg_cpu_percent_mean, avg_cpu_percent_sd)
   )
 
 # Read benchmark_results.csv for read counts
@@ -74,5 +74,5 @@ gt_tbl <- final_summary %>%
 print(gt_tbl)
 
 # Save the table as a PDF and HTML
-#gtsave(gt_tbl, "benchmark/chrome_app_benchmark.pdf", zoom = 0.7)
-#gtsave(gt_tbl, "benchmark/chrome_app_benchmark.html")
+gtsave(gt_tbl, "chrome_app_benchmark.pdf", zoom = 0.7)
+gtsave(gt_tbl, "chrome_app_benchmark.html", inline_css=TRUE)

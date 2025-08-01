@@ -71,4 +71,4 @@ print(gt_tbl)
 
 # Save the table as a PDF
 gtsave(gt_tbl, "cli_benchmark.pdf",  zoom = 0.7)
-gtsave(gt_tbl, "cli_benchmark2.html") #, inline_css=TRUE)
+gtsave(gt_tbl, "cli_benchmark.html"), inline_css=TRUE)
