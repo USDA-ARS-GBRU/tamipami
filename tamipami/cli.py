@@ -168,7 +168,9 @@ def myparser() -> argparse.ArgumentParser:
         type=json.loads,
         required=False,
         help="""A json string containing the kmer lengths and the Zscore cutoff values above which kmers are considered part of the PAM/TAM.
-                               for example: --cutoff '{"3": 2, "4": 2, "5": 2, "6": 2}'. Single and double quotes are required. If no cutoff is provided it will be automatically calculated using univariate k means clustering. example input : '{'4': 0.7, '5': 1.35}'
+                               Single and double quotes are required. 
+                               If no cutoff is provided it will be automatically calculated using univariate k means clustering. 
+                               Example input: --cutoff '{"3": 2, "4": 2, "5": 2, "6": 2}'
                                """,
     )
     parser_predict.add_argument(

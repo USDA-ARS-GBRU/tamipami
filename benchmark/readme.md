@@ -11,8 +11,10 @@ python run_benchmark.py --experiments ../data/metadata/experiments.csv --data-di
 
 The script `benchmark_app_chrome.py` runs experimental dataset in the paper through a locally hosted instance of the Tamipami web app N times and reports the timing and resource use in an output CSV.  It uses the Python  browser testing framework [Selenium](https://www.selenium.dev/documentation/) to automatically interact with the web application and measure client-side resource use and timings.
 
+Streamlit, the web application framework for Tamipami, uses cashing to improve performance. To simulate the first run experience, we disable caching by commenting out the decorator `@st.cache_data` above the `process()` function of `app.py`.
+
 ```{bash}
-python benchmark_app_chrome.py --experiments ../data/metadata/experiments.csv --data-dir ../data/fastq --num_runs 10
+python benchmark_app_chrome.py --experiments /Users/adam.rivers/Documents/tamipami/data/metadata/experiments.csv --data-dir /Users/adam.rivers/Documents/tamipami/data/fastq --num_runs 1 --output chrome_app_results.csv
 ```
 
 ## Test system configuration
