@@ -188,3 +188,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 .qodo
+
+~$*.xlsx
+~$*.xls
