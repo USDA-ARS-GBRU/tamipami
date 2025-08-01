@@ -1,5 +1,12 @@
 # Tamipami: A web application and command line interface for finding the TAM and PAM sites of novel endonucleases
 
+__Carlos Orosco<sup>1</sup>, Pyush Jain<sup>1</sup>, Adam R. Rivers<sup>2</sup>__
+
+1. University of Florida, Department of Chemical Engineering, Gainesville, FL USA
+2. United States Department of Agriculture, Agricultural Research Service, Genomics and Bioinformatics Research Unit, Gainesville, FL USA
+
+
+<br>
 
 When a new Cas or TnpB guided endonuclease is discovered or engineered, one of the first tasks is identifying its PAM or TAM recognition site. This can be done by treating a pool of plasmid DNA containing a target site adjacent to a random region. The random regions containing  the PAM/TAM site are recognized and cut in the presence of the endonuclease and a guide RNA. These become depleted in the sequencing library. By comparing an uncut control library  to a cut  experimental library it is possible to identify the PAM/TAM site.  The method was introduced by [Walton et al. 2021]( https://doi.org/10.1038/s41596-020-00465-2).
 That work deposited the plasmid pools with [Addgene]( https://www.addgene.org/pooled-library/kleinstiver-ht-pamda/), making the lab protocol accessible.   
@@ -93,23 +100,32 @@ usage: tamipami predict [-h] [--input INPUT] [--cutoff CUTOFF] --predict_out PRE
 
 options:
   -h, --help            show this help message and exit
-  --input INPUT         An file containing the data from a TamiPami process run or downloaded data from the web ap, if not input is provided STDIN will be assumed
-  --cutoff CUTOFF       A json string containing the kmer lengths and the Zscore cutoff values above which kmers are considered part of the PAM/TAM. If no cutoff is provided it will be automatically
-                        calculated using univariate k means clustering. example input : '{'4': 0.7, '5': 1.35}'
+  --input INPUT         An file containing the data from a TamiPami process run or downloaded data from the web ap, if not input is provided STDIN will
+                        be assumed
+  --cutoff CUTOFF       A json string containing the kmer lengths and the Zscore cutoff values above which kmers are considered part of the PAM/TAM.
+                        Single and double quotes are required. If no cutoff is provided it will be automatically calculated using univariate k means
+                        clustering. Example input: --cutoff '{"3": 2, "4": 2, "5": 2, "6": 2}'
   --predict_out PREDICT_OUT
                         A file directory containing the PAM/TAM and degenerate sequences identified
 ```
 
 ## Example data
 
-Coming soon... 
+Example datasets are available under NCBI Bioproject [PRJNA1298332 : Tamipami: Software for determining the PAM and TAM sites of new CRISPR/Cas and TnpB nucleases ](https://www.ncbi.nlm.nih.gov/bioproject/1298332). For more information see [`data/readme.md`](`data/readme.md).
+
+
+## Performance
+
+Detailed performance metrics for 7 datasets are found at [`benchmark/readme.md`](benchmark/readme.md). TL;DR most datasets take 15-30 seconds to process.
 
 ## Need more help?
 
 If you need help or encounter errors please request support on the [Tamipami Github issues page](https://github.com/USDA-ARS-GBRU/tamipami/issues)   
     
 
-## server notes
+## Server notes
+
+Docker deployment command:
 
 ```
 docker run -d \
@@ -118,3 +134,9 @@ docker run -d \
   streamlit-app:latest \
   streamlit run /app/tamipami/app.py --server.port=8501 --server.address=0.0.0.0
 ```
+
+## License information
+
+This software is a work of the United States Department of Agriculture,
+Agricultural Research Service and is not copyrightable under U.S. Code Title 17, Section 105. It is released under a Creative Commons CC0
+public domain attribution.
