@@ -1,0 +1,8 @@
+﻿Experiment,Enzyme,Nuclease,Control Library,PAM_TAM,cont1,cont2,exp1,exp2,cont1_sra,cont2_sra,exp1_sra,exp2_sra
+3,AmaTnpB,AmaTnpB,RTW574,TTCAC,LibraryRTW574_R1_003.fastq.gz,LibraryRTW574_R2_003.fastq.gz,AmaTnpB_R1_001.fastq.gz,AmaTnpB_R2_001.fastq.gz,SRR34761005_1.fastq.gz,SRR34761005_2.fastq.gz,SRR34761002_1.fastq.gz,SRR34761002_2.fastq.gz
+1,SpyCas9,SpyCas9,RTW554,NGG,LibraryRTW554_R1_001.fastq.gz,LibraryRTW554_R2_001.fastq.gz,SpyCas9_R1_001.fastq.gz,SpyCas9_R2_001.fastq.gz,SRR34761011_1.fastq.gz,SRR34761011_2.fastq.gz,SRR34761004_1.fastq.gz,SRR34761004_2.fastq.gz
+2,SpyCas9,SpyCas9,RTW554,NGG,LibraryRTW554_R1_002.fastq.gz,LibraryRTW554_R2_002.fastq.gz,SpyCas9_R1_002.fastq.gz,SpyCas9_R2_002.fastq.gz,SRR34761010_1.fastq.gz,SRR34761010_2.fastq.gz,SRR34761003_1.fastq.gz,SRR34761003_2.fastq.gz
+4,AsCas12a,AsCas12a,RTW574,TTTV,LibraryRTW574_R1_002.fastq.gz,LibraryRTW574_R2_002.fastq.gz,AsCas12a_R1_001.fastq.gz,AsCas12a_R2_001.fastq.gz,SRR34761006_1.fastq.gz,SRR34761006_2.fastq.gz,SRR34761001_1.fastq.gz,SRR34761001_2.fastq.gz
+5,BrCas12b,BrCas12b,RTW574,TTN,LibraryRTW574_R1_002.fastq.gz,LibraryRTW574_R2_002.fastq.gz,BrCas12b_R1_001.fastq.gz,BrCas12b_R2_001.fastq.gz,SRR34761006_1.fastq.gz,SRR34761006_2.fastq.gz,SRR34761000_1.fastq.gz,SRR34761000_2.fastq.gz
+6,Cas12i1,Cas12i1,RTW574,TTN,LibraryRTW574_R1_001.fastq.gz,LibraryRTW574_R2_001.fastq.gz,Cas12i1_R1_001.fastq.gz,Cas12i1_R2_001.fastq.gz,SRR34761007_1.fastq.gz,SRR34761007_2.fastq.gz,SRR34761009_1.fastq.gz,SRR34761009_2.fastq.gz
+7,LbCas12a,LbCas12a,RTW574,TTN,LibraryRTW574_R1_002.fastq.gz,LibraryRTW574_R2_002.fastq.gz,LbCas12a_R1_001.fastq.gz,LbCas12a_R2_001.fastq.gz,SRR34761006_1.fastq.gz,SRR34761006_2.fastq.gz,SRR34761008_1.fastq.gz,SRR34761008_2.fastq.gz

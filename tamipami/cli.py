@@ -165,10 +165,10 @@ def myparser() -> argparse.ArgumentParser:
     )
     parser_predict.add_argument(
         "--cutoff",
-        type=str,
+        type=json.loads,
         required=False,
         help="""A json string containing the kmer lengths and the Zscore cutoff values above which kmers are considered part of the PAM/TAM.
-                               If no cutoff is provided it will be automatically calculated using univariate k means clustering. example input : '{'4': 0.7, '5': 1.35}'
+                               for example: --cutoff '{"3": 2, "4": 2, "5": 2, "6": 2}'. Single and double quotes are required. If no cutoff is provided it will be automatically calculated using univariate k means clustering. example input : '{'4': 0.7, '5': 1.35}'
                                """,
     )
     parser_predict.add_argument(
@@ -257,7 +257,7 @@ import os
 import logging
 
 
-def _create_directories(outdir: str, subdir_list: list) -> None:
+def _create_directories(outdir: str, subdir_list: list) -> str:
     """Create a main output directory and specified subdirectories.
 
     Args:
@@ -295,6 +295,8 @@ def _create_directories(outdir: str, subdir_list: list) -> None:
         logging.error(f"Error creating directory '{outdir}': {e}")
         raise
 
+    return outdir
+
 
 def _mk_outputs(pamseqobj: pam.pamSeqExp, outdir: str, lenval: int, cutoff: float):
     """
@@ -312,7 +314,7 @@ def _mk_outputs(pamseqobj: pam.pamSeqExp, outdir: str, lenval: int, cutoff: floa
 
     Raises:
         ValueError: If `outdir` is not a valid directory, `lenval` is not a positive
-        integer, or `cutoff` is negative.
+        integer.
         KeyError: If the specified kmer length is not found in multikmerdict.
         FileNotFoundError: If a file cannot be saved in the specified directory.
         Exception: For any unexpected errors during processing.
@@ -321,14 +323,11 @@ def _mk_outputs(pamseqobj: pam.pamSeqExp, outdir: str, lenval: int, cutoff: floa
         raise ValueError("`outdir` must be a valid directory path.")
     if not isinstance(lenval, int) or lenval <= 0:
         raise ValueError("`lenval` must be a positive integer.")
-    if not isinstance(cutoff, (int, float)) or cutoff < 0:
-        raise ValueError("`cutoff` must be a non-negative number.")
     try:
         df = pamseqobj.multikmerdict[lenval]
         pamseqobj.make_logo(
             length=lenval,
             cutoff=cutoff,
-            type="zscore",
             above=True,
             filename=os.path.join(
                 outdir, str(lenval), "logo." + config["logo_file_type"]
@@ -383,7 +382,7 @@ def predict(args: argparse.Namespace = None) -> None:
     kmdkeys = pamseqobj.multikmerdict.keys()
 
     if args.cutoff:
-        cutoff = json.loads(args.cutoff)
+        cutoff = {int(key): value for key, value in args.cutoff.items()}
         assert set(cutoff.keys()) == set(
             kmdkeys
         ), "A length listed in the --cutoff input does not match the lengths available."
@@ -391,7 +390,7 @@ def predict(args: argparse.Namespace = None) -> None:
         cutoff = {
             lenval: pamseqobj.find_breakpoint(length=lenval) for lenval in kmdkeys
         }
-
+        logging.info(f"Computed cutoff: {cutoff}")
     pd_out = _create_directories(args.predict_out, map(str, kmdkeys))
 
     for lenval in kmdkeys:
@@ -421,7 +420,6 @@ def main(args: argparse.Namespace = None) -> None:
     _logger_setup(args.log)
     logging.info("Begin processing PAM/TAM sequencing libraries")
     logging.info(args)
-
     if args.subcommand == "process":
         pamexpobj, run_summ = process(args)
         log_run_summary(run_summ)
