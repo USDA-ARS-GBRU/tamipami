@@ -12,11 +12,17 @@ def make_fastq(records):
 def test_count_pam_stream_5prime_correct_count():
     # Guide: GGG, PAM length: 2, orientation: 5prime
     # Sequence: XXPAMGGGYY, PAM is at positions 2:4, guide at 4:7
+    #records = [
+    #    ("r1", "AACCGGGTT", "IIIIIIIII"),  # PAM: CC, guide: GGG
+    #    ("r2", "TTCCGGGAA", "IIIIIIIII"),  # PAM: CC, guide: GGG
+    #    ("r3", "AACCGGGTT", "IIIIIIIII"),  # PAM: CC, guide: GGG
+    #    ("r4", "AAGGGTTCC", "IIIIIIIII"),  # PAM: AA, guide: GGG
+    #]
     records = [
-        ("r1", "AACCGGGTT", "IIIIIIIII"),  # PAM: CC, guide: GGG
-        ("r2", "TTCCGGGAA", "IIIIIIIII"),  # PAM: CC, guide: GGG
-        ("r3", "AACCGGGTT", "IIIIIIIII"),  # PAM: CC, guide: GGG
-        ("r4", "AAGGGTTCC", "IIIIIIIII"),  # PAM: AA, guide: GGG
+        ("r1", 'AACCCGGTT', "IIIIIIIII"),  # PAM: CC, guide: GGG
+        ("r2", 'TTCCCGGAA', "IIIIIIIII"),  # PAM: CC, guide: GGG
+        ("r3", 'AACCCGGTT', "IIIIIIIII"),  # PAM: CC, guide: GGG
+        ("r4", 'GGAACCCTT', "IIIIIIIII"),  # PAM: AA, guide: GGG
     ]
     fastq = io.StringIO(make_fastq(records))
     kmer_counts, tot_reads, guide_detections = count_pam_stream("GGG", 2, "5prime", fastq)
@@ -34,10 +40,10 @@ def test_count_pam_stream_3prime_correct_count():
     # Guide: GGG, PAM length: 2, orientation: 3prime
     # Sequence: XXGGGPAMYY, PAM is at positions 5:7, guide at 2:5
     records = [
-        ("r1", "AAGGGCCAA", "IIIIIIIII"),  # PAM: CC, guide: GGG
-        ("r2", "TTGGGTTAA", "IIIIIIIII"),  # PAM: TT, guide: GGG
-        ("r3", "AAGGGCCAA", "IIIIIIIII"),  # PAM: CC, guide: GGG
-        ("r4", "AAGGGGGAA", "IIIIIIIII"),  # PAM: GG, guide: GGG
+        ("r1", 'TTGGCCCTT', "IIIIIIIII"),  # PAM: CC, guide: GGG
+        ("r2", 'TTAACCCAA', "IIIIIIIII"),  # PAM: TT, guide: GGG
+        ("r3", 'TTGGCCCTT', "IIIIIIIII"),  # PAM: CC, guide: GGG
+        ("r4", 'TTCCCCCTT', "IIIIIIIII"),  # PAM: GG, guide: GGG
     ]
     fastq = io.StringIO(make_fastq(records))
     kmer_counts, tot_reads, guide_detections = count_pam_stream("GGG", 2, "3prime", fastq)

@@ -10,6 +10,7 @@ import logging
 import re
 import itertools
 import gzip
+from typing import Optional
 
 from Bio import SeqIO
 
@@ -89,8 +90,9 @@ def count_pam_stream(
     guide_detections = 0
     tot_reads = 0
     try:
-        for tot_reads, record in enumerate(SeqIO.parse(fastq_stream, "fastq")):
-            seqstr = str(record.seq)
+        seqrecords = SeqIO.parse(fastq_stream, "fastq")
+        for tot_reads, record in enumerate(seqrecords):
+            seqstr = str(record.reverse_complement().seq)
             result = re.search(spacer, seqstr)
             if result:
                 if orientation == "5prime":
@@ -103,7 +105,7 @@ def count_pam_stream(
                     pamend = spacerend + int(pamlen)
                     pamseq = seqstr[spacerend:pamend]
                     guide_detections += 1
-                if pamseq and pamseq in kmer_dict:
+                if pamseq in kmer_dict:
                     kmer_dict[pamseq] += 1
         return kmer_dict, tot_reads, guide_detections
     except Exception as e:
@@ -111,31 +113,50 @@ def count_pam_stream(
         raise
 
 def process(
-    fastq: str, fastq2: str, pamlen: int, spacer: str, orientation: str
+    fastq: str, fastq2: Optional[str], pamlen: int, spacer: str, orientation: str
 ) -> tuple[dict[str, int], int, int]:
     """
-    Merge reads from FASTQ files and count PAM/TAM sequences on the fly.
+    Merge reads from paired-end FASTQ files (via BBmerge) or stream single-end FASTQ directly,
+    then count PAM/TAM sequences on the fly.
 
     Args:
         fastq (str): Path to the forward FASTQ file.
-        fastq2 (str): Path to the reverse FASTQ file.
+        fastq2 (Optional[str]): Path to the reverse FASTQ file for paired-end runs. If None, single-end is assumed.
         pamlen (int): Length of the PAM/TAM sequences.
         spacer (str): DNA sequence matching the guide sequence.
         orientation (str): Orientation of the PAM/TAM sequence, either '5prime' or '3prime'.
 
     Returns:
-        dict[str, int]: Dictionary containing counts of each PAM/TAM sequence in the sample.
+        tuple[dict[str, int], int, int]: A tuple of (kmer counts, total reads processed, guide detections).
     """
     if orientation not in {"5prime", "3prime"}:
         raise ValueError("`orientation` must be '5prime' or '3prime'.")
-    logging.info("Merging reads and streaming to PAM/TAM counter.")
+
     try:
-        proc = merge_reads_stream(fastq=fastq, fastq2=fastq2)
-        pamcount, tot_reads, target_detections = count_pam_stream(
-            pamlen=pamlen, spacer=spacer, orientation=orientation, fastq_stream=proc.stdout
-        )
-        proc.stdout.close()
-        proc.wait()
+        if fastq2:
+            logging.info("Paired-end input detected; merging reads and streaming to PAM/TAM counter.")
+            proc = merge_reads_stream(fastq=fastq, fastq2=fastq2)
+
+            pamcount, tot_reads, target_detections = count_pam_stream(
+                pamlen=pamlen, spacer=spacer, orientation=orientation, fastq_stream=proc.stdout
+            )
+            print(proc.stderr.read())
+            proc.stdout.close()
+            proc.stderr.close()
+            proc.wait()
+
+        else:
+            logging.info("Single-end input detected; streaming reads directly to PAM/TAM counter.")
+            if fastq.endswith(".gz"):
+                fh = gzip.open(fastq, "rt")
+            else:
+                fh = open(fastq, "rt")
+            try:
+                pamcount, tot_reads, target_detections = count_pam_stream(
+                    pamlen=pamlen, spacer=spacer, orientation=orientation, fastq_stream=fh
+                )
+            finally:
+                fh.close()
     except Exception as e:
         logging.error(f"Error during streaming merge/count: {e}")
         raise

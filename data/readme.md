@@ -17,6 +17,12 @@ for i in $(seq 34761000 34761011); do
 done
 ```
 
+To use wget on, for example, SRR34761000:
+```
+wget -O SRR34761000.fastq.gz https://trace.ncbi.nlm.nih.gov/Traces/sra-reads-be/fastq\?acc\=SRR34761000
+```
+
+
 ## Metadata files
 
 - [`Model.organism.animal.1.0.xlsx`](metadata/Model.organism.animal.1.0.xlsx) the NCBI Biosample metadata file

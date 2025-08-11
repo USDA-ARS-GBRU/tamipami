@@ -1,22 +1,30 @@
-name: publish docker image to GH repo
+name: Publish Docker image to GitHub Container Registry
 
-on: [push]
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger only on version tags like v1.0.0
 
 jobs:
   docker:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check out repository with all history and tags
+      # ✅ Ensure full Git history and tags are available for setuptools_scm
+      - name: Check out repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0     # Ensures full git history and tags are available for setuptools-scm
+          fetch-depth: 0
 
+      # 🛠️ Set up QEMU for cross-platform builds
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-        
+
+      # 🛠️ Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        
+
+      # 🚀 Cache Docker layers to speed up builds
       - name: Cache Docker layers
         uses: actions/cache@v4
         with:
@@ -24,23 +32,31 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-            
-      - name: Login to Github Container Registry
+
+      # 🔐 Authenticate with GitHub Container Registry
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Get short SHA
-        id: slug
-        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
-  
+
+      # 🏷️ Extract version tag from Git reference
+      - name: Get tag name
+        id: get_tag
+        run: echo "VERSION_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      # 🐳 Build and push Docker image with dynamic versioning
       - name: Build and push tamipami image
         uses: docker/build-push-action@v6
+        env:
+          BUILDKIT_CONTEXT_KEEP_GIT_DIR: true  # Ensures .git is preserved for setuptools_scm
         with:
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ghcr.io/usda-ars-gbru/tamipami:sha-${{ env.SHORT_SHA }}
+          tags: |
+            ghcr.io/usda-ars-gbru/tamipami:${{ env.VERSION_TAG }}
+            ghcr.io/usda-ars-gbru/tamipami:latest
           build-args: |
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=true
           cache-from: type=local,src=/tmp/.buildx-cache

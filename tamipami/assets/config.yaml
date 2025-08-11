@@ -39,7 +39,6 @@ codes:
     {'C', 'T'}
 
 bbmerge:
-  - 'ecco=t'
   - 'mix=f'
   - 'usejni=t'
   - 'nn=t'

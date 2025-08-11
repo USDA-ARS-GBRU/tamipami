@@ -1,7 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""app: a TamiPami module for a Streamlit app interface to TamiPami"""
+"""app: a TamiPami module for a Streamlit app interface to TamiPami
+
+This app can process either:
+- Two FASTQ files (forward reads for control and experimental samples, single-end mode)
+- Four FASTQ files (forward and reverse reads for both control and experimental samples, paired-end mode)
+
+You must provide either both reverse files (cont2 and exp2) for paired-end, or omit both for single-end.
+"""
 
 import os
 import uuid
@@ -37,7 +44,6 @@ def create_session_dir():
         Exception: If the session directory cannot be created.
     """
     try:
-        # Ensure UUID is generated securely
         session_id = uuid.uuid4()
         datadir = Path(os.path.join(ROOT_DIR, str(session_id)))
         datadir.mkdir(parents=True, exist_ok=True)
@@ -56,9 +62,9 @@ def delete_session_dir():
     """
     if "datadir" in st.session_state:
         session_dir = st.session_state["datadir"]
-    if os.path.exists(session_dir):
-        shutil.rmtree(session_dir)
-    del st.session_state["datadir"]
+        if os.path.exists(session_dir):
+            shutil.rmtree(session_dir)
+        del st.session_state["datadir"]
 
 
 # Define input parameters and widgets
@@ -86,7 +92,10 @@ st.markdown(
 with st.expander("Use Instructions"):
     st.markdown(
         """
-                1. Load the forward and reverse FASTQ files for a single control and experimental library in the four input boxes on the sidebar.
+                1. **Upload your FASTQ files:**  
+                   - For single-end: Upload only the forward reads for control and experimental samples (cont1 and exp1).  
+                   - For paired-end: Upload both forward and reverse reads for control and experimental samples (cont1, cont2, exp1, exp2).  
+                   - You must provide either both reverse files (cont2 and exp2) for paired-end, or omit both for single-end.
                 2. Select the Addgene library used for the experiment. Or...
                 3. If no library is selected, enter the target sequence and the orientation (5prime is PAM-Target, 3prime is Target-PAM (like spCas9)).
                 4. Select the maximum length to analyze. You can compare all smaller lengths once you have analyzed the data
@@ -104,13 +113,20 @@ args = {}
 with st.sidebar:
     with st.form(key="newdata"):
         st.markdown("## Upload your FASTQ data")
+        st.markdown(
+            """
+            - For **single-end**: Upload only the forward reads for control and experimental samples (cont1 and exp1).
+            - For **paired-end**: Upload both forward and reverse reads for control and experimental samples (cont1, cont2, exp1, exp2).
+            - You must provide either both reverse files (cont2 and exp2) for paired-end, or omit both for single-end.
+            """
+        )
         args["cont1"] = st.file_uploader(
             "Control library forward .fastq, .fq, .fastq.gz or .fq.gz file.",
             type=[".gz", ".fastq", ".fq"],
             key="cont1",
         )
         args["cont2"] = st.file_uploader(
-            "Control library reverse .fastq, .fq, .fastq.gz or .fq.gz file.",
+            "Control library reverse .fastq, .fq, .fastq.gz or .fq.gz file (optional, required for paired-end).",
             type=[".gz", ".fastq", ".fq"],
             key="cont2",
         )
@@ -120,11 +136,10 @@ with st.sidebar:
             key="exp1",
         )
         args["exp2"] = st.file_uploader(
-            "Experimental library reverse .fastq, .fq, .fastq.gz or .fq.gz file.",
+            "Experimental library reverse .fastq, .fq, .fastq.gz or .fq.gz file (optional, required for paired-end).",
             type=[".gz", ".fastq", ".fq"],
             key="exp2",
         )
-        # args['log'] = st.sidebar.text_input('Log file', value=os.path.join(DATA_DIR,'tamipami.log'), key='log')
         st.markdown("## Set your search settings")
         args["length"] = st.select_slider(
             "The Maximum length of the PAM or TAM sequences",
@@ -188,19 +203,38 @@ def write_input_file(datadir: str, stream, fname) -> None:
 
 
 def save_input_files(datadir: str, args: dict) -> None:
-    argkeys = ["cont1", "cont2", "exp1", "exp2"]
-    for akey, avalue in args.items():
-        try:
-            if akey in argkeys:
-                assert (
-                    avalue is not None
-                ), "An input file is missing, please verify that the input files were uploaded correctly"
-                write_input_file(datadir, avalue, akey)
-        except AssertionError as e:
-            st.exception(e)
+    """
+    Save uploaded FASTQ files to the session directory.
+
+    This function validates that either both reverse files (cont2 and exp2) are provided (paired-end),
+    or both are omitted (single-end). It writes only the files that are present.
+
+    Parameters:
+        datadir (str): The directory path where the files will be saved.
+        args (dict): Dictionary containing file upload objects.
+
+    Raises:
+        ValueError: If only one of cont2 or exp2 is provided.
+        AssertionError: If required forward files are missing.
+    """
+    # Validation for paired-end vs single-end
+    cont2_present = args.get("cont2") is not None
+    exp2_present = args.get("exp2") is not None
+    if (cont2_present and not exp2_present) or (exp2_present and not cont2_present):
+        raise ValueError(
+            "Invalid input: provide both reverse files (cont2 and exp2) for paired-end processing, or omit both for single-end."
+        )
+    # Always require forward files
+    if args.get("cont1") is None or args.get("exp1") is None:
+        raise AssertionError("Both control and experimental forward files (cont1 and exp1) are required.")
+
+    # Write files that are present
+    for key in ["cont1", "cont2", "exp1", "exp2"]:
+        stream = args.get(key)
+        if stream is not None:
+            write_input_file(datadir, stream, key)
 
 
-# downloads
 def download_json(dfdict):
     tempdict = {}
     for length, df in dfdict.items():
@@ -222,15 +256,26 @@ def parse_lib(args: dict) -> tuple[str]:
 
 @st.cache_data
 def process(args):
+    """
+    Process control and experimental FASTQ files to generate a pamSeqExp object and run summary.
+
+    You must provide either:
+    - Only cont1 and exp1 for single-end mode (forward reads only)
+    - Or all of cont1, cont2, exp1, exp2 for paired-end mode (forward and reverse reads)
+
+    Raises:
+        ValueError: If only one of cont2 or exp2 is provided.
+        AssertionError: If required forward files are missing.
+        Exception: For unexpected errors during processing.
+    """
     try:
         create_session_dir()
         datadir = st.session_state["datadir"]
         save_input_files(datadir, args)
         def safe_value(val):
-            # If it's a Streamlit UploadedFile, show its name, else show the value as string
             if hasattr(val, "name"):
                 return val.name
-            return str(val)  # Convert everything else to string
+            return str(val)
 
         with st.expander("Run Configuration"):
             param_df = pd.DataFrame({
@@ -241,16 +286,21 @@ def process(args):
             st.write("Data directory: {}".format(datadir))
         spacer, orientation = parse_lib(args)
         run_summ = {"cont": {}, "exp": {}}
+
+        # Determine paired-end or single-end
+        cont2_path = os.path.join(datadir, "cont2.fastq.gz") if args.get("cont2") else None
+        exp2_path = os.path.join(datadir, "exp2.fastq.gz") if args.get("exp2") else None
+
         cont_raw, run_summ["cont"]["tot"], run_summ["cont"]["targets"] = fastq.process(
             fastq=os.path.join(datadir, "cont1.fastq.gz"),
-            fastq2=os.path.join(datadir, "cont2.fastq.gz"),
+            fastq2=cont2_path,
             pamlen=args["length"],
             spacer=spacer,
             orientation=orientation,
         )
         exp_raw, run_summ["exp"]["tot"], run_summ["exp"]["targets"] = fastq.process(
             fastq=os.path.join(datadir, "exp1.fastq.gz"),
-            fastq2=os.path.join(datadir, "exp2.fastq.gz"),
+            fastq2=exp2_path,
             pamlen=args["length"],
             spacer=spacer,
             orientation=orientation,
@@ -297,8 +347,11 @@ def read_count_check(run_summ, minfrac):
 
 def main(args):
     if newrun:
-        pamexpobj, run_summ = process(args)
-        # if 'pamexpobj' not in st.session_state:
+        try:
+            pamexpobj, run_summ = process(args)
+        except (ValueError, AssertionError) as e:
+            st.error(str(e))
+            return
         st.session_state["run_summ"] = run_summ
         st.session_state["pamexpobj"] = pamexpobj
         st.markdown("## Library information")
@@ -405,9 +458,6 @@ def main(args):
             ),
             file_name="tamipami.h5",
             mime="application/x-hdf5",
-            # data=download_json(st.session_state.pamexpobj.multikmerdict),
-            # file_name="tamipami.json",
-            # mime='application/json',
             key=f"download",
         )
 
@@ -427,7 +477,7 @@ if __name__ == "__main__":
                 ### Other Information
                 In no way are the patent or trademark rights of any person affected by CC0, nor are the rights that other persons may have in the work or in how the work is used, such as publicity or privacy rights.
                 Unless expressly stated otherwise, the person who associated a work with this deed makes no warranties about the work, and disclaims liability for all uses of the work, to the fullest extent permitted by applicable law. When using or citing the work, you should not imply endorsement by the author or the affirmer.
-                            """
+                """
         )
 
 st.write("Tamipami version {}".format(__version__))
