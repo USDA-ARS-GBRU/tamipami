@@ -18,7 +18,7 @@ def test_count_pam_stream_counts_sequences(mocker):
     pamlen = 3
     orientation = "5prime"
     # The PAM is 'AAA', then the spacer
-    seq = "AAAGATTACA"
+    seq = 'TGTAATCTTT'
     record = SeqRecord(Seq(seq), id="test", description="")
     mock_parse = mocker.patch("tamipami.fastq.SeqIO.parse", return_value=[record])
     fastq_stream = io.StringIO("irrelevant")
