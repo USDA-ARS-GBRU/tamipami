@@ -101,8 +101,8 @@ def myparser() -> argparse.ArgumentParser:
         "--cont2",
         "-c2",
         type=str,
-        required=True,
-        help="A reverse .fastq, .fq, .fastq.gz or .fq.gz file.",
+        required=False,
+        help="Optional reverse .fastq, .fq, .fastq.gz or .fq.gz file for paired-end runs. Provide both --cont2 and --exp2, or omit both for single-end.",
     )
     parser_process.add_argument(
         "--exp1",
@@ -115,8 +115,8 @@ def myparser() -> argparse.ArgumentParser:
         "--exp2",
         "-e2",
         type=str,
-        required=True,
-        help="A reverse .fastq, .fq, .fastq.gz or .fq.gz file.",
+        required=False,
+        help="Optional reverse .fastq, .fq, .fastq.gz or .fq.gz file for paired-end runs. Provide both --cont2 and --exp2, or omit both for single-end.",
     ),
     parser_process.add_argument(
         "--outfile",
@@ -212,6 +212,15 @@ def parse_lib(args: argparse.Namespace) -> tuple[str, str]:
     return spacer, orientation
 
 def process_fastq_wrapper(args_tuple):
+    """
+    Wrapper function to process FASTQ files using provided arguments with multiprocessing.
+
+    Args:
+        args_tuple (tuple): Contains (fastq1, fastq2, spacer, orientation, pamlen).
+
+    Returns:
+        tuple: Result from fastq.process, including kmer counts, total reads, and guide detections.
+    """
     fastq1, fastq2, spacer, orientation, pamlen = args_tuple
     return fastq.process(
         fastq=fastq1,
@@ -222,6 +231,20 @@ def process_fastq_wrapper(args_tuple):
     )
 
 def process(args: argparse.Namespace = None) -> tuple[pam.pamSeqExp, dict]:
+    """
+    Process control and experimental FASTQ files to generate a pamSeqExp object and run summary.
+
+    Args:
+        args (argparse.Namespace, optional): Command-line arguments specifying input files, spacer, orientation, and kmer length.
+
+    Returns:
+        tuple[pam.pamSeqExp, dict]: A tuple containing the pamSeqExp object and a run summary dictionary.
+
+    Raises:
+        FileNotFoundError: If an input file is not found.
+        ValueError: If input arguments are invalid.
+        Exception: For unexpected errors during processing.
+    """
     try:
         with tempfile.TemporaryDirectory() as datadir:
             os.chmod(datadir, 0o700)
@@ -229,6 +252,17 @@ def process(args: argparse.Namespace = None) -> tuple[pam.pamSeqExp, dict]:
             logging.info(f"spacer: {spacer}")
             logging.info(f"orientation: {orientation}")
             run_summ = {"cont": {}, "exp": {}}
+
+            # Validate paired-end vs single-end inputs
+            if bool(args.cont2) != bool(args.exp2):
+                raise ValueError(
+                    "Invalid input: provide both --cont2 and --exp2 for paired-end processing, or omit both for single-end."
+                )
+            paired_end = bool(args.cont2) and bool(args.exp2)
+            if paired_end:
+                logging.info("Paired-end mode enabled.")
+            else:
+                logging.info("Single-end mode enabled.")
 
             # Prepare arguments for both calls
             tasks = [
@@ -431,19 +465,28 @@ def main(args: argparse.Namespace = None) -> None:
 
 
 def log_run_summary(run_summ):
+    """A helper function for logging FASQ processing info
+    """
     logging.info(
-        "Control data: {} reads merged, {} contained targets.".format(
+        "Control data: {} reads processed, {} contained targets.".format(
             run_summ["cont"]["tot"], run_summ["cont"]["targets"]
         )
     )
     logging.info(
-        "Experimental data: {} reads merged, {} contained targets.".format(
+        "Experimental data: {} reads processed, {} contained targets.".format(
             run_summ["exp"]["tot"], run_summ["exp"]["targets"]
         )
     )
 
 
 def export_results(pamexpobj, outfile):
+    """
+    Export the results from a PamiPami experiment object to an HDF5 file or standard output.
+
+    Parameters:
+        pamexpobj: An object containing the multikmerdict attribute with results to export.
+        outfile (str or None): Path to the output HDF5 file. If None, writes to standard output.
+    """
     logging.info("Writing results to {}".format(outfile))
     if outfile:
         tpio.export_hdf(
