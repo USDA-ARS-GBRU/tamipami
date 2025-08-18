@@ -6,7 +6,6 @@ from typing import Iterable
 from itertools import product
 
 import numpy as np
-import textdistance
 import treelib
 from scipy.spatial.distance import pdist
 import scipy.cluster.hierarchy
@@ -129,23 +128,17 @@ def create_degenerate(subset: set[str]) -> str | None:
 ### We  now have code that will return the degenerate code if all members of the group can be represented by one code.
 ### The next setep is to apply a subset selection algorithm that can  tst possible groups efficiently
 
-
-def calculate_hamming_distance(strings: List[str]) -> np.array:
-    """take a list of strings and return a condensed hamming distance matrix and the strings as labels
-    Args:
-        strings: a list of equal length sequence strings
-    Returns:
-        a condensed scipy distance matrix as a numpy array
-    """
+def calculate_hamming_distance_fast(strings: List[str]) -> np.array:
     if not all(len(s) == len(strings[0]) for s in strings):
         raise ValueError("All strings must be of equal length")
-    # prepare 2 dimensional array M x N (M entries (3) with N dimensions (1))
-    transformed_strings = np.array(strings).reshape(-1, 1)
-    # calculate condensed distance matrix by wrapping the hamming distance function
-    distance_matrix = pdist(
-        transformed_strings, lambda x, y: textdistance.hamming(x[0], y[0])
-    )
-    # get square matrix
+    
+    # Convert strings to a 2D NumPy array of characters
+    arr = np.array([list(s) for s in strings])
+    
+    # Use pdist with 'hamming' metric (built-in and vectorized)
+    # Note: 'hamming' returns normalized distance (fraction of differing positions)
+    distance_matrix = pdist(arr, metric='hamming') * len(strings[0])  # scale to get raw count
+    
     return distance_matrix
 
 
@@ -157,10 +150,16 @@ def create_tree(labels: list[str], distance_matrix: np.array) -> treelib.Tree:
     Returns:
         A treelib.Tree object representing the hierarchical structure.
     """
-
+    # SciPy method O(N^3)
     Z = scipy.cluster.hierarchy.linkage(distance_matrix, method="ward")
+    # fastcluster method O(N^2)
+    # Z = fastcluster.linkage(distance_matrix, method="ward")
+
     # Convert linkage matrix to a tree structure
     root = scipy.cluster.hierarchy.to_tree(Z, rd=False)
+
+
+
 
     def convert_scipy_tree_to_treelib(root, labels):
         """

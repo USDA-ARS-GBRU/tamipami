@@ -16,6 +16,7 @@ from tamipami import pam
 from tamipami import degenerate
 from tamipami import fastq
 from tamipami import tpio
+from tamipami.cli_utils import cutoff_arg_validator
 from tamipami.config import config
 from tamipami._version import __version__
 
@@ -165,13 +166,13 @@ def myparser() -> argparse.ArgumentParser:
     )
     parser_predict.add_argument(
         "--cutoff",
-        type=json.loads,
-        required=False,
-        help="""A json string containing the kmer lengths and the Zscore cutoff values above which kmers are considered part of the PAM/TAM.
-                               Single and double quotes are required. 
-                               If no cutoff is provided it will be automatically calculated using univariate k means clustering. 
-                               Example input: --cutoff '{"3": 2, "4": 2, "5": 2, "6": 2}'
-                               """,
+        type=cutoff_arg_validator,
+        required=True,
+        help=(
+            "Cutoff thresholds as a JSON dictionary with integer keys [3-8] and numeric values. "
+            "Example: '{\"3\": 0.7, \"4\": 0.85, \"5\": 0.93}'. "
+            "Keys must be integers between 3 and 8. Values must be numbers."
+        ),
     )
     parser_predict.add_argument(
         "--predict_out",
