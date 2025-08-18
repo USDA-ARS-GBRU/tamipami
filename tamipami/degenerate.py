@@ -1,10 +1,10 @@
-from typing import List
+
 import logging
-from typing import Iterable
+from typing import Iterable, Tuple, Set, List
 
 # -*- coding: utf-8 -*-
 from itertools import product
-
+from functools import lru_cache
 import numpy as np
 import treelib
 from scipy.spatial.distance import pdist
@@ -92,20 +92,34 @@ def degenerate_representation(position_to_chars: list[set]) -> list:
     return "".join(minimal_representations)
 
 
-def gen_all_combo(minimal_representations: list[set | list]) -> set[str]:
-    """Takes a list of nucleotides at  each position and returns the full set of expanded strings
+# def gen_all_combo(minimal_representations: list[set | list]) -> set[str]:
+#     """Takes a list of nucleotides at  each position and returns the full set of expanded strings
+#     Args:
+#         minimal_representations  a list of possible nucleotides at each position e.g. [{'A', 'C'}, {'G'}, {'T', 'C'}]
+#     Returns:
+#         a list of all sequences in expanded notation
+#     """
+#     all_possible_representations = set()
+#     for combination in product(
+#         *[
+#             list(chars) if isinstance(chars, set) else [chars]
+#             for chars in minimal_representations
+#         ]
+#     ):
+#         all_possible_representations.add("".join(combination))
+#     return all_possible_representations
+
+@lru_cache(maxsize=None)
+def gen_all_combo(minimal_representations: Tuple[Tuple[str, ...], ...]) -> Set[str]:
+    """Takes a tuple of nucleotide options at each position and returns all expanded strings.
+
     Args:
-        minimal_representations  a list of possible nucleotides at each position e.g. [{'A', 'C'}, {'G'}, {'T', 'C'}]
+        minimal_representations: tuple of tuples, e.g. (('A', 'C'), ('G',), ('T', 'C'))
     Returns:
-        a list of all sequences in expanded notation
+        set of all expanded sequences
     """
     all_possible_representations = set()
-    for combination in product(
-        *[
-            list(chars) if isinstance(chars, set) else [chars]
-            for chars in minimal_representations
-        ]
-    ):
+    for combination in product(*minimal_representations):
         all_possible_representations.add("".join(combination))
     return all_possible_representations
 
@@ -119,7 +133,8 @@ def create_degenerate(subset: set[str]) -> str | None:
 
     """
     position_to_chars = unique_characters(subset)
-    if subset == gen_all_combo(position_to_chars):
+    hashable_input = tuple(tuple(sorted(chars)) for chars in position_to_chars)
+    if subset == gen_all_combo(hashable_input):
         return degenerate_representation(position_to_chars)
     else:
         return None
@@ -128,17 +143,39 @@ def create_degenerate(subset: set[str]) -> str | None:
 ### We  now have code that will return the degenerate code if all members of the group can be represented by one code.
 ### The next setep is to apply a subset selection algorithm that can  tst possible groups efficiently
 
-def calculate_hamming_distance_fast(strings: List[str]) -> np.array:
+# def calculate_hamming_distance(strings: List[str]) -> np.array:
+#     if not all(len(s) == len(strings[0]) for s in strings):
+#         raise ValueError("All strings must be of equal length")
+    
+#     # Convert strings to a 2D NumPy array of characters
+#     arr = np.array([list(s) for s in strings])
+#     print(arr)
+    
+#     # Use pdist with 'hamming' metric (built-in and vectorized)
+#     # Note: 'hamming' returns normalized distance (fraction of differing positions)
+#     distance_matrix = pdist(arr, metric='hamming') * len(strings[0])  # scale to get raw count
+    
+#     return distance_matrix
+
+import numpy as np
+from scipy.spatial.distance import pdist
+from typing import List
+
+def calculate_hamming_distance(strings: List[str]) -> np.array:
+    if not strings:
+        raise ValueError("Input list is empty")
     if not all(len(s) == len(strings[0]) for s in strings):
         raise ValueError("All strings must be of equal length")
-    
-    # Convert strings to a 2D NumPy array of characters
-    arr = np.array([list(s) for s in strings])
-    
-    # Use pdist with 'hamming' metric (built-in and vectorized)
-    # Note: 'hamming' returns normalized distance (fraction of differing positions)
-    distance_matrix = pdist(arr, metric='hamming') * len(strings[0])  # scale to get raw count
-    
+
+    # DNA base mapping: A=0, C=1, G=2, T=3
+    base_map = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
+
+    # Convert strings to 2D array of mapped integers
+    arr = np.array([[base_map[char] for char in seq] for seq in strings], dtype=np.uint8)
+
+    # Compute pairwise Hamming distances (normalized), then scale to raw count
+    distance_matrix = pdist(arr, metric='hamming') * arr.shape[1]
+
     return distance_matrix
 
 
@@ -158,25 +195,16 @@ def create_tree(labels: list[str], distance_matrix: np.array) -> treelib.Tree:
     # Convert linkage matrix to a tree structure
     root = scipy.cluster.hierarchy.to_tree(Z, rd=False)
 
-
-
-
     def convert_scipy_tree_to_treelib(root, labels):
-        """
-        Convert a tree from scipy.cluster.hierarchy.to_tree to a treelib.Tree.
-
-        Args:
-            root: The root node of the scipy hierarchical tree.
-            labels: A list of labels for the leaf nodes.
-
-        Returns:
-            A treelib.Tree object representing the hierarchical structure.
-        """
         tree = treelib.Tree()
         node_dict = {}
 
-        def add_children(scipy_node, parent_id=None):
+        stack = [(root, None)]  # (scipy_node, parent_id)
+
+        while stack:
+            scipy_node, parent_id = stack.pop()
             node_id = str(scipy_node.id)
+
             if scipy_node.is_leaf():
                 tag = (
                     labels[scipy_node.id]
@@ -189,13 +217,14 @@ def create_tree(labels: list[str], distance_matrix: np.array) -> treelib.Tree:
             tree.create_node(tag=tag, identifier=node_id, parent=parent_id)
             node_dict[scipy_node.id] = node_id
 
-            if scipy_node.left is not None:
-                add_children(scipy_node.left, node_id)
+            # Push children to stack (right first so left is processed first)
             if scipy_node.right is not None:
-                add_children(scipy_node.right, node_id)
+                stack.append((scipy_node.right, node_id))
+            if scipy_node.left is not None:
+                stack.append((scipy_node.left, node_id))
 
-        add_children(root)
         return tree
+
 
     return convert_scipy_tree_to_treelib(root, labels)
 
@@ -251,4 +280,4 @@ def seqs_to_degenerates(seqs: list[str]) -> list[str]:
         return find_degenerates(tree)
     except Exception as e:
         logging.error(f"An error occurred: {e}")
-        return []
+        raise e
