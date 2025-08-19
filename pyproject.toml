@@ -43,6 +43,7 @@ repository = "http://github.com/usda-ars-gbru/tamipami"
 
 [tool.setuptools_scm]
 write_to = "tamipami/_version.py"
+tag_regex = '^v(?P<version>.*)$'
 
 [tool.setuptools]
 packages = ['tamipami']
