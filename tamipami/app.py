@@ -370,36 +370,38 @@ def main(args):
             st.write(
                 "image from [Walton et al. 2021]( https://doi.org/10.1038/s41596-020-00465-2)"
             )
-    # Check if pamdict is in session_state
+
     if "pamexpobj" in st.session_state:
-        tablabels = [
-            "Length " + str(x) for x in st.session_state.pamexpobj.multikmerdict.keys()
-        ]
-        st.markdown("### Select the PAM length to review")
+        length_keys = list(st.session_state.pamexpobj.multikmerdict.keys())
+        tablabels = [f"Length {x}" for x in length_keys]
+        num_tabs = len(tablabels)
+
+        # Maintain persistent tab selection in session state
+        if "active_length_tab" not in st.session_state:
+            st.session_state["active_length_tab"] = 0
+
+        # The last active tab index is restored by using `active_length_tab`
+        selected_idx = st.session_state.get("active_length_tab", 0)
         tabs = st.tabs(tablabels)
-        for n, (key, df) in enumerate(st.session_state.pamexpobj.multikmerdict.items()):
-            with tabs[n]:
-                # Warning box
-                data_checks(key, config["shot_cutoff"])
-                read_count_check(
-                    st.session_state["run_summ"], config["min_target_frac"]
-                )
-                st.markdown("### Select the cutoff point on the histogram")
+
+        for i, (tab, key) in enumerate(zip(tabs, length_keys)):
+            with tab:
+                # Assign current tab as active if visible
+                st.session_state["active_length_tab"] = i
+                df = st.session_state.pamexpobj.multikmerdict[key]
                 slider_key = f"slider_{key}"
-                defaultval = 0.0
+
+                # Initialize slider at autosplit value on first visit
                 if slider_key not in st.session_state:
                     update_slider(key, slider_key)
-                slider, slidebutton = st.columns(
-                    spec=[0.8, 0.2], vertical_alignment="center"
-                )
 
+                slider, slidebutton = st.columns(spec=[0.8, 0.2], vertical_alignment="center")
                 with slider:
-
+                    # Slider always uses key (session-state-controlled)
                     st.slider(
                         label="Select the Zscore cutoff:",
                         min_value=float(df["zscore"].min()),
                         max_value=float(df["zscore"].max()),
-                        value=st.session_state[slider_key],
                         key=slider_key,
                     )
                 with slidebutton:
@@ -410,19 +412,19 @@ def main(args):
                         key=f"autosplit_{key}",
                     )
 
-                # Filtered DataFrame based on slider value
-                cutoff = st.session_state[slider_key]
-                filtered_df = df[df["zscore"] >= cutoff]
+                # --- Key FIX: Always get cutoff from session state ---
+                cutoff = st.session_state[slider_key] if slider_key in st.session_state else None
 
-                # create degernerate represenations
                 althist = tpio.histogram_plot(
-                    df, maxbins=config["histogram_bins"], cutoff=cutoff
+                    df,
+                    maxbins=config["histogram_bins"],
+                    cutoff=cutoff,  # Always pass the cutoff, even on tab change
                 )
 
-                # Plot histogram with vertical line at cutoff
-                hist, degenerates = st.columns(spec=[0.8, 0.2])
+                hist, degenerates = st.columns(spec=[0.8, 0.2], vertical_alignment="center")
                 with hist:
                     st.altair_chart(althist)
+                filtered_df = df[df["zscore"] >= cutoff] if cutoff is not None else df
                 dseqs = degenerate.seqs_to_degenerates(filtered_df["kmers"].tolist())
                 with degenerates:
                     st.dataframe({"PAM/TAM site": dseqs}, hide_index=True)
@@ -440,14 +442,15 @@ def main(args):
                     length=key, cutoff=cutoff, score_type="zscore", above=False
                 )
                 st.pyplot(logo)
+
         st.divider()
         st.markdown(
             """
-                    ### Data Export
-                    Data from the run can be exported as a json for further analysis.  This file contains the 
-                    unfiltered data tables for each length. It does not contain the selected cutoffs, plots 
-                    or degenerate sequences. Those can be downloaded by selecting the elements on the screen.
-                    """
+            ### Data Export
+            Data from the run can be exported as a json for further analysis.  This file contains the 
+            unfiltered data tables for each length. It does not contain the selected cutoffs, plots 
+            or degenerate sequences. Those can be downloaded by selecting the elements on the screen.
+            """
         )
         st.download_button(
             label="📥 Download the full run data as a HDF5 file",
@@ -460,7 +463,6 @@ def main(args):
             mime="application/x-hdf5",
             key=f"download",
         )
-
 
 if __name__ == "__main__":
     main(args)

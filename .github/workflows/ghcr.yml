@@ -44,8 +44,15 @@ jobs:
       # 🏷️ Extract version tag from Git reference
       - name: Get tag name
         id: get_tag
-        run: echo "VERSION_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
+        run: |
+          VERSION_TAG="${GITHUB_REF#refs/tags/}"
+          VERSION_CLEAN="${VERSION_TAG#v}"
+          echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
+          echo "VERSION_CLEAN=$VERSION_CLEAN" >> $GITHUB_ENV
+      #...
+            tags: |
+              ghcr.io/usda-ars-gbru/tamipami:${{ env.VERSION_CLEAN }}
+              ghcr.io/usda-ars-gbru/tamipami:latest
       # 🐳 Build and push Docker image with dynamic versioning
       - name: Build and push tamipami image
         uses: docker/build-push-action@v6
