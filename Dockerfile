@@ -34,7 +34,6 @@ RUN mamba install -y -c conda-forge -c bioconda \
         scikit-bio \
         pyyaml \
         streamlit \
-        tables \
         setuptools \
         pip && \
     mamba clean -afy
@@ -45,7 +44,8 @@ RUN pip install --no-cache-dir \
         treelib \
         textdistance \
         logomaker \
-        altair
+        altair \
+        tables
 
 # Copy and install package
 COPY . /app
