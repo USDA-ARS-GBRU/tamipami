@@ -13,25 +13,46 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}
 
 WORKDIR /app
 
-# Install system dependencies and conda packages in one layer
+# Install system dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        build-essential openjdk-8-jre-headless wget curl git && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* && \
-    mamba install -y -c conda-forge -c bioconda \
-        bbmap=39.28 biopython scipy pandas matplotlib \
-        scikit-bio pyyaml streamlit tables setuptools pip && \
+        build-essential \
+        openjdk-8-jre-headless \
+        wget \
+        curl \
+        git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install conda packages
+RUN mamba install -y -c conda-forge -c bioconda \
+        bbmap=39.28 \
+        biopython \
+        scipy \
+        pandas \
+        matplotlib \
+        scikit-bio \
+        pyyaml \
+        streamlit \
+        tables \
+        setuptools \
+        pip && \
     mamba clean -afy
 
 # Install pip-only dependencies
-RUN pip install --no-cache-dir ckmeans treelib textdistance logomaker altair
+RUN pip install --no-cache-dir \
+        ckmeans \
+        treelib \
+        textdistance \
+        logomaker \
+        altair
 
 # Copy and install package
 COPY . /app
 RUN pip install --no-cache-dir .
 
 # Verify installation
-RUN python -c "import tamipami; print(f'Version: {tamipami.__version__}')"
+RUN python -c "from tamipami._version import __version__; print(f'Version: {__version__}')"
 
 EXPOSE 8501
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
