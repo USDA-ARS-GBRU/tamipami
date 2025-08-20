@@ -4,12 +4,26 @@ on:
   push:
     tags:
       - 'v*'  # Trigger only on version tags like v1.0.0
-  workflow_dispatch:  # Add this for manual triggering
+  workflow_dispatch:  # Enable manual triggering
     inputs:
       version:
-        description: 'Version to build'
+        description: 'Version to build (e.g., test-1.0.0)'
         required: true
         default: 'test-1.0.0'
+        type: string
+      push_to_registry:
+        description: 'Push to registry?'
+        required: true
+        default: true
+        type: boolean
+      platforms:
+        description: 'Target platforms'
+        required: true
+        default: 'linux/amd64'
+        type: choice
+        options:
+          - 'linux/amd64'
+          - 'linux/amd64,linux/arm64'
 
 jobs:
   docker:
@@ -43,14 +57,40 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 🏷️ Extract version tag from Git reference
-      - name: Get tag name
-        id: get_tag
+      # 🏷️ Extract version tag from Git reference or use manual input
+      - name: Get version
+        id: get_version
         run: |
-          VERSION_TAG="${GITHUB_REF#refs/tags/}"
-          VERSION_CLEAN="${VERSION_TAG#v}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual trigger - use input version
+            VERSION_TAG="${{ github.event.inputs.version }}"
+            VERSION_CLEAN="${VERSION_TAG#v}"
+            PUSH_TO_REGISTRY="${{ github.event.inputs.push_to_registry }}"
+            PLATFORMS="${{ github.event.inputs.platforms }}"
+            IS_RELEASE="false"
+            echo "Manual trigger - Version: $VERSION_TAG, Push: $PUSH_TO_REGISTRY, Platforms: $PLATFORMS"
+          else
+            # Tag push - extract from GITHUB_REF
+            VERSION_TAG="${GITHUB_REF#refs/tags/}"
+            VERSION_CLEAN="${VERSION_TAG#v}"
+            PUSH_TO_REGISTRY="true"
+            PLATFORMS="linux/amd64,linux/arm64"
+            IS_RELEASE="true"
+            echo "Tag trigger - Version: $VERSION_TAG"
+          fi
+          
           echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
           echo "VERSION_CLEAN=$VERSION_CLEAN" >> $GITHUB_ENV
+          echo "PUSH_TO_REGISTRY=$PUSH_TO_REGISTRY" >> $GITHUB_ENV
+          echo "PLATFORMS=$PLATFORMS" >> $GITHUB_ENV
+          echo "IS_RELEASE=$IS_RELEASE" >> $GITHUB_ENV
+          
+          echo "Final values:"
+          echo "  VERSION_TAG: $VERSION_TAG"
+          echo "  VERSION_CLEAN: $VERSION_CLEAN"
+          echo "  PUSH_TO_REGISTRY: $PUSH_TO_REGISTRY"
+          echo "  PLATFORMS: $PLATFORMS"
+          echo "  IS_RELEASE: $IS_RELEASE"
           
       # 🐳 Build and push Docker image with optimized registry caching
       - name: Build and push tamipami image
@@ -59,11 +99,11 @@ jobs:
           BUILDKIT_CONTEXT_KEEP_GIT_DIR: true  # Ensures .git is preserved for setuptools_scm
         with:
           context: .
-          push: true
-          platforms: linux/amd64,linux/arm64
+          push: ${{ env.PUSH_TO_REGISTRY }}
+          platforms: ${{ env.PLATFORMS }}
           tags: |
             ghcr.io/usda-ars-gbru/tamipami:${{ env.VERSION_CLEAN }}
-            ghcr.io/usda-ars-gbru/tamipami:latest
+            ${{ env.IS_RELEASE == 'true' && 'ghcr.io/usda-ars-gbru/tamipami:latest' || '' }}
           build-args: |
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=true
             BUILDKIT_INLINE_CACHE=1
@@ -75,3 +115,10 @@ jobs:
           # Enable advanced BuildKit features for faster builds
           provenance: false
           sbom: false
+
+      # 🧪 Test the built image (optional step for manual runs)
+      - name: Test Docker image
+        if: github.event_name == 'workflow_dispatch' && env.PUSH_TO_REGISTRY == 'true'
+        run: |
+          echo "Testing the built Docker image..."
+          docker run --rm ghcr.io/usda-ars-gbru/tamipami:${{ env.VERSION_CLEAN }} --help || echo "Image test completed"
