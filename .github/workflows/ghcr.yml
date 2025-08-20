@@ -1,174 +1,65 @@
-name: Publish Docker image to GitHub Container Registry
+name: Build and Push Docker Image
 
 on:
   push:
-    tags:
-      - 'v*'  # Trigger only on version tags like v1.0.0
-  workflow_dispatch:  # Enable manual triggering
+    tags: ['v*']
+  workflow_dispatch:
     inputs:
       version:
-        description: 'Version to build (e.g., 1.0.0 or test-1.0.0)'
+        description: 'Version (e.g., 1.0.0)'
         required: true
         default: 'test-1.0.0'
-        type: string
-      push_to_registry:
-        description: 'Push to registry?'
-        required: true
-        default: true
+      push:
+        description: 'Push to registry'
         type: boolean
-      platforms:
-        description: 'Target platforms'
-        required: true
-        default: 'linux/amd64'
-        type: choice
-        options:
-          - 'linux/amd64'
-          - 'linux/amd64,linux/arm64'
+        default: true
 
 jobs:
   docker:
     runs-on: ubuntu-latest
-
     steps:
-      # ✅ Ensure full Git history and tags are available for setuptools_scm
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # This is crucial for setuptools_scm
-          fetch-tags: true  # Explicitly fetch tags
+          fetch-depth: 0
+          fetch-tags: true
 
-      # 🏷️ Extract version tag from Git reference or use manual input
-      - name: Get version
-        id: get_version
+      - name: Set version
         run: |
-          echo "=== Git Repository State ==="
-          git describe --tags --dirty --always || echo "No tags found"
-          git tag --list --sort=-version:refname | head -5 || echo "No tags found"
-          git log --oneline -3
-          echo "Current commit: $(git rev-parse HEAD)"
-          echo "Current branch/ref: $GITHUB_REF"
-          echo ""
-          
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            # Manual trigger - use input version
-            INPUT_VERSION="${{ github.event.inputs.version }}"
-            
-            # Clean up version (remove 'v' prefix if present)
-            VERSION_CLEAN="${INPUT_VERSION#v}"
-            VERSION_TAG="v${VERSION_CLEAN}"
-            
-            PUSH_TO_REGISTRY="${{ github.event.inputs.push_to_registry }}"
-            PLATFORMS="${{ github.event.inputs.platforms }}"
-            IS_RELEASE="false"
-            
-            echo "=== Manual Trigger ==="
-            echo "Input version: $INPUT_VERSION"
-            echo "Clean version: $VERSION_CLEAN"
-            echo "Version tag: $VERSION_TAG"
-            echo "Push to registry: $PUSH_TO_REGISTRY"
-            echo "Platforms: $PLATFORMS"
-            
-            # Create a temporary tag for setuptools_scm (force overwrite if exists)
-            echo "Creating temporary tag: $VERSION_TAG"
-            git tag -f "$VERSION_TAG" HEAD
-            git describe --tags --dirty --always
-            
+            VERSION="${{ github.event.inputs.version }}"
+            PUSH="${{ github.event.inputs.push }}"
+            git tag -f "v$VERSION" HEAD
           else
-            # Tag push - extract from GITHUB_REF
-            VERSION_TAG="${GITHUB_REF#refs/tags/}"
-            VERSION_CLEAN="${VERSION_TAG#v}"
-            PUSH_TO_REGISTRY="true"
-            PLATFORMS="linux/amd64,linux/arm64"
-            IS_RELEASE="true"
-            
-            echo "=== Tag Push Trigger ==="
-            echo "GitHub ref: $GITHUB_REF"
-            echo "Version tag: $VERSION_TAG"
-            echo "Clean version: $VERSION_CLEAN"
-            
-            # Verify the tag exists
-            if ! git tag --list | grep -q "^${VERSION_TAG}$"; then
-              echo "ERROR: Tag $VERSION_TAG not found in repository"
-              git tag --list --sort=-version:refname | head -10
-              exit 1
-            fi
+            VERSION="${GITHUB_REF#refs/tags/v}"
+            PUSH="true"
           fi
-          
-          # Validate version format (should be semantic version)
-          if ! echo "$VERSION_CLEAN" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
-            if [[ "$VERSION_CLEAN" != test-* ]]; then
-              echo "WARNING: Version '$VERSION_CLEAN' doesn't follow semantic versioning (x.y.z)"
-            fi
-          fi
-          
-          echo "=== Final Configuration ==="
-          echo "VERSION_TAG=$VERSION_TAG"
-          echo "VERSION_CLEAN=$VERSION_CLEAN"
-          echo "PUSH_TO_REGISTRY=$PUSH_TO_REGISTRY"
-          echo "PLATFORMS=$PLATFORMS"
-          echo "IS_RELEASE=$IS_RELEASE"
-          
-          # Export to environment
-          echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
-          echo "VERSION_CLEAN=$VERSION_CLEAN" >> $GITHUB_ENV
-          echo "PUSH_TO_REGISTRY=$PUSH_TO_REGISTRY" >> $GITHUB_ENV
-          echo "PLATFORMS=$PLATFORMS" >> $GITHUB_ENV
-          echo "IS_RELEASE=$IS_RELEASE" >> $GITHUB_ENV
-          
-      # 🛠️ Set up QEMU for cross-platform builds
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "PUSH=$PUSH" >> $GITHUB_ENV
 
-      # 🛠️ Set up Docker Buildx with advanced features
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: |
-            network=host
-            image=moby/buildkit:v0.12.0
-          buildkitd-flags: --allow-insecure-entitlement network.host
 
-      # 🔐 Authenticate with GitHub Container Registry
-      - name: Login to GitHub Container Registry
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 🐳 Build and push Docker image with proper Git context
-      - name: Build and push tamipami image
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ env.PUSH_TO_REGISTRY }}
-          platforms: ${{ env.PLATFORMS }}
+          push: ${{ env.PUSH }}
+          platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/usda-ars-gbru/tamipami:${{ env.VERSION_CLEAN }}
-            ${{ env.IS_RELEASE == 'true' && 'ghcr.io/usda-ars-gbru/tamipami:latest' || '' }}
-          build-args: |
-            SETUPTOOLS_SCM_PRETEND_VERSION=${{ env.VERSION_CLEAN }}
-          # Use registry cache (ignore errors if cache doesn't exist yet)
-          cache-from: |
-            type=registry,ref=ghcr.io/usda-ars-gbru/tamipami:latest
+            ghcr.io/usda-ars-gbru/tamipami:${{ env.VERSION }}
+            ${{ github.event_name != 'workflow_dispatch' && 'ghcr.io/usda-ars-gbru/tamipami:latest' || '' }}
+          build-args: SETUPTOOLS_SCM_PRETEND_VERSION=${{ env.VERSION }}
+          cache-from: type=registry,ref=ghcr.io/usda-ars-gbru/tamipami:latest
           cache-to: type=registry,ref=ghcr.io/usda-ars-gbru/tamipami:cache,mode=max
-          # Enable advanced BuildKit features for faster builds
-          provenance: false
-          sbom: false
 
-      # 🧪 Test the built image (optional step for manual runs)
-      - name: Test Docker image
-        if: github.event_name == 'workflow_dispatch' && env.PUSH_TO_REGISTRY == 'true'
+      - name: Test image
+        if: github.event_name == 'workflow_dispatch' && env.PUSH == 'true'
         run: |
-          echo "Testing the built Docker image..."
-          echo "Checking version in container:"
-          docker run --rm ghcr.io/usda-ars-gbru/tamipami:${{ env.VERSION_CLEAN }} python -c "
-          try:
-              import tamipami
-              print(f'Container version: {tamipami.__version__}')
-          except Exception as e:
-              print(f'Version check failed: {e}')
-          " || echo "Version check completed with errors"
-          
-          echo "Testing basic functionality:"
-          docker run --rm ghcr.io/usda-ars-gbru/tamipami:${{ env.VERSION_CLEAN }} tamipami --help || echo "Help command completed"
+          docker run --rm ghcr.io/usda-ars-gbru/tamipami:${{ env.VERSION }} python -c "import tamipami; print(tamipami.__version__)"

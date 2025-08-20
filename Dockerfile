@@ -1,67 +1,38 @@
-# Use a more specific base image for better caching
-FROM condaforge/mambaforge:24.9.2-0 as base
+FROM condaforge/mambaforge:24.9.2-0
+
 LABEL maintainer="adam.rivers@usda.gov"
 
-# Set environment variables for better caching and performance
+# Environment setup
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     MAMBA_NO_BANNER=1 \
     CONDA_ALWAYS_YES=true
 
-# Accept version as build argument for setuptools_scm
 ARG SETUPTOOLS_SCM_PRETEND_VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}
 
 WORKDIR /app
 
-# Install system dependencies in a single layer with cleanup
+# Install system dependencies and conda packages in one layer
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        build-essential \
-        openjdk-8-jre-headless \
-        wget \
-        curl \
-        git && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# Install conda dependencies early for better caching
-RUN mamba install -y -c bioconda bbmap=39.28 && \
+        build-essential openjdk-8-jre-headless wget curl git && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    mamba install -y -c conda-forge -c bioconda \
+        bbmap=39.28 biopython scipy pandas matplotlib \
+        scikit-bio pyyaml streamlit tables setuptools pip && \
     mamba clean -afy
 
-# Copy only files that exist for better Docker layer caching
-COPY requirements.txt /app/
-COPY pyproject.toml /app/
+# Install pip-only dependencies
+RUN pip install --no-cache-dir ckmeans treelib textdistance logomaker altair
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
-# Copy source code (this layer changes most frequently, so put it last)
+# Copy and install package
 COPY . /app
+RUN pip install --no-cache-dir .
 
-# Install the package with explicit version if provided
-RUN if [ -n "$SETUPTOOLS_SCM_PRETEND_VERSION" ]; then \
-        echo "Installing with version: $SETUPTOOLS_SCM_PRETEND_VERSION"; \
-        SETUPTOOLS_SCM_PRETEND_VERSION=$SETUPTOOLS_SCM_PRETEND_VERSION pip install --no-cache-dir .; \
-    else \
-        echo "Installing with setuptools_scm auto-detection"; \
-        pip install --no-cache-dir .; \
-    fi
-
-# Verify the installed version
-RUN python -c "import tamipami; print(f'Installed version: {tamipami.__version__}')" || echo "Version check failed"
-
-# Add labels for better container management
-LABEL org.opencontainers.image.source="https://github.com/usda-ars-gbru/tamipami"
-LABEL org.opencontainers.image.description="Tamipami application"
-LABEL org.opencontainers.image.version="${SETUPTOOLS_SCM_PRETEND_VERSION:-latest}"
+# Verify installation
+RUN python -c "import tamipami; print(f'Version: {tamipami.__version__}')"
 
 EXPOSE 8501
-
-# Add a comprehensive healthcheck
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl --fail http://localhost:8501/_stcore/health || exit 1
-
-# Use exec form for better signal handling
+HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
 ENTRYPOINT ["streamlit", "run", "/app/tamipami/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
