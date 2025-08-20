@@ -29,10 +29,6 @@ RUN mamba install -y -c bioconda bbmap=39.28 && \
 COPY requirements.txt /app/
 COPY pyproject.toml /app/
 
-# Create tamipami directory and copy __init__.py if it exists
-RUN mkdir -p /app/tamipami
-COPY tamipami/__init__.py /app/tamipami/ 2>/dev/null || echo "No __init__.py found, skipping"
-
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
