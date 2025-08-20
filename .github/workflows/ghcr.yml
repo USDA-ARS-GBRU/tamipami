@@ -107,9 +107,8 @@ jobs:
           build-args: |
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=true
             BUILDKIT_INLINE_CACHE=1
-          # Use registry cache instead of local cache for much better performance
+          # Use registry cache (ignore errors if cache doesn't exist yet)
           cache-from: |
-            type=registry,ref=ghcr.io/usda-ars-gbru/tamipami:cache
             type=registry,ref=ghcr.io/usda-ars-gbru/tamipami:latest
           cache-to: type=registry,ref=ghcr.io/usda-ars-gbru/tamipami:cache,mode=max
           # Enable advanced BuildKit features for faster builds

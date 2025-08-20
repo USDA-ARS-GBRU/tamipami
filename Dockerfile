@@ -25,9 +25,9 @@ RUN apt-get update && \
 RUN mamba install -y -c bioconda bbmap=39.28 && \
     mamba clean -afy
 
-# Copy requirements first for better Docker layer caching
-COPY requirements.txt pyproject.toml setup.py setup.cfg /app/
-COPY tamipami/__init__.py /app/tamipami/__init__.py
+# Copy only files that exist for better Docker layer caching
+COPY requirements.txt /app/
+COPY pyproject.toml /app/
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
@@ -42,7 +42,6 @@ RUN pip install --no-cache-dir .
 # Add labels for better container management
 LABEL org.opencontainers.image.source="https://github.com/usda-ars-gbru/tamipami"
 LABEL org.opencontainers.image.description="Tamipami application"
-LABEL org.opencontainers.image.version="${VERSION_CLEAN:-latest}"
 
 EXPOSE 8501
 
