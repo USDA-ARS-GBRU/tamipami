@@ -27,7 +27,7 @@ wget -O SRR34761000.fastq.gz https://trace.ncbi.nlm.nih.gov/Traces/sra-reads-be/
 
 - [`Model.organism.animal.1.0.xlsx`](metadata/Model.organism.animal.1.0.xlsx) the NCBI Biosample metadata file
 - [`SRA-metadata-15476171-processed-ok.xlsx`](metadata/SRA-metadata-15476171-processed-ok.xlsx) The SRA metadata file with an the NCBI identifiers
-- [`SRA_metadata.xlsx`](metadata/SRA_metadata.xlsx) SRA metadatafiel uploaded to NCBI for SRA deposition
+- [`SRA_metadata.xlsx`](metadata/SRA_metadata.xlsx) SRA metadatafile uploaded to NCBI for SRA deposition
 - [`experiments.xlsx`](metadata/experiments.xlsx) A file describing which Sample files ere paired as paired and experimental input files for each experiment. This lists both the original sample names and the names of sequence files after re-downloading the data from SRA
 
 ## Simulation

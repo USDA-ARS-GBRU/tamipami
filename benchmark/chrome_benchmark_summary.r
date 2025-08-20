@@ -3,7 +3,7 @@ library(gt)
 library(readr)
 
 # Read chrome_app_results.csv
-chrome_app <- read_csv("chrome_app_results.csv")
+chrome_app <- read_csv("chrome_app_results_v014.csv")
 
 # Summarize by experiment and enzyme
 summary_df <- chrome_app %>%
@@ -24,7 +24,7 @@ summary_df <- chrome_app %>%
   )
 
 # Read benchmark_results.csv for read counts
-benchmark_results <- read_csv("benchmark_results.csv")
+benchmark_results <- read_csv("benchmark_results2.csv")
 
 # Summarize read counts by Experiment
 reads_summary <- benchmark_results %>%
@@ -74,5 +74,5 @@ gt_tbl <- final_summary %>%
 print(gt_tbl)
 
 # Save the table as a PDF and HTML
-gtsave(gt_tbl, "chrome_app_benchmark.pdf", zoom = 0.7)
-gtsave(gt_tbl, "chrome_app_benchmark.html", inline_css=TRUE)
+gtsave(gt_tbl, "chrome_app_benchmark_v014.pdf", zoom = 0.7)
+gtsave(gt_tbl, "chrome_app_benchmark_v014.html", inline_css=TRUE)
