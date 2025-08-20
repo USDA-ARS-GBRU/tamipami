@@ -69,8 +69,8 @@ def delete_session_dir():
 
 # Define input parameters and widgets
 apptitle = "TamiPami"
-st.set_page_config(page_title=apptitle, page_icon=":dna:")
-st.logo(os.path.join(ROOT_DIR, "assets/USDAARSIdentityRGB3.png"), size="large")
+st.set_page_config(page_title=apptitle, page_icon=':material/genetics:')
+st.logo(os.path.join(ROOT_DIR, "assets/ARS_UF_combined.png"), size="large")
 st.image(os.path.join(ROOT_DIR, "assets/tami_postcard.jpeg"))
 st.subheader("Identify the PAMs of new Cas enzymes or TAMs of TnpB endonucleases")
 
@@ -89,7 +89,7 @@ st.markdown(
         """
 )
 
-with st.expander("Use Instructions"):
+with st.expander(label="Use Instructions", icon=":material/help_center:"):
     st.markdown(
         """
                 1. **Upload your FASTQ files:**  
@@ -111,6 +111,30 @@ with st.expander("Use Instructions"):
 
 args = {}
 with st.sidebar:
+    with st.expander(label="Need test data for TamiPami?", icon=':material/genetics:'):
+        st.markdown("""
+                    Download the zip file `Example.zip` with the button below. It contains 4 files: 
+                    - `example_cont1.fastq.gz`
+                    - `example_cont2.fastq.gz`
+                    - `example_exp1.fastq.gz`
+                    - `example_exp2.fastq.gz`
+
+                    Each file contains 250,000 reads. the "cont" files contain the forward and reverse reads for the
+                    undigested "RTW554" plasmid pool library. Those are uploaded in the control forward and control reverse
+                    boxes below. The "exp" files contain the forward and reverse reads for the **RTW554** library digested with
+                    SpCas9 nuclease. The example data is a sample of the first 250,000 read pairs from NCBI SRA **SRR34761011**
+                    (cont) and **SRR34761004** (exp).
+                    """)
+        file_path = os.path.join(ROOT_DIR, "assets/Example.zip")
+        with open(file_path, "rb") as f:
+            file_bytes = f.read()
+        st.download_button(
+            label="Download example SpCas9 data",
+            data=file_bytes,
+            file_name="Example.zip",
+            mime="application/zip",  # or "application/gzip" etc.,
+            type='primary'
+        )
     with st.form(key="newdata"):
         st.markdown("## Upload your FASTQ data")
         st.markdown(
@@ -142,7 +166,7 @@ with st.sidebar:
         )
         st.markdown("## Set your search settings")
         args["length"] = st.select_slider(
-            "The Maximum length of the PAM or TAM sequences",
+            "The maximum length of the PAM or TAM sequences",
             options=list(range(3, 7)),
             value=5,
             key="length",
@@ -254,7 +278,7 @@ def parse_lib(args: dict) -> tuple[str]:
     return spacer, orientation
 
 
-@st.cache_data
+# @st.cache_data
 def process(args):
     """
     Process control and experimental FASTQ files to generate a pamSeqExp object and run summary.
@@ -466,7 +490,7 @@ def main(args):
 
 if __name__ == "__main__":
     main(args)
-    with st.expander("CCO Licence Information"):
+    with st.expander(label="CCO Licence Information", icon=":material/copyright:"):
         st.write(
             """
                 As a work of the United States government, [USDA Agricultural Research Service](https://www.ars.usda.gov/), this project is in the public domain within the United States of America under 17 U.S.C. 105.
@@ -481,5 +505,7 @@ if __name__ == "__main__":
                 Unless expressly stated otherwise, the person who associated a work with this deed makes no warranties about the work, and disclaims liability for all uses of the work, to the fullest extent permitted by applicable law. When using or citing the work, you should not imply endorsement by the author or the affirmer.
                 """
         )
-
+    with st.expander(label="Citation", icon=":material/ink_pen:"):
+        st.write("We are preparing the TamiPami mansucript: Orosco, Carlos. Jain, Piyush. Rivers, Adam R. TamiPami: a TAM/PAM identification interface for CRISPR and Omega systems. In Prep.")
+        st.write("[Tamipami Github repository](https://github.com/USDA-ARS-GBRU/tamipami)")
 st.write("Tamipami version {}".format(__version__))

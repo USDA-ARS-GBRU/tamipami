@@ -153,7 +153,7 @@ def main():
                     shutil.rmtree(predict_outdir)
     # Write results to CSV
     if results:
-        csv_file = "benchmark_results.csv"
+        csv_file = "benchmark_results_v014.csv"
         fieldnames = list(results[0].keys())
         with open(csv_file, "w", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
