@@ -1,5 +1,7 @@
 # Tamipami: A web application and command line interface for finding the TAM and PAM sites of novel endonucleases
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16915022.svg)](https://doi.org/10.5281/zenodo.16915022)
+
 __Carlos Orosco<sup>1</sup>, Pyush Jain<sup>1</sup>, Adam R. Rivers<sup>2</sup>__
 
 1. University of Florida, Department of Chemical Engineering, Gainesville, FL USA
