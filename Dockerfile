@@ -8,6 +8,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     MAMBA_NO_BANNER=1 \
     CONDA_ALWAYS_YES=true
 
+# Accept version as build argument for setuptools_scm
+ARG SETUPTOOLS_SCM_PRETEND_VERSION
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}
+
 WORKDIR /app
 
 # Install system dependencies in a single layer with cleanup
@@ -36,12 +40,22 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy source code (this layer changes most frequently, so put it last)
 COPY . /app
 
-# Install the package
-RUN pip install --no-cache-dir .
+# Install the package with explicit version if provided
+RUN if [ -n "$SETUPTOOLS_SCM_PRETEND_VERSION" ]; then \
+        echo "Installing with version: $SETUPTOOLS_SCM_PRETEND_VERSION"; \
+        SETUPTOOLS_SCM_PRETEND_VERSION=$SETUPTOOLS_SCM_PRETEND_VERSION pip install --no-cache-dir .; \
+    else \
+        echo "Installing with setuptools_scm auto-detection"; \
+        pip install --no-cache-dir .; \
+    fi
+
+# Verify the installed version
+RUN python -c "import tamipami; print(f'Installed version: {tamipami.__version__}')" || echo "Version check failed"
 
 # Add labels for better container management
 LABEL org.opencontainers.image.source="https://github.com/usda-ars-gbru/tamipami"
 LABEL org.opencontainers.image.description="Tamipami application"
+LABEL org.opencontainers.image.version="${SETUPTOOLS_SCM_PRETEND_VERSION:-latest}"
 
 EXPOSE 8501
 

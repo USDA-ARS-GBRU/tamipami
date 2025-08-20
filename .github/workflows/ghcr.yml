@@ -34,28 +34,8 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-
-      # 🛠️ Set up QEMU for cross-platform builds
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      # 🛠️ Set up Docker Buildx with advanced features
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: |
-            network=host
-            image=moby/buildkit:v0.12.0
-          buildkitd-flags: --allow-insecure-entitlement network.host
-
-      # 🔐 Authenticate with GitHub Container Registry (moved up for registry cache)
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0  # This is crucial for setuptools_scm
+          fetch-tags: true  # Explicitly fetch tags
 
       # 🏷️ Extract version tag from Git reference or use manual input
       - name: Get version
@@ -69,6 +49,9 @@ jobs:
             PLATFORMS="${{ github.event.inputs.platforms }}"
             IS_RELEASE="false"
             echo "Manual trigger - Version: $VERSION_TAG, Push: $PUSH_TO_REGISTRY, Platforms: $PLATFORMS"
+            
+            # For manual triggers, create a temporary tag to help setuptools_scm
+            git tag -f "$VERSION_TAG" HEAD
           else
             # Tag push - extract from GITHUB_REF
             VERSION_TAG="${GITHUB_REF#refs/tags/}"
@@ -85,18 +68,35 @@ jobs:
           echo "PLATFORMS=$PLATFORMS" >> $GITHUB_ENV
           echo "IS_RELEASE=$IS_RELEASE" >> $GITHUB_ENV
           
-          echo "Final values:"
-          echo "  VERSION_TAG: $VERSION_TAG"
-          echo "  VERSION_CLEAN: $VERSION_CLEAN"
-          echo "  PUSH_TO_REGISTRY: $PUSH_TO_REGISTRY"
-          echo "  PLATFORMS: $PLATFORMS"
-          echo "  IS_RELEASE: $IS_RELEASE"
+          # Verify Git state for setuptools_scm
+          echo "Git status for setuptools_scm:"
+          git describe --tags --dirty --always
+          git log --oneline -5
           
-      # 🐳 Build and push Docker image with optimized registry caching
+      # 🛠️ Set up QEMU for cross-platform builds
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # 🛠️ Set up Docker Buildx with advanced features
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            network=host
+            image=moby/buildkit:v0.12.0
+          buildkitd-flags: --allow-insecure-entitlement network.host
+
+      # 🔐 Authenticate with GitHub Container Registry
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 🐳 Build and push Docker image with proper Git context
       - name: Build and push tamipami image
         uses: docker/build-push-action@v6
-        env:
-          BUILDKIT_CONTEXT_KEEP_GIT_DIR: true  # Ensures .git is preserved for setuptools_scm
         with:
           context: .
           push: ${{ env.PUSH_TO_REGISTRY }}
@@ -105,8 +105,7 @@ jobs:
             ghcr.io/usda-ars-gbru/tamipami:${{ env.VERSION_CLEAN }}
             ${{ env.IS_RELEASE == 'true' && 'ghcr.io/usda-ars-gbru/tamipami:latest' || '' }}
           build-args: |
-            BUILDKIT_CONTEXT_KEEP_GIT_DIR=true
-            BUILDKIT_INLINE_CACHE=1
+            SETUPTOOLS_SCM_PRETEND_VERSION=${{ env.VERSION_CLEAN }}
           # Use registry cache (ignore errors if cache doesn't exist yet)
           cache-from: |
             type=registry,ref=ghcr.io/usda-ars-gbru/tamipami:latest
@@ -120,4 +119,4 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && env.PUSH_TO_REGISTRY == 'true'
         run: |
           echo "Testing the built Docker image..."
-          docker run --rm ghcr.io/usda-ars-gbru/tamipami:${{ env.VERSION_CLEAN }} --help || echo "Image test completed"
+          docker run --rm ghcr.io/usda-ars-gbru/tamipami:${{ env.VERSION_CLEAN }} --version || echo "Image test completed"
