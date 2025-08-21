@@ -1,4 +1,4 @@
-FROM condaforge/mambaforge:24.9.2-0
+FROM condaforge/miniforge3:25.3.1-0
 
 LABEL maintainer="adam.rivers@usda.gov"
 

@@ -125,17 +125,22 @@ Detailed performance metrics for 7 datasets are found at [`benchmark/readme.md`]
 If you need help or encounter errors please request support on the [Tamipami Github issues page](https://github.com/USDA-ARS-GBRU/tamipami/issues)   
     
 
-## Server notes
+## Docker note
 
-Docker deployment command:
+To run the web application from Docker run this command:
 
+```{Bash}
+docker run -d -p 8501:8501 ghcr.io/usda-ars-gbru/tamipami:latest
 ```
-docker run -d \
-  -p 8501:8501 \
-  --name tamipami-app \
-  streamlit-app:latest \
-  streamlit run /app/tamipami/app.py --server.port=8501 --server.address=0.0.0.0
+
+To use the Tamipami CLI interactively:
+
+```{Bash}
+docker run -it -v $(pwd):/workspace --entrypoint /usd/bin/bash ghcr.io/usda-ars-gbru/tamipami:latest
 ```
+
+This will mount your current working directory to a directory called `/workspace` and open up bash, ignoring the entrypoint that by default, starts the web server.
+
 
 ## License information
 
