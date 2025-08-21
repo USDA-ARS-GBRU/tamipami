@@ -22,6 +22,9 @@ To use wget on, for example, SRR34761000:
 wget -O SRR34761000.fastq.gz https://trace.ncbi.nlm.nih.gov/Traces/sra-reads-be/fastq\?acc\=SRR34761000
 ```
 
+## Example FASTQs
+
+Example data from a Cas9 experiment data can be downloaded from within the Tamipami web application. They are also available in the repository under `tamipami/tamipami/assets/Example.zip`
 
 ## Metadata files
 

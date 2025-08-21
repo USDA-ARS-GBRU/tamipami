@@ -67,7 +67,7 @@ TamiPami: a CLI application to parse high throughput PAM/TAM site sequencing dat
 
 positional arguments:
   {serve,process,predict}
-    serve               Subcommand "serve": launch the Streamlit web application.
+    serve               Subcommand "serve": launch the Tamipami web application.
     process             Sub-command "process": used to process FASTQ data into a summarized json output
     predict             Subcommand "predict" use to predict PAMs/TAMs and summary data for a selected length and cutoff value
 
@@ -123,14 +123,16 @@ options:
   --host HOST  Host address for the server (default: localhost)
 ```
 
-## Example data
+## Data availability
 
-Example datasets are available under NCBI Bioproject [PRJNA1298332 : Tamipami: Software for determining the PAM and TAM sites of new CRISPR/Cas and TnpB nucleases ](https://www.ncbi.nlm.nih.gov/bioproject/1298332). For more information see [`data/readme.md`](data/readme.md).
+ Full datasets are available under NCBI Bioproject [PRJNA1298332](https://www.ncbi.nlm.nih.gov/bioproject/1298332). For more information on the samples see [`data/readme.md`](data/readme.md).
+
+ Example data from one Cas9 experiment data can be downloaded from within the Tamipami web application. They are also available in this repository under `tamipami/assets/Example.zip`
 
 
 ## Performance
 
-Detailed performance metrics for 7 datasets are found at [`benchmark/readme.md`](benchmark/readme.md). TL;DR most datasets take 15-30 seconds to process.
+Detailed performance metrics for 7 datasets are found at [`benchmark/readme.md`](benchmark/readme.md). TL;DR most datasets take 10-30 seconds to process.
 
 ## Need more help?
 
