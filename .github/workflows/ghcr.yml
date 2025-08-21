@@ -8,7 +8,7 @@ on:
       version:
         description: 'Version (e.g., 1.0.0)'
         required: true
-        default: '0.0.0-test'
+        default: '0.0.0.dev0'
       push:
         description: 'Push to registry'
         type: boolean
