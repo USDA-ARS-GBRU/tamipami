@@ -79,12 +79,30 @@ def myparser() -> argparse.ArgumentParser:
         subcommands and arguments for the TamiPami CLI.
     """
     parser = argparse.ArgumentParser(
-        description="TamiPami: a CLI application to parse High throughput PAM/TAM site sequencing data"
+        description="TamiPami: a CLI application to parse high throughput PAM/TAM site sequencing data"
     )
     parser.add_argument("--log", help="Log file", default="tamipami.log")
     sub_parsers = parser.add_subparsers(dest="subcommand")
 
     parser.add_argument("-V", "--version", action="version", version=__version__)
+
+    # --- Add Streamlit serve subcommand ---
+    parser_serve = sub_parsers.add_parser(
+        "serve",
+        help='Subcommand "serve": launch the Streamlit web application.'
+    )
+    parser_serve.add_argument(
+        "--port",
+        type=int,
+        default=8501,
+        help="Port to run the Streamlit server on (default: 8501)"
+    )
+    parser_serve.add_argument(
+        "--host",
+        type=str,
+        default="localhost",
+        help="Host address for the server (default: localhost)"
+    )
 
     parser_process = sub_parsers.add_parser(
         "process",
@@ -462,6 +480,14 @@ def main(args: argparse.Namespace = None) -> None:
         export_results(pamexpobj, args.outfile)
     elif args.subcommand == "predict":
         predict(args)
+    elif args.subcommand == "serve":
+        import subprocess
+        script = "tamipami/app.py"
+        port = str(getattr(args, "port", 8501))
+        host = getattr(args, "host", "0.0.0.0")
+        cmd = [sys.executable, "-m", "streamlit", "run", script, "--server.port=" + port, "--server.address=" + host]
+        logging.info(f"Starting Streamlit: {' '.join(cmd)}")
+        subprocess.run(cmd)
 
 
 def log_run_summary(run_summ):

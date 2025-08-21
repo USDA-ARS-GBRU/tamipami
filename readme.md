@@ -17,26 +17,25 @@ This web application and command line application builds on the work by creating
 
 ## Installation
 
-The application can be installed into a conda environemnt using Pip and conda.
+The application can be installed into a conda environment using Pip and conda.
 
 ```{bash}
-conda create -n tamipamienv -c conda-forge python=3.13
-conda activate tamipamienv
-conda install -c bioconda bbmap
+conda create -n tamipamienv -c conda-forge -c bioconda --file requirements.txt
+conda activate tamipamienv 
 git clone git@github.com:USDA-ARS-GBRU/tamipami.git
 cd tamipami
+pip install pip-requirements.txt
 pip install .
-
 ```
 
 ## Web Application 
 
 The web application can be found at [https://tamipami.che.ufl.edu](https://tamipami.che.ufl.edu)
 
-To launch a the streamlit web application locally at http://localhost:8501 run this commmand:
+To launch a the Streamlit web application locally at http://localhost:8501 run this command:
 
 ```{bash}
-streamlit run tamipami/app.py 
+tamipami serve
 ```
 
 
@@ -58,34 +57,37 @@ cutoff value to separate kmers that cut from those that did not. This will updat
 
 ## Command line program
 
-To facilitate automated analysis we have also released a command line version of TamiPami.  The CLI has two subcommands: `process` and `predict`. The first step is to process the raw FASTQ data into counts of kmers. This data can be sent ot a JSON file or STDOUT.  The second step is to predict the PAM Sequences given a specific cutoff value. The commands can be piped together.
+To facilitate automated analysis we have also released a command line version of TamiPami.  The CLI has three subcommands: `process`,`predict` and `serve`. The subcommand `process` processes the raw FASTQ data into counts of kmers. This data can be sent ot a .h5 file or STDOUT.  The second step `pedict` predicts the degenrate PAM Sequences given a specific cutoff value and produces summary plots. The commands can be piped together. the third subcommand `serve` launches the web application.
 
 ```
-TamiPami: a CLI application to parse High throughput PAM/TAM site sequencing data
+usage: tamipami [-h] [--log LOG] [-V] {serve,process,predict} ...
+
+TamiPami: a CLI application to parse high throughput PAM/TAM site sequencing data
 
 positional arguments:
-  {process,predict}
-    process          Sub-command "process": used to process FASTQ data into a summarized json output
-    predict          Subcommand "predict" use to predict PAMs/TAMs and summary data for a selected length and cutoff value
+  {serve,process,predict}
+    serve               Subcommand "serve": launch the Streamlit web application.
+    process             Sub-command "process": used to process FASTQ data into a summarized json output
+    predict             Subcommand "predict" use to predict PAMs/TAMs and summary data for a selected length and cutoff value
 
 options:
-  -h, --help         show this help message and exit
-  --log LOG          Log file
-  -V, --version      show program's version number and exit
+  -h, --help            show this help message and exit
+  --log LOG             Log file
+  -V, --version         show program's version number and exit
 ```
 
 ### Process
 
 ```
-usage: tamipami process [-h] --cont1 CONT1 --cont2 CONT2 --exp1 EXP1 --exp2 EXP2 [--outfile OUTFILE] [--library {RTW554,RTW555,RTW572,RTW574}] [--spacer SPACER] [--orientation {3prime,5prime}]
+usage: tamipami process [-h] --cont1 CONT1 [--cont2 CONT2] --exp1 EXP1 [--exp2 EXP2] [--outfile OUTFILE] [--library {RTW554,RTW555,RTW572,RTW574}] [--spacer SPACER] [--orientation {3prime,5prime}]
                         [--length [3-8]]
 
 options:
   -h, --help            show this help message and exit
   --cont1, -c CONT1     A forward .fastq, .fq, .fastq.gz or .fq.gz file. .
-  --cont2, -c2 CONT2    A reverse .fastq, .fq, .fastq.gz or .fq.gz file.
+  --cont2, -c2 CONT2    Optional reverse .fastq, .fq, .fastq.gz or .fq.gz file for paired-end runs. Provide both --cont2 and --exp2, or omit both for single-end.
   --exp1, -e EXP1       A forward .fastq, .fq, .fastq.gz or .fq.gz file.
-  --exp2, -e2 EXP2      A reverse .fastq, .fq, .fastq.gz or .fq.gz file.
+  --exp2, -e2 EXP2      Optional reverse .fastq, .fq, .fastq.gz or .fq.gz file for paired-end runs. Provide both --cont2 and --exp2, or omit both for single-end.
   --outfile OUTFILE     A path to a hdf5 file of the results, if missing binary data will be sent to STDOUT.
   --library {RTW554,RTW555,RTW572,RTW574}
                         The Addgene library pool. For custom pools use the --spacer and --orientation flags
@@ -98,17 +100,26 @@ options:
   ### Predict
 
 ```
-usage: tamipami predict [-h] [--input INPUT] [--cutoff CUTOFF] --predict_out PREDICT_OUT
+usage: tamipami predict [-h] [--input INPUT] --cutoff CUTOFF --predict_out PREDICT_OUT
 
 options:
   -h, --help            show this help message and exit
-  --input INPUT         An file containing the data from a TamiPami process run or downloaded data from the web ap, if not input is provided STDIN will
-                        be assumed
-  --cutoff CUTOFF       A json string containing the kmer lengths and the Zscore cutoff values above which kmers are considered part of the PAM/TAM.
-                        Single and double quotes are required. If no cutoff is provided it will be automatically calculated using univariate k means
-                        clustering. Example input: --cutoff '{"3": 2, "4": 2, "5": 2, "6": 2}'
+  --input INPUT         An file containing the data from a TamiPami process run or downloaded data from the web ap, if not input is provided STDIN will be assumed
+  --cutoff CUTOFF       Cutoff thresholds as a JSON dictionary with integer keys [3-8] and numeric values. Example: '{"3": 0.7, "4": 0.85, "5": 0.93}'. Keys must be integers between 3 and 8. Values
+                        must be numbers.
   --predict_out PREDICT_OUT
                         A file directory containing the PAM/TAM and degenerate sequences identified
+```
+
+### Serve
+
+```
+usage: tamipami serve [-h] [--port PORT] [--host HOST]
+
+options:
+  -h, --help   show this help message and exit
+  --port PORT  Port to run the Streamlit server on (default: 8501)
+  --host HOST  Host address for the server (default: localhost)
 ```
 
 ## Example data
@@ -145,5 +156,5 @@ This will mount your current working directory to a directory called `/workspace
 ## License information
 
 This software is a work of the United States Department of Agriculture,
-Agricultural Research Service and is not copyrightable under U.S. Code Title 17, Section 105. It is released under a Creative Commons CC0
-public domain attribution.
+Agricultural Research Service and is not copyrightable under U.S. Code Title 17, Section 105.
+It is released under a Creative Commons CC0 public domain attribution.

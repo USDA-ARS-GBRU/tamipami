@@ -33,7 +33,7 @@ dependencies = [
 
 [external]
   dependencies = [
-    "pkg:sourceforge:BBMap@39.19"
+    "pkg:sourceforge:BBMap@39.33"
   ]
 
 [project.urls]
