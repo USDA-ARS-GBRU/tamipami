@@ -20,11 +20,12 @@ This web application and command line application builds on the work by creating
 The application can be installed into a conda environment using Pip and conda.
 
 ```{bash}
-conda create -n tamipamienv -c conda-forge -c bioconda --file requirements.txt
-conda activate tamipamienv 
+conda create -n tamipamienv -c conda-forge -c bioconda python=3.13
+conda activate tamipamienv
+conda install -c conda-forge -c bioconda  --file conda-requirements.txt 
 git clone git@github.com:USDA-ARS-GBRU/tamipami.git
 cd tamipami
-pip install pip-requirements.txt
+pip install -r pip-requirements.txt
 pip install .
 ```
 
@@ -32,7 +33,7 @@ pip install .
 
 The web application can be found at [https://tamipami.che.ufl.edu](https://tamipami.che.ufl.edu)
 
-To launch a the Streamlit web application locally at http://localhost:8501 run this command:
+To launch a the Tamipami web application locally at http://localhost:8501 run this command:
 
 ```{bash}
 tamipami serve

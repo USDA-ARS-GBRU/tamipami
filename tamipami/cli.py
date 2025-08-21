@@ -89,13 +89,13 @@ def myparser() -> argparse.ArgumentParser:
     # --- Add Streamlit serve subcommand ---
     parser_serve = sub_parsers.add_parser(
         "serve",
-        help='Subcommand "serve": launch the Streamlit web application.'
+        help='Subcommand "serve": launch the Tamipami web application.'
     )
     parser_serve.add_argument(
         "--port",
         type=int,
         default=8501,
-        help="Port to run the Streamlit server on (default: 8501)"
+        help="Port to run the server on (default: 8501)"
     )
     parser_serve.add_argument(
         "--host",
