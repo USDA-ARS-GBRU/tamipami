@@ -62,4 +62,4 @@ jobs:
       - name: Test image
         if: github.event_name == 'workflow_dispatch' && env.PUSH == 'true'
         run: |
-          docker run --rm ghcr.io/usda-ars-gbru/tamipami:${{ env.VERSION }} python -c "import tamipami; print(tamipami.__version__)"
+          docker run --rm --entrypoint python ghcr.io/usda-ars-gbru/tamipami:${{ env.VERSION }} -c "import tamipami; print(tamipami.__version__)"
