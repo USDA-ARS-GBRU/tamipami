@@ -24,7 +24,6 @@ dependencies = [
     "matplotlib",
     "scikit-bio",
     "treelib",
-    "textdistance",
     "logomaker",
     "altair",
     "pyyaml",

@@ -2,7 +2,6 @@ FROM condaforge/mambaforge:24.9.2-0
 
 LABEL maintainer="adam.rivers@usda.gov"
 
-# Environment setup
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     MAMBA_NO_BANNER=1 \
@@ -15,39 +14,26 @@ WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         build-essential \
         openjdk-8-jre-headless \
         wget \
         curl \
         git && \
-    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# Copy requirement files
+COPY conda-requirements.txt .
+COPY pip-requirements.txt .
+
 # Install conda packages
-RUN mamba install -y -c conda-forge -c bioconda \
-        bbmap=39.28 \
-        biopython \
-        scipy \
-        pandas \
-        matplotlib \
-        scikit-bio \
-        pyyaml \
-        streamlit \
-        setuptools \
-        pip && \
+RUN mamba install -y -c conda-forge -c bioconda --file conda-requirements.txt && \
     mamba clean -afy
 
-# Install pip-only dependencies
-RUN pip install --no-cache-dir \
-        ckmeans \
-        treelib \
-        textdistance \
-        logomaker \
-        altair \
-        tables
+# Install pip packages
+RUN pip install --no-cache-dir -r pip-requirements.txt
 
-# Copy and install package
+# Copy and install your package
 COPY . /app
 RUN pip install --no-cache-dir .
 

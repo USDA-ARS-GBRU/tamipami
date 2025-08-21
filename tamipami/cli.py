@@ -6,7 +6,6 @@ import logging
 import tempfile
 import os
 import sys
-import json
 import multiprocessing
 from pathlib import Path
 

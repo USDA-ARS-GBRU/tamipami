@@ -18,7 +18,6 @@ from pathlib import Path
 import json
 
 import streamlit as st
-import altair as alt
 import pandas as pd
 
 from tamipami.config import config

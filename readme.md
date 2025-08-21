@@ -2,10 +2,10 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16915022.svg)](https://doi.org/10.5281/zenodo.16915022)
 
-__Carlos Orosco<sup>1</sup>, Pyush Jain<sup>1</sup>, Adam R. Rivers<sup>2</sup>__
+__Carlos Orosco<sup>1</sup>, Piyush Jain<sup>1</sup>, Adam R. Rivers<sup>2</sup>__
 
-1. University of Florida, Department of Chemical Engineering, Gainesville, FL USA
-2. United States Department of Agriculture, Agricultural Research Service, Genomics and Bioinformatics Research Unit, Gainesville, FL USA
+1. University of Florida, Department of Chemical Engineering, Gainesville, FL, USA
+2. United States Department of Agriculture, Agricultural Research Service, Genomics and Bioinformatics Research Unit, Gainesville, FL, USA
 
 
 <br>

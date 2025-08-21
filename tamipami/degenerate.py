@@ -1,6 +1,6 @@
 
 import logging
-from typing import Iterable, Tuple, Set, List
+from typing import Tuple, Set, List
 
 # -*- coding: utf-8 -*-
 from itertools import product
