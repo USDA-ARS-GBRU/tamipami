@@ -88,20 +88,19 @@ def myparser() -> argparse.ArgumentParser:
 
     # --- Add Streamlit serve subcommand ---
     parser_serve = sub_parsers.add_parser(
-        "serve",
-        help='Subcommand "serve": launch the Tamipami web application.'
+        "serve", help='Subcommand "serve": launch the Tamipami web application.'
     )
     parser_serve.add_argument(
         "--port",
         type=int,
         default=8501,
-        help="Port to run the server on (default: 8501)"
+        help="Port to run the server on (default: 8501)",
     )
     parser_serve.add_argument(
         "--host",
         type=str,
         default="localhost",
-        help="Host address for the server (default: localhost)"
+        help="Host address for the server (default: localhost)",
     )
 
     parser_process = sub_parsers.add_parser(
@@ -187,7 +186,7 @@ def myparser() -> argparse.ArgumentParser:
         required=True,
         help=(
             "Cutoff thresholds as a JSON dictionary with integer keys [3-8] and numeric values. "
-            "Example: '{\"3\": 0.7, \"4\": 0.85, \"5\": 0.93}'. "
+            'Example: \'{"3": 0.7, "4": 0.85, "5": 0.93}\'. '
             "Keys must be integers between 3 and 8. Values must be numbers."
         ),
     )
@@ -229,6 +228,7 @@ def parse_lib(args: argparse.Namespace) -> tuple[str, str]:
         orientation = args.orientation
     return spacer, orientation
 
+
 def process_fastq_wrapper(args_tuple):
     """
     Wrapper function to process FASTQ files using provided arguments with multiprocessing.
@@ -247,6 +247,7 @@ def process_fastq_wrapper(args_tuple):
         spacer=spacer,
         orientation=orientation,
     )
+
 
 def process(args: argparse.Namespace = None) -> tuple[pam.pamSeqExp, dict]:
     """
@@ -291,7 +292,9 @@ def process(args: argparse.Namespace = None) -> tuple[pam.pamSeqExp, dict]:
             with multiprocessing.Pool(processes=2) as pool:
                 results = pool.map(process_fastq_wrapper, tasks)
 
-            (cont_raw, run_summ["cont"]["tot"], run_summ["cont"]["targets"]) = results[0]
+            (cont_raw, run_summ["cont"]["tot"], run_summ["cont"]["targets"]) = results[
+                0
+            ]
             (exp_raw, run_summ["exp"]["tot"], run_summ["exp"]["targets"]) = results[1]
 
             pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw, position=orientation)
@@ -482,17 +485,25 @@ def main(args: argparse.Namespace = None) -> None:
         predict(args)
     elif args.subcommand == "serve":
         import subprocess
+
         script = "tamipami/app.py"
         port = str(getattr(args, "port", 8501))
         host = getattr(args, "host", "0.0.0.0")
-        cmd = [sys.executable, "-m", "streamlit", "run", script, "--server.port=" + port, "--server.address=" + host]
+        cmd = [
+            sys.executable,
+            "-m",
+            "streamlit",
+            "run",
+            script,
+            "--server.port=" + port,
+            "--server.address=" + host,
+        ]
         logging.info(f"Starting Streamlit: {' '.join(cmd)}")
         subprocess.run(cmd)
 
 
 def log_run_summary(run_summ):
-    """A helper function for logging FASQ processing info
-    """
+    """A helper function for logging FASQ processing info"""
     logging.info(
         "Control data: {} reads processed, {} contained targets.".format(
             run_summ["cont"]["tot"], run_summ["cont"]["targets"]

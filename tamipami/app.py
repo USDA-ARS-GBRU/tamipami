@@ -68,7 +68,7 @@ def delete_session_dir():
 
 # Define input parameters and widgets
 apptitle = "TamiPami"
-st.set_page_config(page_title=apptitle, page_icon=':material/genetics:')
+st.set_page_config(page_title=apptitle, page_icon=":material/genetics:")
 st.logo(os.path.join(ROOT_DIR, "assets/ARS_UF_combined.png"), size="large")
 st.image(os.path.join(ROOT_DIR, "assets/tami_postcard.jpeg"))
 st.subheader("Identify the PAMs of new Cas enzymes or TAMs of TnpB endonucleases")
@@ -110,8 +110,9 @@ with st.expander(label="Use Instructions", icon=":material/help_center:"):
 
 args = {}
 with st.sidebar:
-    with st.expander(label="Need test data for TamiPami?", icon=':material/genetics:'):
-        st.markdown("""
+    with st.expander(label="Need test data for TamiPami?", icon=":material/genetics:"):
+        st.markdown(
+            """
                     Download the zip file `Example.zip` with the button below. It contains 4 files: 
                     - `example_cont1.fastq.gz`
                     - `example_cont2.fastq.gz`
@@ -123,7 +124,8 @@ with st.sidebar:
                     boxes below. The "exp" files contain the forward and reverse reads for the **RTW554** library digested with
                     SpCas9 nuclease. The example data is a sample of the first 250,000 read pairs from NCBI SRA **SRR34761011**
                     (cont) and **SRR34761004** (exp).
-                    """)
+                    """
+        )
         file_path = os.path.join(ROOT_DIR, "assets/Example.zip")
         with open(file_path, "rb") as f:
             file_bytes = f.read()
@@ -132,7 +134,7 @@ with st.sidebar:
             data=file_bytes,
             file_name="Example.zip",
             mime="application/zip",  # or "application/gzip" etc.,
-            type='primary'
+            type="primary",
         )
     with st.form(key="newdata"):
         st.markdown("## Upload your FASTQ data")
@@ -249,7 +251,9 @@ def save_input_files(datadir: str, args: dict) -> None:
         )
     # Always require forward files
     if args.get("cont1") is None or args.get("exp1") is None:
-        raise AssertionError("Both control and experimental forward files (cont1 and exp1) are required.")
+        raise AssertionError(
+            "Both control and experimental forward files (cont1 and exp1) are required."
+        )
 
     # Write files that are present
     for key in ["cont1", "cont2", "exp1", "exp2"]:
@@ -277,7 +281,7 @@ def parse_lib(args: dict) -> tuple[str]:
     return spacer, orientation
 
 
-# @st.cache_data
+@st.cache_data
 def process(args):
     """
     Process control and experimental FASTQ files to generate a pamSeqExp object and run summary.
@@ -295,23 +299,28 @@ def process(args):
         create_session_dir()
         datadir = st.session_state["datadir"]
         save_input_files(datadir, args)
+
         def safe_value(val):
             if hasattr(val, "name"):
                 return val.name
             return str(val)
 
         with st.expander("Run Configuration"):
-            param_df = pd.DataFrame({
-                "Parameter": list(args.keys()),
-                "Value": [safe_value(v) for v in args.values()]
-            })
+            param_df = pd.DataFrame(
+                {
+                    "Parameter": list(args.keys()),
+                    "Value": [safe_value(v) for v in args.values()],
+                }
+            )
             st.dataframe(param_df, hide_index=True)
             st.write("Data directory: {}".format(datadir))
         spacer, orientation = parse_lib(args)
         run_summ = {"cont": {}, "exp": {}}
 
         # Determine paired-end or single-end
-        cont2_path = os.path.join(datadir, "cont2.fastq.gz") if args.get("cont2") else None
+        cont2_path = (
+            os.path.join(datadir, "cont2.fastq.gz") if args.get("cont2") else None
+        )
         exp2_path = os.path.join(datadir, "exp2.fastq.gz") if args.get("exp2") else None
 
         cont_raw, run_summ["cont"]["tot"], run_summ["cont"]["targets"] = fastq.process(
@@ -368,6 +377,14 @@ def read_count_check(run_summ, minfrac):
         )
 
 
+# Wrapper functions for caching
+
+
+@st.cache_data
+def compute_degenerate(filtered_kmers_tuple):
+    return degenerate.seqs_to_degenerates(list(filtered_kmers_tuple))
+
+
 def main(args):
     if newrun:
         try:
@@ -418,7 +435,9 @@ def main(args):
                 if slider_key not in st.session_state:
                     update_slider(key, slider_key)
 
-                slider, slidebutton = st.columns(spec=[0.8, 0.2], vertical_alignment="center")
+                slider, slidebutton = st.columns(
+                    spec=[0.8, 0.2], vertical_alignment="center"
+                )
                 with slider:
                     # Slider always uses key (session-state-controlled)
                     st.slider(
@@ -436,7 +455,11 @@ def main(args):
                     )
 
                 # --- Key FIX: Always get cutoff from session state ---
-                cutoff = st.session_state[slider_key] if slider_key in st.session_state else None
+                cutoff = (
+                    st.session_state[slider_key]
+                    if slider_key in st.session_state
+                    else None
+                )
 
                 althist = tpio.histogram_plot(
                     df,
@@ -444,11 +467,13 @@ def main(args):
                     cutoff=cutoff,  # Always pass the cutoff, even on tab change
                 )
 
-                hist, degenerates = st.columns(spec=[0.8, 0.2], vertical_alignment="center")
+                hist, degenerates = st.columns(
+                    spec=[0.8, 0.2], vertical_alignment="center"
+                )
                 with hist:
                     st.altair_chart(althist)
                 filtered_df = df[df["zscore"] >= cutoff] if cutoff is not None else df
-                dseqs = degenerate.seqs_to_degenerates(filtered_df["kmers"].tolist())
+                dseqs = compute_degenerate(filtered_df["kmers"].tolist())
                 with degenerates:
                     st.dataframe({"PAM/TAM site": dseqs}, hide_index=True)
 
@@ -464,6 +489,7 @@ def main(args):
                 logo = st.session_state.pamexpobj.make_logo(
                     length=key, cutoff=cutoff, score_type="zscore", above=False
                 )
+
                 st.pyplot(logo)
 
         st.divider()
@@ -487,6 +513,7 @@ def main(args):
             key=f"download",
         )
 
+
 if __name__ == "__main__":
     main(args)
     with st.expander(label="CCO Licence Information", icon=":material/copyright:"):
@@ -505,6 +532,10 @@ if __name__ == "__main__":
                 """
         )
     with st.expander(label="Citation", icon=":material/ink_pen:"):
-        st.write("We are preparing the TamiPami mansucript: Orosco, Carlos. Jain, Piyush. Rivers, Adam R. TamiPami: a TAM/PAM identification interface for CRISPR and Omega systems. In Prep.")
-        st.write("[Tamipami Github repository](https://github.com/USDA-ARS-GBRU/tamipami)")
+        st.write(
+            "We are preparing the TamiPami mansucript: Orosco, Carlos. Jain, Piyush. Rivers, Adam R. TamiPami: a TAM/PAM identification interface for CRISPR and Omega systems. In Prep."
+        )
+        st.write(
+            "[Tamipami Github repository](https://github.com/USDA-ARS-GBRU/tamipami)"
+        )
 st.write("Tamipami version {}".format(__version__))

@@ -36,12 +36,14 @@ def iterate_kmer(k: int) -> dict[str, int]:
     kmers = ["".join(p) for p in itertools.product(bases, repeat=k)]
     return {kmer: 0 for kmer in sorted(kmers)}
 
+
 import subprocess
 import logging
 import re
 from Bio import SeqIO
 
 from tamipami.config import config
+
 
 def merge_reads_stream(fastq: str, fastq2: str) -> subprocess.Popen:
     """
@@ -58,12 +60,15 @@ def merge_reads_stream(fastq: str, fastq2: str) -> subprocess.Popen:
         "bbmerge.sh",
         "in=" + fastq,
         "in2=" + fastq2,
-        "out=stdout.fastq",# Stream merged reads to stdout
+        "out=stdout.fastq",  # Stream merged reads to stdout
     ]
     parameters.extend(config["bbmerge"])
     logging.info(parameters)
-    proc = subprocess.Popen(parameters, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    proc = subprocess.Popen(
+        parameters, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+    )
     return proc
+
 
 def count_pam_stream(
     spacer: str, pamlen: int, orientation: str, fastq_stream
@@ -112,6 +117,7 @@ def count_pam_stream(
         logging.error("Error during streaming PAM/TAM counting: %s", e)
         raise
 
+
 def process(
     fastq: str, fastq2: Optional[str], pamlen: int, spacer: str, orientation: str
 ) -> tuple[dict[str, int], int, int]:
@@ -134,11 +140,16 @@ def process(
 
     try:
         if fastq2:
-            logging.info("Paired-end input detected; merging reads and streaming to PAM/TAM counter.")
+            logging.info(
+                "Paired-end input detected; merging reads and streaming to PAM/TAM counter."
+            )
             proc = merge_reads_stream(fastq=fastq, fastq2=fastq2)
 
             pamcount, tot_reads, target_detections = count_pam_stream(
-                pamlen=pamlen, spacer=spacer, orientation=orientation, fastq_stream=proc.stdout
+                pamlen=pamlen,
+                spacer=spacer,
+                orientation=orientation,
+                fastq_stream=proc.stdout,
             )
             print(proc.stderr.read())
             proc.stdout.close()
@@ -146,14 +157,19 @@ def process(
             proc.wait()
 
         else:
-            logging.info("Single-end input detected; streaming reads directly to PAM/TAM counter.")
+            logging.info(
+                "Single-end input detected; streaming reads directly to PAM/TAM counter."
+            )
             if fastq.endswith(".gz"):
                 fh = gzip.open(fastq, "rt")
             else:
                 fh = open(fastq, "rt")
             try:
                 pamcount, tot_reads, target_detections = count_pam_stream(
-                    pamlen=pamlen, spacer=spacer, orientation=orientation, fastq_stream=fh
+                    pamlen=pamlen,
+                    spacer=spacer,
+                    orientation=orientation,
+                    fastq_stream=fh,
                 )
             finally:
                 fh.close()

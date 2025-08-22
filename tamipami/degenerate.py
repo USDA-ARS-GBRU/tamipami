@@ -1,4 +1,3 @@
-
 import logging
 from typing import Tuple, Set, List
 
@@ -109,6 +108,7 @@ def degenerate_representation(position_to_chars: list[set]) -> list:
 #         all_possible_representations.add("".join(combination))
 #     return all_possible_representations
 
+
 @lru_cache(maxsize=None)
 def gen_all_combo(minimal_representations: Tuple[Tuple[str, ...], ...]) -> Set[str]:
     """Takes a tuple of nucleotide options at each position and returns all expanded strings.
@@ -146,20 +146,21 @@ def create_degenerate(subset: set[str]) -> str | None:
 # def calculate_hamming_distance(strings: List[str]) -> np.array:
 #     if not all(len(s) == len(strings[0]) for s in strings):
 #         raise ValueError("All strings must be of equal length")
-    
+
 #     # Convert strings to a 2D NumPy array of characters
 #     arr = np.array([list(s) for s in strings])
 #     print(arr)
-    
+
 #     # Use pdist with 'hamming' metric (built-in and vectorized)
 #     # Note: 'hamming' returns normalized distance (fraction of differing positions)
 #     distance_matrix = pdist(arr, metric='hamming') * len(strings[0])  # scale to get raw count
-    
+
 #     return distance_matrix
 
 import numpy as np
 from scipy.spatial.distance import pdist
 from typing import List
+
 
 def calculate_hamming_distance(strings: List[str]) -> np.array:
     if not strings:
@@ -168,13 +169,15 @@ def calculate_hamming_distance(strings: List[str]) -> np.array:
         raise ValueError("All strings must be of equal length")
 
     # DNA base mapping: A=0, C=1, G=2, T=3
-    base_map = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
+    base_map = {"A": 0, "C": 1, "G": 2, "T": 3}
 
     # Convert strings to 2D array of mapped integers
-    arr = np.array([[base_map[char] for char in seq] for seq in strings], dtype=np.uint8)
+    arr = np.array(
+        [[base_map[char] for char in seq] for seq in strings], dtype=np.uint8
+    )
 
     # Compute pairwise Hamming distances (normalized), then scale to raw count
-    distance_matrix = pdist(arr, metric='hamming') * arr.shape[1]
+    distance_matrix = pdist(arr, metric="hamming") * arr.shape[1]
 
     return distance_matrix
 
@@ -224,7 +227,6 @@ def create_tree(labels: list[str], distance_matrix: np.array) -> treelib.Tree:
                 stack.append((scipy_node.left, node_id))
 
         return tree
-
 
     return convert_scipy_tree_to_treelib(root, labels)
 

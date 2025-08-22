@@ -1,6 +1,7 @@
 import argparse
 import json
 
+
 def cutoff_arg_validator(value: str) -> dict:
     """
     Validates --cutoff input for tamipami CLI.
@@ -23,7 +24,7 @@ def cutoff_arg_validator(value: str) -> dict:
         data = json.loads(value)
     except Exception:
         raise argparse.ArgumentTypeError(
-            "--cutoff must be a valid JSON string, e.g. '{\"3\": 0.7, \"4\": 0.92}'"
+            '--cutoff must be a valid JSON string, e.g. \'{"3": 0.7, "4": 0.92}\''
         )
 
     if not isinstance(data, dict):
