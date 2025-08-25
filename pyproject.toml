@@ -18,6 +18,7 @@ requires-python = ">=3.10"
 
 dependencies = [
     "biopython",
+    "ortools"
     "scipy",
     "pandas",
     "ckmeans",
@@ -49,5 +50,3 @@ packages = ['tamipami']
 
 [project.scripts]
 tamipami = "tamipami.cli:main"
-
- 
