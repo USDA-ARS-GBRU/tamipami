@@ -496,7 +496,7 @@ def main(args):
         st.markdown(
             """
             ### Data Export
-            Data from the run can be exported as a json for further analysis.  This file contains the 
+            Data from the run can be exported as a HDF5 file for further analysis.  This file contains the 
             unfiltered data tables for each length. It does not contain the selected cutoffs, plots 
             or degenerate sequences. Those can be downloaded by selecting the elements on the screen.
             """
