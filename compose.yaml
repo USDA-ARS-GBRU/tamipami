@@ -1,0 +1,14 @@
+name: tamipami-server
+services:
+    tamipami:
+        container_name: streamlit
+        image: ghcr.io/usda-ars-gbru/tamipami:latest
+        ports:
+            - 8501:8501
+        restart: always  # Correct location
+    watchtower:
+        container_name: watchtower
+        image: containrrr/watchtower
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        restart: always  # Correct location
