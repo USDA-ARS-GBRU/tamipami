@@ -274,7 +274,7 @@ def close_rectangle(
     return tuple(frozenset(s) for s in pos_sets)
 
 
-# Subset preselection
+# Subset pre-selection
 
 
 def preselect_rectangles_by_pairs(
@@ -446,7 +446,7 @@ def minimal_exact_cover(
     solver.parameters.num_search_workers = 8
 
     status = solver.Solve(model)
-
+    logging.info("OTRools CT-SAT solver returned the status code {}".format(status))
     if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
         raise RuntimeError("No solution found")
 
