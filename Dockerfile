@@ -32,6 +32,11 @@ RUN mamba install -y -c conda-forge -c bioconda --file conda-requirements.txt &&
 # Install pip packages
 RUN pip install --no-cache-dir -r pip-requirements.txt
 
+# Set the library path so PyArrow can find the Abseil libs bundled with OR-Tools
+ENV LD_LIBRARY_PATH="/opt/conda/lib/python3.13/site-packages/ortools/.libs:$LD_LIBRARY_PATH"
+
+# ... (rest of the file)
+
 # 4. VERSION ARGS
 ARG SETUPTOOLS_SCM_PRETEND_VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}
