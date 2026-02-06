@@ -1,4 +1,4 @@
-bbmap=39.33
+bbmap=39.52
 streamlit=1.48.0
 altair=5.5.0
 pyyaml=6.0.2

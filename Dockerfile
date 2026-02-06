@@ -1,5 +1,4 @@
-FROM condaforge/miniforge3:25.3.1-0
-
+FROM condaforge/miniforge3:25.11.0-1
 LABEL maintainer="adam.rivers@usda.gov"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -20,6 +19,7 @@ RUN apt-get update && \
         wget \
         curl \
         git && \
+    mamba install -y -c conda-forge python=3.13 && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy requirement files
