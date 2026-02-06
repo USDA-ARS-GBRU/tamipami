@@ -58,9 +58,10 @@ def merge_reads_stream(fastq: str, fastq2: str) -> subprocess.Popen:
     """
     parameters = [
         "bbmerge.sh",
-        "in=" + fastq,
+        "in1=" + fastq,
         "in2=" + fastq2,
         "out=stdout.fastq",  # Stream merged reads to stdout
+        "interleaved=f",
     ]
     parameters.extend(config["bbmerge"])
     logging.info(parameters)
@@ -145,16 +146,24 @@ def process(
             )
             proc = merge_reads_stream(fastq=fastq, fastq2=fastq2)
 
-            pamcount, tot_reads, target_detections = count_pam_stream(
-                pamlen=pamlen,
-                spacer=spacer,
-                orientation=orientation,
-                fastq_stream=proc.stdout,
-            )
-            print(proc.stderr.read())
-            proc.stdout.close()
-            proc.stderr.close()
-            proc.wait()
+            try:
+                pamcount, tot_reads, target_detections = count_pam_stream(
+                    pamlen=pamlen,
+                    spacer=spacer,
+                    orientation=orientation,
+                    fastq_stream=proc.stdout,
+                )
+                stderr_output = proc.stderr.read()
+                if stderr_output:
+                    logging.info(f"BBmerge output: {stderr_output}")
+            except Exception as e:
+                stderr_output = proc.stderr.read()
+                logging.error(f"BBmerge error: {stderr_output}")
+                raise e
+            finally:
+                proc.stdout.close()
+                proc.stderr.close()
+                proc.wait()
 
         else:
             logging.info(

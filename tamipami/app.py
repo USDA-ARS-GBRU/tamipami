@@ -216,12 +216,19 @@ def write_input_file(datadir: str, stream, fname) -> None:
             raise PermissionError(f"Directory {datadir} is not writable.")
 
         filename = os.path.join(datadir, f"{fname}.fastq.gz")
-        if stream.__getattribute__("type") == "application/x-gzip":
+
+        # Check for gzip magic number (0x1f, 0x8b) to avoid double-gzipping
+        magic = stream.read(2)
+        stream.seek(0)
+        is_gzipped = magic == b"\x1f\x8b"
+
+        if is_gzipped:
             with open(filename, "wb") as temp1:
-                temp1.write(stream.getbuffer())
+                shutil.copyfileobj(stream, temp1)
         else:
             with gzip.open(filename, "wb") as temp1:
-                temp1.write(stream.getbuffer())
+                shutil.copyfileobj(stream, temp1)
+        stream.seek(0)
     except (IOError, PermissionError) as e:
         st.exception(e)
         raise (e)
