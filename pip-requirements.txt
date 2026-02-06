@@ -1,7 +1,4 @@
 ortools == 9.15.6755
-pyarrow == 23.0.0
 ckmeans == 0.2.10
 logomaker == 0.8.7
 treelib == 1.8.0
-pyarrow
-tables

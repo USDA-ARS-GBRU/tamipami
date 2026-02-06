@@ -26,14 +26,13 @@ COPY pip-requirements.txt .
 
 # Install conda packages removing packages after install is done to keep image in sync with Mac Arm installs where ortools requires its wn versions of these libs
 RUN mamba install -y -c conda-forge -c bioconda --file conda-requirements.txt && \
-    mamba remove -p /opt/conda --force -y libabseil glog gflags protobuf pyarrow && \ 
+    mamba remove -p /opt/conda --force -y libabseil glog gflags protobuf pyarrow && \
     mamba clean -afy
 
 # Install pip packages
 RUN pip install --no-cache-dir -r pip-requirements.txt
 
 # Set the library path so PyArrow can find the Abseil libs bundled with OR-Tools
-ENV LD_LIBRARY_PATH="/opt/conda/lib/python3.13/site-packages/ortools/.libs:$LD_LIBRARY_PATH"
 
 # ... (rest of the file)
 
