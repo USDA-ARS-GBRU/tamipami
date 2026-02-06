@@ -26,8 +26,9 @@ RUN apt-get update && \
 COPY conda-requirements.txt .
 COPY pip-requirements.txt .
 
-# Install conda packages
+# Install conda packages removing packages after install is done to keep image in sync with Mac Arm installs where ortools requires its wn versions of these libs
 RUN mamba install -y -c conda-forge -c bioconda --file conda-requirements.txt && \
+    mamba remove --force -y libabseil glog gflags protobuf && \ 
     mamba clean -afy
 
 # Install pip packages

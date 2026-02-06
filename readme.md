@@ -155,6 +155,41 @@ docker run -it -v $(pwd):/workspace --entrypoint /usd/bin/bash ghcr.io/usda-ars-
 
 This will mount your current working directory to a directory called `/workspace` and open up bash, ignoring the entrypoint that by default, starts the web server.
 
+# Apple Silicon (M1,M2,M3,M4)
+
+There are incompatibilities with so me of the low level C++ libraries used by ORtools and installed by conda or pip. 
+you need to install conda depecnencies first, remove some packages then install pip dependencies
+
+```{bash}
+conda create -n tamipamienv python=3.13 -c conda-forge -y
+conda activate tamipamienv
+
+conda install -y -c conda-forge -c bioconda \
+  bbmap=39.33 \
+  streamlit=1.48.0 \
+  altair=5.5.0 \
+  pyyaml=6.0.2 \
+  biopython=1.85 \
+  pytest=8.4.1 \
+  pytest-mock=3.14.1
+
+conda remove --force -y libabseil glog gflags protobuf pyarrow
+
+pip install --no-cache-dir \
+  ortools==9.15.6755 \
+  ckmeans==0.2.10 \
+  logomaker==0.8.7 \
+  treelib==1.8.0 \
+  scipy==1.16.1 \
+  scikit-bio==0.7.0 \
+  pyarrow \
+  tables
+
+# Verify  imports
+python -c "import pyarrow; from ortools.sat.python import cp_model; print('Success: All libraries loaded correctly.')"
+
+```
+
 
 ## License information
 
