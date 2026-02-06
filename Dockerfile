@@ -6,8 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     MAMBA_NO_BANNER=1 \
     CONDA_ALWAYS_YES=true
 
-ARG SETUPTOOLS_SCM_PRETEND_VERSION
-ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}
+
 
 WORKDIR /app
 
@@ -19,7 +18,6 @@ RUN apt-get update && \
         wget \
         curl \
         git && \
-    mamba install -y -c conda-forge python=3.13 && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy requirement files
@@ -33,6 +31,10 @@ RUN mamba install -y -c conda-forge -c bioconda --file conda-requirements.txt &&
 
 # Install pip packages
 RUN pip install --no-cache-dir -r pip-requirements.txt
+
+# 4. VERSION ARGS
+ARG SETUPTOOLS_SCM_PRETEND_VERSION
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}
 
 # Copy and install your package
 COPY . /app
