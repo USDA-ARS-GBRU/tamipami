@@ -1,4 +1,3 @@
 ortools == 9.15.6755
 ckmeans == 0.2.10
 logomaker == 0.8.7
-treelib == 1.8.0

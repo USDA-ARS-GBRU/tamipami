@@ -1,4 +1,5 @@
 python=3.13
+pyarrow=23.0.0
 bbmap=39.52
 streamlit=1.53.0
 altair=5.5.0
