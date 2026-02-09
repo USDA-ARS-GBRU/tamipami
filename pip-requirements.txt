@@ -1,3 +1,4 @@
+streamlit == 1.54.0
 ortools == 9.15.6755
 ckmeans == 0.2.10
 logomaker == 0.8.7
