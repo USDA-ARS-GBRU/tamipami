@@ -24,9 +24,8 @@ RUN apt-get update && \
 COPY conda-requirements.txt .
 COPY pip-requirements.txt .
 
-# Install conda packages removing packages after install is done to keep image in sync with Mac Arm installs where ortools requires its wn versions of these libs
+# Install conda packages
 RUN mamba install -y -c conda-forge -c bioconda --file conda-requirements.txt && \
-    mamba remove -p /opt/conda --force -y libabseil glog gflags protobuf pyarrow && \
     mamba clean -afy
 
 # Install pip packages
@@ -49,4 +48,4 @@ RUN python -c "from tamipami._version import __version__; print(f'Version: {__ve
 
 EXPOSE 8501
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
-ENTRYPOINT ["streamlit", "run", "/app/tamipami/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "/app/tamipami/app.py", "--server.port=8501"]
