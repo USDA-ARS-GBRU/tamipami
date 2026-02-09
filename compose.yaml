@@ -4,11 +4,20 @@ services:
         container_name: streamlit
         image: ghcr.io/usda-ars-gbru/tamipami:latest
         ports:
-            - 8501:8501
+            - "127.0.0.1:8501:8501"
+        environment:
+            # These flags allow Nginx to work, but don't live in the image
+            - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+            - STREAMLIT_SERVER_ENABLE_CORS=false
+            - STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION=false
+            - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
         restart: always  # Correct location
     watchtower:
         container_name: watchtower
         image: containrrr/watchtower
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
+        environment:
+            - WATCHTOWER_CLEANUP=true
+            - WATCHTOWER_POLL_INTERVAL=3600
         restart: always  # Correct location
