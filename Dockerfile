@@ -31,10 +31,6 @@ RUN mamba install -y -c conda-forge -c bioconda --file conda-requirements.txt &&
 # Install pip packages
 RUN pip install --no-cache-dir -r pip-requirements.txt
 
-# Set the library path so PyArrow can find the Abseil libs bundled with OR-Tools
-
-# ... (rest of the file)
-
 # 4. VERSION ARGS
 ARG SETUPTOOLS_SCM_PRETEND_VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}
@@ -46,6 +42,14 @@ RUN pip install --no-cache-dir .
 # Verify installation
 RUN python -c "from tamipami._version import __version__; print(f'Version: {__version__}')"
 
+# Streamlit environment variables
+ENV STREAMLIT_SERVER_PORT=8501 \
+    STREAMLIT_SERVER_ADDRESS=0.0.0.0 \
+    STREAMLIT_SERVER_HEADLESS=true \
+    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+
 EXPOSE 8501
+
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
-ENTRYPOINT ["streamlit", "run", "/app/tamipami/app.py", "--server.port=8501"]
+
+ENTRYPOINT ["streamlit", "run", "/app/tamipami/app.py"]
