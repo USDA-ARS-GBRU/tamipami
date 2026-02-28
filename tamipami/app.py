@@ -176,6 +176,7 @@ with st.sidebar:
             "The Addgene library pool. For custom pools use the --spacer and --orientation flags",
             ["RTW554", "RTW555", "RTW572", "RTW574"],
             index=None,
+            key="library",
         )
         st.markdown("_OR_")
         args["spacer"] = st.text_input(
@@ -288,7 +289,7 @@ def parse_lib(args: dict) -> tuple[str]:
     return spacer, orientation
 
 
-@st.cache_data
+st.cache_data
 def process(args):
     """
     Process control and experimental FASTQ files to generate a pamSeqExp object and run summary.
