@@ -3,7 +3,7 @@ library(gt)
 library(readr)
 
 # Read the data
-df <- read_csv("benchmark_results_v014.csv")
+df <- read_csv("benchmark_results_v034.csv")
 
 # Columns to summarize with mean and sd
 cols_to_summarize <- c("process_time", "predict_time", "process_max_mem", "predict_max_mem", "process_avg_cpu", "predict_avg_cpu")
@@ -70,5 +70,5 @@ gt_tbl <- summary_df %>%
 print(gt_tbl)
 
 # Save the table as a PDF
-gtsave(gt_tbl, "cli_benchmark_v014.pdf",  zoom = 0.7)
-gtsave(gt_tbl, "cli_benchmark_v014.html", inline_css=TRUE)
+gtsave(gt_tbl, "cli_benchmark_v034.pdf",  zoom = 0.7)
+gtsave(gt_tbl, "cli_benchmark_v034.html", inline_css=TRUE)
