@@ -1,0 +1,2 @@
+Experiment,Enzyme,Nuclease,Control Library,PAM_TAM,cont1,cont2,exp1,exp2,cont1_sra,cont2_sra,exp1_sra,exp2_sra
+3,AmaTnpB,AmaTnpB,RTW574,TTCAC,LibraryRTW574_R1_003.fastq.gz,LibraryRTW574_R2_003.fastq.gz,AmaTnpB_R1_001.fastq.gz,AmaTnpB_R2_001.fastq.gz,SRR34761005_1.fastq.gz,SRR34761005_2.fastq.gz,SRR34761002_1.fastq.gz,SRR34761002_2.fastq.gz
