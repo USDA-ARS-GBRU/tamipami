@@ -155,10 +155,15 @@ docker run -it -v $(pwd):/workspace --entrypoint /usd/bin/bash ghcr.io/usda-ars-
 
 This will mount your current working directory to a directory called `/workspace` and open up bash, ignoring the entrypoint that by default, starts the web server.
 
-# Apple Silicon (M1,M2,M3,M4)
+## Google analytics
+
+The app supports reporting via google analytics tags. To report analytics  you need to put the G4 tracking tag into
+an environment varialbe called `$GA_MEASUREMENT_ID`.  wince this repo has a public Docker compose i have added my G-tag to a  `.env` file on the same directory as the `compose.yaml` on the server. if no G-tag is present the the code ignore and move on.
+
+## Apple Silicon (M1,M2,M3,M4)
 
 There are incompatibilities with so me of the low level C++ libraries used by ORtools and installed by conda or pip. 
-you need to install conda depecnencies first, remove some packages then install pip dependencies
+you need to install conda dependencies first, remove some packages then install pip dependencies
 
 ```{bash}
 conda create -n tamipamienv python=3.13 -c conda-forge -y
