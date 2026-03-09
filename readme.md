@@ -15,21 +15,48 @@ That work deposited the plasmid pools with [Addgene]( https://www.addgene.org/po
 
 This web application and command line application builds on the work by creating software that simplifies the analysis of the sequencing data and adds rich interactive visualizations for selecting the PAM/TAM site.
 
-## Installation
+## Run with Docker (easiest)
+
+To run the web application from Docker run this command:
+
+```{Bash}
+docker run -d -p 8501:8501 ghcr.io/usda-ars-gbru/tamipami:latest
+```
+
+To use the Tamipami CLI interactively:
+
+```{Bash}
+docker run -it -v $(pwd):/workspace --entrypoint /usd/bin/bash ghcr.io/usda-ars-gbru/tamipami:latest
+```
+
+This will mount your current working directory to a directory called `/workspace` and open up bash, ignoring the entrypoint that by default, starts the web server.
+
+##  Installation
 
 The application can be installed into a conda environment using Pip and conda.
+
 
 ```{bash}
 conda create -n tamipamienv -c conda-forge -c bioconda python=3.13
 conda activate tamipamienv
-conda install -c conda-forge -c bioconda  --file conda-requirements.txt 
+conda install  -c conda-forge -c bioconda --file conda-requirements.txt
+pip install -r pip-requirements.txt
 git clone git@github.com:USDA-ARS-GBRU/tamipami.git
 cd tamipami
-pip install -r pip-requirements.txt
 pip install .
+
+
+# Verify  imports
+python -c "import tamipami; import pyarrow; from ortools.sat.python import cp_model; print('Success: All libraries loaded correctly.')"
+
 ```
 
-## Web Application 
+
+## Apple Silicon (M1 ,M2, M3, M4)
+
+Tamipami works fine on Mac. But, there are incompatibilities with some of the low-level C++ libraries used by ORtools and installed by conda or pip (primarily Abseil). You need to install conda dependencies in the specific order listed above using packages from conda and pip specified in their respective requirements files.
+
+## Web Application
 
 The web application can be found at [https://tamipami.che.ufl.edu](https://tamipami.che.ufl.edu)
 
@@ -98,7 +125,7 @@ options:
   --length [3-8]        The length of the PAM or TAM sequences
   ```
 
-  ### Predict
+### Predict
 
 ```
 usage: tamipami predict [-h] [--input INPUT] --cutoff CUTOFF --predict_out PREDICT_OUT
@@ -139,56 +166,13 @@ Detailed performance metrics for 7 datasets are found at [`benchmark/readme.md`]
 If you need help or encounter errors please request support on the [Tamipami Github issues page](https://github.com/USDA-ARS-GBRU/tamipami/issues)   
     
 
-## Docker note
 
-To run the web application from Docker run this command:
+## Google analytics
 
-```{Bash}
-docker run -d -p 8501:8501 ghcr.io/usda-ars-gbru/tamipami:latest
-```
+The app supports reporting via google analytics tags. To report analytics you need to put the G4 tracking tag into
+an environment variable called `$GA_MEASUREMENT_ID`. Since this repo has a public Docker compose file I have added my G-tag to a  `.env` file on the same directory as the `compose.yaml` on the server. If no G-tag is present the the code ignores it and moves on.
 
-To use the Tamipami CLI interactively:
 
-```{Bash}
-docker run -it -v $(pwd):/workspace --entrypoint /usd/bin/bash ghcr.io/usda-ars-gbru/tamipami:latest
-```
-
-This will mount your current working directory to a directory called `/workspace` and open up bash, ignoring the entrypoint that by default, starts the web server.
-
-# Apple Silicon (M1,M2,M3,M4)
-
-There are incompatibilities with so me of the low level C++ libraries used by ORtools and installed by conda or pip. 
-you need to install conda depecnencies first, remove some packages then install pip dependencies
-
-```{bash}
-conda create -n tamipamienv python=3.13 -c conda-forge -y
-conda activate tamipamienv
-
-conda install -y -c conda-forge -c bioconda \
-  bbmap=39.33 \
-  streamlit=1.48.0 \
-  altair=5.5.0 \
-  pyyaml=6.0.2 \
-  biopython=1.85 \
-  pytest=8.4.1 \
-  pytest-mock=3.14.1
-
-conda remove --force -y libabseil glog gflags protobuf pyarrow
-
-pip install --no-cache-dir \
-  ortools==9.15.6755 \
-  ckmeans==0.2.10 \
-  logomaker==0.8.7 \
-  treelib==1.8.0 \
-  scipy==1.16.1 \
-  scikit-bio==0.7.0 \
-  pyarrow \
-  tables
-
-# Verify  imports
-python -c "import pyarrow; from ortools.sat.python import cp_model; print('Success: All libraries loaded correctly.')"
-
-```
 
 
 ## License information

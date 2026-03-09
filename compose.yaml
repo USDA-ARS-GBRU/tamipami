@@ -9,6 +9,7 @@ services:
             # CORS and XSRF protection are disabled to allow Nginx proxying
             - STREAMLIT_SERVER_ENABLE_CORS=false
             - STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION=false
+            - GA_MEASUREMENT_ID=${GA_MEASUREMENT_ID}
         restart: always  # Correct location
     watchtower:
         container_name: watchtower

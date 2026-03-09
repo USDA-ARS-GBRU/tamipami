@@ -31,6 +31,23 @@ from tamipami._version import __version__
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # This is your Project Root
 
 
+# Analytics code
+ga_id = os.getenv("GA_MEASUREMENT_ID")
+
+if ga_id:
+    ga_snippet = f"""
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={ga_id}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', '{ga_id}');
+    </script>
+    """
+    st.components.v1.html(ga_snippet, height=0)
+
+
 def create_session_dir():
     """
     Creates a unique session directory for storing session-specific data.
@@ -289,7 +306,7 @@ def parse_lib(args: dict) -> tuple[str]:
     return spacer, orientation
 
 
-st.cache_data
+@st.cache_data
 def process(args):
     """
     Process control and experimental FASTQ files to generate a pamSeqExp object and run summary.
