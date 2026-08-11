@@ -391,9 +391,9 @@ def data_checks(length, sdcutoff):
 
 
 def read_count_check(run_summ, minfrac):
-    expfrac = run_summ["exp"]["targets"] / run_summ["exp"]["targets"]
-    contfrac = run_summ["cont"]["targets"] / run_summ["cont"]["targets"]
-    if (expfrac or contfrac) < minfrac:
+    expfrac = run_summ["exp"]["targets"] / run_summ["exp"]["tot"]
+    contfrac = run_summ["cont"]["targets"] / run_summ["cont"]["tot"]
+    if expfrac < minfrac or contfrac < minfrac:
         return st.warning(
             "Only {:.1%} of merged experimental reads and {:.1%} \
                         of merged control reads contained a target. Please verify your Library, Spacer and Orientation settings".format(
@@ -419,6 +419,7 @@ def main(args):
             return
         st.session_state["run_summ"] = run_summ
         st.session_state["pamexpobj"] = pamexpobj
+        read_count_check(run_summ, config["min_target_frac"])
         st.markdown("## Library information")
         spacer, orientation = parse_lib(args)
         if "library" in args:
