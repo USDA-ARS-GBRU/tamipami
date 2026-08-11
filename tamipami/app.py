@@ -558,7 +558,7 @@ if __name__ == "__main__":
         )
     with st.expander(label="Citation", icon=":material/ink_pen:"):
         st.write(
-            "We are preparing the TamiPami mansucript: Orosco, Carlos. Jain, Piyush. Rivers, Adam R. TamiPami: a TAM/PAM identification interface for CRISPR and Omega systems. In Prep."
+            "TAMIPAMI: Software and methods for PAM/TAM identification in CRISPR and OMEGA gene editing systems. Carlos Orosco, Piyush K. Jain, Adam R. Rivers. bioRxiv 2026.05.15.725432; doi: https://doi.org/10.64898/2026.05.15.725432"
         )
         st.write(
             "[Tamipami Github repository](https://github.com/USDA-ARS-GBRU/tamipami)"
