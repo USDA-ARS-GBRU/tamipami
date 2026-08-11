@@ -1,6 +1,6 @@
 # Tamipami: A web application and command line interface for finding the TAM and PAM sites of novel endonucleases
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16915022.svg)](https://doi.org/10.5281/zenodo.16915022)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19055843.svg)](https://doi.org/10.5281/zenodo.19055843)
 
 __Carlos Orosco<sup>1</sup>, Piyush Jain<sup>1</sup>, Adam R. Rivers<sup>2</sup>__
 
@@ -160,6 +160,12 @@ options:
 ## Performance
 
 Detailed performance metrics for 7 datasets are found at [`benchmark/readme.md`](benchmark/readme.md). TL;DR most datasets take 10-30 seconds to process.
+
+## Manuscript
+
+TAMIPAMI: Software and methods for PAM/TAM identification in CRISPR and OMEGA gene editing systems. Carlos Orosco, Piyush K. Jain, Adam R. Rivers. 
+bioRxiv 2026.05.15.725432; doi: https://doi.org/10.64898/2026.05.15.725432
+
 
 ## Need more help?
 
