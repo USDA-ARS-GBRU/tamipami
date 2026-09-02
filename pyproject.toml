@@ -28,7 +28,8 @@ dependencies = [
     "altair",
     "pyyaml",
     "streamlit",
-    "tables"
+    "tables",
+    "scikit-learn"
     ]
 
 [external]

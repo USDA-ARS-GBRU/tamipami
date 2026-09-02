@@ -39,10 +39,10 @@ The application can be installed into a conda environment using Pip and conda.
 ```{bash}
 conda create -n tamipamienv -c conda-forge -c bioconda python=3.13
 conda activate tamipamienv
+git clone https://github.com/USDA-ARS-GBRU/tamipami.git # or git@github.com:USDA-ARS-GBRU/tamipami.git
+cd tamipami
 conda install  -c conda-forge -c bioconda --file conda-requirements.txt
 pip install -r pip-requirements.txt
-git clone git@github.com:USDA-ARS-GBRU/tamipami.git
-cd tamipami
 pip install .
 
 
@@ -52,7 +52,7 @@ python -c "import tamipami; import pyarrow; from ortools.sat.python import cp_mo
 ```
 
 
-## Apple Silicon (M1 ,M2, M3, M4)
+## Apple Silicon (M1 ,M2, M3, M4, M5)
 
 Tamipami works fine on Mac. But, there are incompatibilities with some of the low-level C++ libraries used by ORtools and installed by conda or pip (primarily Abseil). You need to install conda dependencies in the specific order listed above using packages from conda and pip specified in their respective requirements files.
 
@@ -184,5 +184,5 @@ an environment variable called `$GA_MEASUREMENT_ID`. Since this repo has a publi
 ## License information
 
 This software is a work of the United States Department of Agriculture,
-Agricultural Research Service and is not copyrightable under U.S. Code Title 17, Section 105.
+Agricultural Research Service (USDA-ARS) and is not copyrightable under U.S. Code Title 17, Section 105.
 It is released under a Creative Commons CC0 public domain attribution.
