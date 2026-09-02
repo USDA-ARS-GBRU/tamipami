@@ -12,7 +12,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from skbio.stats import composition
 import ckmeans
-
+from sklearn.mixture import GaussianMixture
+        
 
 import logomaker
 
@@ -145,45 +146,76 @@ class pamSeqExp:
 
         return {"kmers": kmers, "counts": counts, "clr": clr}
 
+
     def _combine_single_pair(
         self, exper: dict[str, Optional[list]], ctl: dict[str, Optional[list]]
     ) -> pd.DataFrame:
-        """
-        Combines control and experimental kmer data, calculates the difference in
-        centered log ratios (CLRs), and estimates z-scores and single-tailed significance.
+        import numpy as np
+        import pandas as pd
+        import scipy.stats
+        from sklearn.mixture import GaussianMixture
 
-        Args:
-            exper (dict[str, Optional[list]]): Experimental data dictionary containing
-                'kmers', 'counts', and 'clr'.
-            ctl (dict[str, Optional[list]]): Control data dictionary containing
-                'kmers', 'counts', and 'clr'.
-
-        Returns:
-            pd.DataFrame: A DataFrame with columns 'kmers', 'ctl_raw', 'exp_raw',
-            'ctl_clr', 'exp_clr', 'diff', 'zscore', 'pvalue', and BH adjusted p-value.
-
-        Raises:
-            ValueError: If kmers from the experimental and control data do not match.
-        """
         if exper["kmers"] != ctl["kmers"]:
-            raise ValueError(
-                "Kmers from the experimental and control data do not match."
-            )
+            raise ValueError("Kmers from the experimental and control data do not match.")
 
-        df = pd.DataFrame(
-            {
-                "kmers": ctl["kmers"],
-                "ctl_raw": ctl["counts"],
-                "exp_raw": exper["counts"],
-                "ctl_clr": ctl["clr"],
-                "exp_clr": exper["clr"],
-            }
-        )
+        df = pd.DataFrame({
+            "kmers": ctl["kmers"],
+            "ctl_raw": ctl["counts"],
+            "exp_raw": exper["counts"],
+            "ctl_clr": ctl["clr"],
+            "exp_clr": exper["clr"],
+        })
+
+        # Paired subtraction: positive value means depletion in experimental sample
         df["diff"] = df["ctl_clr"] - df["exp_clr"]
-        df["zscore"] = (df["diff"] - df["diff"].mean()) / df["diff"].std()
+
+        # --- TWO-COMPONENT DECONVOLUTION ---
+        diff_reshaped = df["diff"].values.reshape(-1, 1)
+        gmm = GaussianMixture(n_components=2, covariance_type="diag", random_state=42)
+        gmm.fit(diff_reshaped)
+
+        bg_component_idx = np.argmax(gmm.weights_)
+        bg_peak_center = gmm.means_.flatten()[bg_component_idx]
+        
+        # FIX 1: Safely squeeze variances to handle 1D layout vector cleanly
+        variances = gmm.covariances_.squeeze()
+        
+        # FIX 4: Protect against zero-variance component collapse with a floor epsilon
+        sigma_diff_noise = max(np.sqrt(variances[bg_component_idx]), 1e-4)
+
+        # --- Z-SCORE & STATISTICAL SIGNIFICANCE ---
+        df["zscore"] = (df["diff"] - bg_peak_center) / sigma_diff_noise
+        
+        # FIX 2: One-tailed (right-tailed) survival function isolates true depletion cuts
         df["pvalue"] = scipy.stats.norm.sf(df["zscore"])
-        df["p_adjust_BH"] = scipy.stats.false_discovery_control(df["pvalue"])
+        
+        # FIX 3: Prevent asymmetrical tail inflation in FDR multiple-testing controls.
+        # We pass a two-tailed p-value matrix to the BH calculator to avoid ranking penalties 
+        # from enriched/noise clusters, then apply the cut constraint natively.
+        two_tailed_p = 2 * (1 - scipy.stats.norm.cdf(np.abs(df["zscore"])))
+        df["p_adjust_BH"] = scipy.stats.false_discovery_control(two_tailed_p)
+        
+        # An item is a valid cut if it clears the BH threshold AND moves in the depletion direction
+        df["is_statistically_cut"] = (df["p_adjust_BH"] <= 0.05) & (df["zscore"] > 0)
+
+        # --- TRUE BIOLOGICAL INFERENCE (EFFECT SIZE) ---
+        # FIX 3: Compositional correction applied directly in log-space
+        corrected_log_ratio = df["diff"] - bg_peak_center
+        true_survival_ratio = np.exp(-corrected_log_ratio)
+        
+        raw_depletion = (1.0 - true_survival_ratio) * 100.0
+
+        df["true_percent_depleted"] = raw_depletion.clip(0, 100)
+        df["shrunk_percent_depleted"] = np.where(
+            df["is_statistically_cut"], raw_depletion, 0.0
+        ).clip(0, 100)
+
         return df.sort_values(by="kmers")
+
+
+
+
+
 
     def _group_and_sum_kmers(
         self, df: pd.DataFrame, N: int, position: str = "3prime"
