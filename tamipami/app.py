@@ -48,39 +48,6 @@ if ga_id:
     st.components.v1.html(ga_snippet, height=0)
 
 
-def create_session_dir():
-    """
-    Creates a unique session directory for storing session-specific data.
-
-    Generates a secure UUID to name the directory, creates the directory
-    within the ROOT_DIR, and stores the path in Streamlit's session state.
-    If directory creation fails, an error message is displayed.
-
-    Raises:
-        Exception: If the session directory cannot be created.
-    """
-    try:
-        session_id = uuid.uuid4()
-        datadir = Path(os.path.join(ROOT_DIR, str(session_id)))
-        datadir.mkdir(parents=True, exist_ok=True)
-        st.session_state["datadir"] = datadir
-    except Exception as e:
-        st.error(f"Failed to create session directory: {e}")
-
-
-def delete_session_dir():
-    """
-    Delete the session directory stored in Streamlit's session state.
-
-    This function checks if a 'datadir' key exists in the session state.
-    If it does, it retrieves the directory path, deletes the directory
-    if it exists, and then removes the 'datadir' key from the session state.
-    """
-    if "datadir" in st.session_state:
-        session_dir = st.session_state["datadir"]
-        if os.path.exists(session_dir):
-            shutil.rmtree(session_dir)
-        del st.session_state["datadir"]
 
 
 # Define input parameters and widgets
@@ -306,8 +273,7 @@ def parse_lib(args: dict) -> tuple[str]:
     return spacer, orientation
 
 
-@st.cache_data
-def process(args):
+def process_data(args):
     """
     Process control and experimental FASTQ files to generate a pamSeqExp object and run summary.
 
@@ -320,25 +286,12 @@ def process(args):
         AssertionError: If required forward files are missing.
         Exception: For unexpected errors during processing.
     """
+    session_id = uuid.uuid4()
+    datadir = Path(os.path.join(ROOT_DIR, str(session_id)))
+    datadir.mkdir(parents=True, exist_ok=True)
     try:
-        create_session_dir()
-        datadir = st.session_state["datadir"]
-        save_input_files(datadir, args)
+        save_input_files(str(datadir), args)
 
-        def safe_value(val):
-            if hasattr(val, "name"):
-                return val.name
-            return str(val)
-
-        with st.expander("Run Configuration"):
-            param_df = pd.DataFrame(
-                {
-                    "Parameter": list(args.keys()),
-                    "Value": [safe_value(v) for v in args.values()],
-                }
-            )
-            st.dataframe(param_df, hide_index=True)
-            st.write("Data directory: {}".format(datadir))
         spacer, orientation = parse_lib(args)
         run_summ = {"cont": {}, "exp": {}}
 
@@ -370,7 +323,8 @@ def process(args):
         )
         raise e
     finally:
-        delete_session_dir()
+        if os.path.exists(datadir):
+            shutil.rmtree(datadir)
 
 
 def update_slider(n, sliderkey):
@@ -413,16 +367,24 @@ def compute_degenerate(filtered_kmers_tuple):
 def main(args):
     if newrun:
         try:
-            pamexpobj, run_summ = process(args)
+            pamexpobj, run_summ = process_data(args)
         except (ValueError, AssertionError) as e:
             st.error(str(e))
             return
         st.session_state["run_summ"] = run_summ
         st.session_state["pamexpobj"] = pamexpobj
+        st.session_state["run_args"] = args
+        for key in pamexpobj.multikmerdict.keys():
+            slider_key = f"slider_{key}"
+            breakpoint_val = pamexpobj.find_breakpoint(length=key, type="zscore")
+            st.session_state[slider_key] = float(breakpoint_val)
+
+    if "pamexpobj" in st.session_state:
+        run_args = st.session_state.get("run_args", args)
+        spacer, orientation = parse_lib(run_args)
         st.markdown("## Library information")
-        spacer, orientation = parse_lib(args)
-        if "library" in args:
-            st.write("Plasmid Library: {}".format(args["library"]))
+        if run_args.get("library"):
+            st.write("Plasmid Library: {}".format(run_args["library"]))
         st.write("Library spacer sequence: {}".format(spacer))
         st.write("PAM/TAM orientation: {}".format(orientation))
         if orientation == "5prime":
@@ -436,35 +398,23 @@ def main(args):
                 "image from [Walton et al. 2021]( https://doi.org/10.1038/s41596-020-00465-2)"
             )
 
-    if "pamexpobj" in st.session_state:
         length_keys = list(st.session_state.pamexpobj.multikmerdict.keys())
         tablabels = [f"Length {x}" for x in length_keys]
-        num_tabs = len(tablabels)
-
-        # Maintain persistent tab selection in session state
-        if "active_length_tab" not in st.session_state:
-            st.session_state["active_length_tab"] = 0
-
-        # The last active tab index is restored by using `active_length_tab`
-        selected_idx = st.session_state.get("active_length_tab", 0)
         tabs = st.tabs(tablabels)
 
-        for i, (tab, key) in enumerate(zip(tabs, length_keys)):
+        for tab, key in zip(tabs, length_keys):
             with tab:
-                # Assign current tab as active if visible
-                st.session_state["active_length_tab"] = i
                 df = st.session_state.pamexpobj.multikmerdict[key]
                 slider_key = f"slider_{key}"
 
-                # Initialize slider at autosplit value on first visit
                 if slider_key not in st.session_state:
-                    update_slider(key, slider_key)
+                    breakpoint_val = st.session_state.pamexpobj.find_breakpoint(length=key, type="zscore")
+                    st.session_state[slider_key] = float(breakpoint_val)
 
                 slider, slidebutton = st.columns(
                     spec=[0.8, 0.2], vertical_alignment="center"
                 )
                 with slider:
-                    # Slider always uses key (session-state-controlled)
                     st.slider(
                         label="Select the Zscore cutoff:",
                         min_value=float(df["zscore"].min()),
@@ -479,11 +429,10 @@ def main(args):
                         key=f"autosplit_{key}",
                     )
 
-                # --- Key FIX: Always get cutoff from session state ---
                 cutoff = (
                     st.session_state[slider_key]
                     if slider_key in st.session_state
-                    else None
+                    else float(df["zscore"].min())
                 )
 
                 althist = tpio.histogram_plot(
@@ -503,10 +452,26 @@ def main(args):
                     st.dataframe({"PAM/TAM site": dseqs}, hide_index=True)
 
                 st.subheader(f" Review filtered data for length {key}:")
-                styled_df = filtered_df.style.format(
-                    {"pvalue": "{:.3e}", "p_adjust_BH": "{:.3e}"}
+                column_config = {
+                    "kmers": st.column_config.TextColumn("k-mer"),
+                    "ctl_raw": st.column_config.NumberColumn("Control Raw", format="%d"),
+                    "exp_raw": st.column_config.NumberColumn("Exp Raw", format="%d"),
+                    "ctl_clr": st.column_config.NumberColumn("Control CLR", format="%.2f"),
+                    "exp_clr": st.column_config.NumberColumn("Exp CLR", format="%.2f"),
+                    "diff": st.column_config.NumberColumn("Difference", format="%.2f"),
+                    "zscore": st.column_config.NumberColumn("Z-score", format="%.2f"),
+                    "pvalue": st.column_config.NumberColumn("p-value", format="%.3e"),
+                    "p_adjust_BH": st.column_config.NumberColumn("p-adj (BH)", format="%.3e"),
+                    "is_statistically_cut": st.column_config.CheckboxColumn("Stat Cut"),
+                    "true_percent_depleted": st.column_config.NumberColumn("True Depleted %", format="%.1f%%"),
+                    "shrunk_percent_depleted": st.column_config.NumberColumn("Shrunk Depleted %", format="%.1f%%"),
+                }
+                st.dataframe(
+                    filtered_df,
+                    column_config=column_config,
+                    hide_index=True,
+                    use_container_width=True,
                 )
-                st.write(styled_df)
 
                 st.subheader(
                     f" Review sequence motif for length {key} and selected cutoff:"
