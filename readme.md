@@ -184,5 +184,5 @@ an environment variable called `$GA_MEASUREMENT_ID`. Since this repo has a publi
 ## License information
 
 This software is a work of the United States Department of Agriculture,
-Agricultural Research Service and is not copyrightable under U.S. Code Title 17, Section 105.
+Agricultural Research Service (USDA-ARS) and is not copyrightable under U.S. Code Title 17, Section 105.
 It is released under a Creative Commons CC0 public domain attribution.
