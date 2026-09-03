@@ -8,7 +8,7 @@ def cutoff_arg_validator(value: str) -> dict:
 
     Input must:
     - Be JSON (e.g. '{"3": 0.7, "4": 0.75, ...}')
-    - Be a dict with integer keys from 3 to 8 (inclusive)
+    - Be a dict with integer keys from 3 to 5 (inclusive)
     - Have values convertible to float
 
     Args:
@@ -37,11 +37,11 @@ def cutoff_arg_validator(value: str) -> dict:
             k = int(raw_key)
         except ValueError:
             raise argparse.ArgumentTypeError(
-                f"Key '{raw_key}' is not an integer. All keys must be integers from 3 to 8."
+                f"Key '{raw_key}' is not an integer. All keys must be integers from 3 to 5."
             )
-        if k < 3 or k > 8:
+        if k < 3 or k > 5:
             raise argparse.ArgumentTypeError(
-                f"Key '{k}' is outside the valid range (3-8)."
+                f"Key '{k}' is outside the valid range (3-5)."
             )
         # Value as float
         try:
