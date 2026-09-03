@@ -162,9 +162,9 @@ def myparser() -> argparse.ArgumentParser:
     )
     parser_process.add_argument(
         "--length",
-        choices=range(3, 9),
-        metavar="[3-8]",
-        default=6,
+        choices=range(3, 6),
+        metavar="[3-5]",
+        default=5,
         type=int,
         help=" The length of the PAM or TAM sequences",
     )
@@ -185,9 +185,9 @@ def myparser() -> argparse.ArgumentParser:
         type=cutoff_arg_validator,
         required=True,
         help=(
-            "Cutoff thresholds as a JSON dictionary with integer keys [3-8] and numeric values. "
+            "Cutoff thresholds as a JSON dictionary with integer keys [3-5] and numeric values. "
             'Example: \'{"3": 0.7, "4": 0.85, "5": 0.93}\'. '
-            "Keys must be integers between 3 and 8. Values must be numbers."
+            "Keys must be integers between 3 and 5. Values must be numbers."
         ),
     )
     parser_predict.add_argument(
@@ -385,14 +385,15 @@ def _mk_outputs(pamseqobj: pam.pamSeqExp, outdir: str, lenval: int, cutoff: floa
         pamseqobj.make_logo(
             length=lenval,
             cutoff=cutoff,
-            above=True,
+            score_type="zscore",
+            above=False,
             filename=os.path.join(
                 outdir, str(lenval), "logo." + config["logo_file_type"]
             ),
         )
         os.makedirs(os.path.join(outdir, str(lenval)), exist_ok=True)
         df.to_csv(os.path.join(outdir, str(lenval), "data.csv"), index=False)
-        maxbins = config.get("histogram_bins", 10)  # Default to 10 if not found
+        maxbins = config.get("histogram_bins", 100)
         tpio.histogram_plot(
             df,
             maxbins=maxbins,
