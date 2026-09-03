@@ -453,24 +453,24 @@ def main(args):
 
                 st.subheader(f" Review filtered data for length {key}:")
                 column_config = {
-                    "kmers": st.column_config.TextColumn("k-mer"),
-                    "ctl_raw": st.column_config.NumberColumn("Control Raw", format="%d"),
-                    "exp_raw": st.column_config.NumberColumn("Exp Raw", format="%d"),
-                    "ctl_clr": st.column_config.NumberColumn("Control CLR", format="%.2f"),
-                    "exp_clr": st.column_config.NumberColumn("Exp CLR", format="%.2f"),
-                    "diff": st.column_config.NumberColumn("Difference", format="%.2f"),
-                    "zscore": st.column_config.NumberColumn("Z-score", format="%.2f"),
-                    "pvalue": st.column_config.NumberColumn("p-value", format="%.3e"),
-                    "p_adjust_BH": st.column_config.NumberColumn("p-adj (BH)", format="%.3e"),
-                    "is_statistically_cut": st.column_config.CheckboxColumn("Stat Cut"),
-                    "true_percent_depleted": st.column_config.NumberColumn("True Depleted %", format="%.1f%%"),
-                    "shrunk_percent_depleted": st.column_config.NumberColumn("Shrunk Depleted %", format="%.1f%%"),
+                    "kmers": st.column_config.TextColumn("k-mer", help="The k-mer sequence which may contain a PAM/TAM recognition sequence"),
+                    "ctl_raw": st.column_config.NumberColumn("Control Raw", format="%d", help="The raw read count for the k-mer in the control library"),
+                    "exp_raw": st.column_config.NumberColumn("Exp Raw", format="%d", help="The raw read count for the k-mer in the experimental library"),
+                    "ctl_clr": st.column_config.NumberColumn("Control CLR", format="%.2f", help="The Centered Log-Ratio (CLR, base e) normalized read count for the k-mer in the control library"),
+                    "exp_clr": st.column_config.NumberColumn("Exp CLR", format="%.2f", help="The normalized read count for the k-mer in the experimental library"),
+                    "diff": st.column_config.NumberColumn("Difference", format="%.2f", help="The difference in CLR values between the experimental minus control libraries"),
+                    "zscore": st.column_config.NumberColumn("Z-score", format="%.2f", help="The z-score for the k-mer, calulated from s.d and mean of a folded distribution of the uncut peak  ",),
+                    "pvalue": st.column_config.NumberColumn("p-value", format="%.3e", help="The p-value for the k-mer"),
+                    "p_adjust_BH": st.column_config.NumberColumn("p-adj (BH)", format="%.3e", help="The Benjamini-Hochberg adjusted p-value for the k-mer"),
+                    "is_statistically_cut": st.column_config.CheckboxColumn("Stat Cut", help="Indicates if the k-mer is statistically significant"),
+                    "true_percent_depleted": st.column_config.NumberColumn("True Depleted %", format="%.1f%%", help="The percentage of uncorrected depleted k-mers"),
+                    "shrunk_percent_depleted": st.column_config.NumberColumn("Shrunk Depleted %", format="%.1f%%", help="The percentage of shrunk depleted k-mers, kmers with BH-adjusted p-values < 0.05 or Z-score < 0 are zeroed out and the remaining kmers are renormalized to 100%"),
                 }
                 st.dataframe(
                     filtered_df,
                     column_config=column_config,
                     hide_index=True,
-                    use_container_width=True,
+                    width='stretch',
                 )
 
                 st.subheader(
