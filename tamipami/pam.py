@@ -184,18 +184,17 @@ class pamSeqExp:
         sigma_diff_noise = max(np.sqrt(variances[bg_component_idx]), 1e-4)
 
         # --- Z-SCORE & STATISTICAL SIGNIFICANCE ---
-        df["zscore"] = (df["diff"] - bg_peak_center) / sigma_diff_noise
-        
-        # FIX 2: One-tailed (right-tailed) survival function isolates true depletion cuts
+        centered_diff = df["diff"] - bg_peak_center
+        df["zscore"] = centered_diff / sigma_diff_noise
+
+        # One-tailed right-tailed p-value: strictly measures probability 
+        # of observing a depletion this extreme or higher under the null background
         df["pvalue"] = scipy.stats.norm.sf(df["zscore"])
-        
-        # FIX 3: Prevent asymmetrical tail inflation in FDR multiple-testing controls.
-        # We pass a two-tailed p-value matrix to the BH calculator to avoid ranking penalties 
-        # from enriched/noise clusters, then apply the cut constraint natively.
-        two_tailed_p = 2 * (1 - scipy.stats.norm.cdf(np.abs(df["zscore"])))
-        df["p_adjust_BH"] = scipy.stats.false_discovery_control(two_tailed_p)
-        
-        # An item is a valid cut if it clears the BH threshold AND moves in the depletion direction
+
+        # One-tailed FDR multiple-testing control
+        df["p_adjust_BH"] = scipy.stats.false_discovery_control(df["pvalue"])
+
+        # Valid cut: clears the BH threshold AND is on the positive side of the curve
         df["is_statistically_cut"] = (df["p_adjust_BH"] <= 0.05) & (df["zscore"] > 0)
 
         # --- TRUE BIOLOGICAL INFERENCE (EFFECT SIZE) ---

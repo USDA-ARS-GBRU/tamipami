@@ -135,22 +135,13 @@ def store_stdin_binary_to_tempfile():
 
 
 def histogram_plot(
-    source: pd.DataFrame, maxbins: int, cutoff: float = None, filename: str = None
+    source: pd.DataFrame, 
+    maxbins: int, 
+    cutoff: float = None, 
+    filename: str = None
 ) -> alt.Chart:
     """
-    Generates a histogram plot from a pandas DataFrame using Altair.
-
-    Parameters:
-        source (pd.DataFrame): The data source for the histogram.
-        maxbins (int): The maximum number of bins for the histogram.
-        cutoff (float, optional): A cutoff value to draw a vertical line on the plot.
-        filename (str, optional): The file path to save the plot. If not provided, the plot is not saved.
-
-    Returns:
-        alt.Chart: The generated Altair chart object.
-
-    Raises:
-        ValueError: If `source` is not a DataFrame, `maxbins` is not a positive integer, or `cutoff` is not a number.
+    Generates a histogram plot from a pandas DataFrame using Altair with a relative overlay legend.
     """
     # Input validation
     if not isinstance(source, pd.DataFrame):
@@ -159,6 +150,7 @@ def histogram_plot(
         raise ValueError("`maxbins` must be a positive integer.")
     if cutoff is not None and not isinstance(cutoff, (int, float)):
         raise ValueError("`cutoff` must be a number if provided.")
+
     # Base chart with bars
     chart = (
         alt.Chart(source)
@@ -166,6 +158,22 @@ def histogram_plot(
         .encode(
             alt.X("zscore", bin=alt.BinParams(maxbins=maxbins)),
             y="count()",
+            color=alt.Color(
+                "is_statistically_cut:N",
+                scale=alt.Scale(
+                    # Domain values must match the underlying dataframe column types exactly
+                    domain=[True, False], 
+                    range=["red", "blue"]
+                ),
+                legend=alt.Legend(
+                    title="BH < 0.05",
+                    # Explicitly override the label names without using any string expressions
+                    labelAlign="left",
+                    values=[True, False],
+                    labelExpr="datum.value ? 'Significant' : 'Not Significant'"
+                )
+            )
+
         )
         .properties(width=700, height=500)
         .interactive()
@@ -182,6 +190,17 @@ def histogram_plot(
         cutoff_line = create_cutoff_line(cutoff)
         chart = chart + cutoff_line
 
+    # --- RELATIVE INNER OVERLAY CONFIGURATION ---
+    # This applies globally to the chart layout, preventing layout shifts
+    chart = chart.configure_legend(
+        orient="top-right",     # Anchors inside the top-right corner of the data area
+        offset=15,             # Pads it 15px away from the top/right axes bounds
+        fillColor="white",     # Solid white card background
+        strokeColor="gray",    # Border lines
+        padding=8,             # Padding inside card
+        cornerRadius=4         # Rounded corners
+    )
+
     if filename:
         try:
             chart.save(filename)
@@ -190,3 +209,4 @@ def histogram_plot(
             logging.error(f"Failed to save chart to {filename}: {e}")
 
     return chart
+
