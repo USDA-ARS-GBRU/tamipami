@@ -35,6 +35,9 @@ RUN pip install --no-cache-dir -r pip-requirements.txt
 ARG SETUPTOOLS_SCM_PRETEND_VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}
 
+# Grant ownership of the application folder to the conda user
+COPY --chown=conda:conda . /app
+
 # Copy and install your package
 COPY . /app
 RUN pip install --no-cache-dir .
@@ -51,5 +54,8 @@ ENV STREAMLIT_SERVER_PORT=8501 \
 EXPOSE 8501
 
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
+
+# Run the container as the non-root user instead of root
+USER conda
 
 ENTRYPOINT ["streamlit", "run", "/app/tamipami/app.py"]
