@@ -146,18 +146,31 @@ class pamSeqExp:
 
         return {"kmers": kmers, "counts": counts, "clr": clr}
 
-
     def _combine_single_pair(
         self, exper: dict[str, Optional[list]], ctl: dict[str, Optional[list]]
     ) -> pd.DataFrame:
-        import numpy as np
-        import pandas as pd
-        import scipy.stats
-        from sklearn.mixture import GaussianMixture
+        """
+        Robust hybrid method for compositional k-mer depletion:
 
+        • Background mean: 2-component GMM, select the component mean closest to the
+            empirical mode of `diff` (mode via Freedman–Diaconis histogram; no KDE tuning).
+        • Variance (sigma): reflection (folded-left) around the background peak:
+            - take values <= bg_peak_center,
+            - center, reflect to symmetric sample, then std(ddof=1).
+            Fallback to MAD (normal-consistent) if the left side is too small/degenerate.
+        • FDR: classical Benjamini–Hochberg (step-up), reproducible across environments.
+        • One-sided (right tail) p-values: depletion => positive diff.
+
+        Returns a DataFrame sorted by 'kmers' with columns:
+        kmers, ctl_raw, exp_raw, ctl_clr, exp_clr,
+        diff, zscore, pvalue, p_adjust_BH, is_statistically_cut,
+        true_percent_depleted, shrunk_percent_depleted
+        """
+        # ---- Input consistency (unchanged from original) ----
         if exper["kmers"] != ctl["kmers"]:
             raise ValueError("Kmers from the experimental and control data do not match.")
 
+        # ---- Build frame (structure preserved) ----
         df = pd.DataFrame({
             "kmers": ctl["kmers"],
             "ctl_raw": ctl["counts"],
@@ -166,42 +179,112 @@ class pamSeqExp:
             "exp_clr": exper["clr"],
         })
 
-        # Paired subtraction: positive value means depletion in experimental sample
+        # Paired subtraction: positive => depletion in experimental sample
         df["diff"] = df["ctl_clr"] - df["exp_clr"]
+        diff = df["diff"].values
 
-        # --- TWO-COMPONENT DECONVOLUTION ---
-        diff_reshaped = df["diff"].values.reshape(-1, 1)
+        # ----------------------------------------------------------------------
+        # Empirical mode via Freedman–Diaconis histogram (tuning-free, robust)
+        # ----------------------------------------------------------------------
+        def _robust_mode(x: np.ndarray) -> float:
+            x = np.asarray(x, dtype=float)
+            n = x.size
+            if n == 0:
+                return 0.0
+            q75, q25 = np.percentile(x, [75, 25])
+            iqr = q75 - q25
+            if iqr <= 0:
+                # Fallback to Scott's rule; if sigma degenerate, use median
+                sigma = np.std(x, ddof=1)
+                if sigma <= 0:
+                    return float(np.median(x))
+                width = 3.5 * sigma / (n ** (1.0 / 3.0))
+            else:
+                width = 2.0 * iqr / (n ** (1.0 / 3.0))
+            span = x.max() - x.min()
+            if span <= 0 or width <= 0:
+                return float(np.median(x))
+            bins = int(np.ceil(span / width))
+            # Keep bins in a stable range for typical k-mer counts
+            bins = max(10, min(bins, 256))
+            hist, edges = np.histogram(x, bins=bins)
+            idx = int(np.argmax(hist))
+            center = 0.5 * (edges[idx] + edges[idx + 1])
+            return float(center)
+
+        # ----------------------------------------------------------------------
+        # TWO-COMPONENT GMM (mean only): choose mean closest to empirical mode
+        # ----------------------------------------------------------------------
+        diff_reshaped = diff.reshape(-1, 1)
         gmm = GaussianMixture(n_components=2, covariance_type="diag", random_state=42)
         gmm.fit(diff_reshaped)
+        gmm_means = gmm.means_.flatten()
 
-        bg_component_idx = np.argmax(gmm.weights_)
-        bg_peak_center = gmm.means_.flatten()[bg_component_idx]
-        
-        # FIX 1: Safely squeeze variances to handle 1D layout vector cleanly
-        variances = gmm.covariances_.squeeze()
-        
-        # FIX 4: Protect against zero-variance component collapse with a floor epsilon
-        sigma_diff_noise = max(np.sqrt(variances[bg_component_idx]), 1e-4)
+        mode_est = _robust_mode(diff)
+        bg_component_idx = int(np.argmin(np.abs(gmm_means - mode_est)))
+        bg_peak_center = float(gmm_means[bg_component_idx])
+        logging.info(f"Background peak center (GMM): {bg_peak_center:.4f}, Empirical mode: {mode_est:.4f}")
 
-        # --- Z-SCORE & STATISTICAL SIGNIFICANCE ---
+        # Unimodal fallback: if component means are nearly identical, use the mode directly
+        mean_sep = float(abs(gmm_means[0] - gmm_means[1]))
+        if mean_sep < 0.15:  # ~CLR-scale; adjust if needed for your dataset
+            bg_peak_center = mode_est
+            logging.info(f"Component means too close ({mean_sep:.4f}), using empirical mode as background peak center.")
+
+
+        # ----------------------------------------------------------------------
+        # Reflection (folded-left) variance:
+        #  1) Left side: values <= bg_peak_center
+        #  2) Center -> left_vals = diff - bg_peak_center (<= 0)
+        #  3) Reflect to symmetric sample: concat(left_vals, -left_vals)
+        #  4) sigma = std(reflected, ddof=1)
+        # Fallback: MAD (normal-consistent) if left side small or degenerate.
+        # ----------------------------------------------------------------------
+        left_vals = diff[diff <= bg_peak_center] - bg_peak_center
+        if left_vals.size >= 5 and np.any(left_vals != 0.0):
+            reflected = np.concatenate([left_vals, -left_vals])
+            sigma_diff_noise = float(np.std(reflected, ddof=1)) if reflected.size >= 2 else 0.0
+            logging.info(f"Reflected variance computed from {left_vals.size} left-side values.")
+            logging.info(f"Reflected standard deviation: {sigma_diff_noise:.4f}")
+        else:
+            mad = float(np.median(np.abs(diff - bg_peak_center)))
+            sigma_diff_noise = 1.4826 * mad
+            logging.info(f"Left side too small or degenerate ({left_vals.size} values), using MAD fallback.")
+            
+        # Numerical floor
+        sigma_diff_noise = max(sigma_diff_noise, 1e-4)
+
+        # ---- Z-scores & right-tailed p-values ----
         centered_diff = df["diff"] - bg_peak_center
         df["zscore"] = centered_diff / sigma_diff_noise
 
-        # One-tailed right-tailed p-value: strictly measures probability 
-        # of observing a depletion this extreme or higher under the null background
+        # Right-tailed (depletion-only): P(Z >= z)
         df["pvalue"] = scipy.stats.norm.sf(df["zscore"])
 
-        # One-tailed FDR multiple-testing control
-        df["p_adjust_BH"] = scipy.stats.false_discovery_control(df["pvalue"])
+        # ---- Classical Benjamini–Hochberg (step-up) ----
+        def _bh_adjust(pvals: np.ndarray) -> np.ndarray:
+            pvals = np.asarray(pvals, dtype=float)
+            m = pvals.size
+            if m == 0:
+                return pvals
+            order = np.argsort(pvals)
+            ranked = pvals[order]
+            bh = ranked * m / (np.arange(1, m + 1))
+            q_ranked = np.minimum.accumulate(bh[::-1])[::-1]
+            q_ranked = np.minimum(q_ranked, 1.0)
+            
+            qvals = np.empty_like(q_ranked)
+            qvals[order] = q_ranked
+            return qvals
 
-        # Valid cut: clears the BH threshold AND is on the positive side of the curve
+        df["p_adjust_BH"] = _bh_adjust(df["pvalue"].values)
+
+        # Valid cut: BH threshold AND positive side (depletion)
         df["is_statistically_cut"] = (df["p_adjust_BH"] <= 0.05) & (df["zscore"] > 0)
 
-        # --- TRUE BIOLOGICAL INFERENCE (EFFECT SIZE) ---
-        # FIX 3: Compositional correction applied directly in log-space
+        # ---- Effect size (% depleted) ----
         corrected_log_ratio = df["diff"] - bg_peak_center
         true_survival_ratio = np.exp(-corrected_log_ratio)
-        
         raw_depletion = (1.0 - true_survival_ratio) * 100.0
 
         df["true_percent_depleted"] = raw_depletion.clip(0, 100)
@@ -210,9 +293,6 @@ class pamSeqExp:
         ).clip(0, 100)
 
         return df.sort_values(by="kmers")
-
-
-
 
 
 

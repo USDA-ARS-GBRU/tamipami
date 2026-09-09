@@ -1,0 +1,1000 @@
+{"code": "ACW", "seqs": ["ACA", "ACT"]}
+{"code": "ABK", "seqs": ["ACG", "ACT", "AGG", "AGT", "ATG", "ATT"]}
+{"code": "CTS", "seqs": ["CTC", "CTG"]}
+{"code": "AHG", "seqs": ["AAG", "ACG", "ATG"]}
+{"code": "GMM", "seqs": ["GAA", "GAC", "GCA", "GCC"]}
+{"code": "BHA", "seqs": ["CAA", "CCA", "CTA", "GAA", "GCA", "GTA", "TAA", "TCA", "TTA"]}
+{"code": "YGW", "seqs": ["CGA", "CGT", "TGA", "TGT"]}
+{"code": "VDD", "seqs": ["AAA", "AAG", "AAT", "AGA", "AGG", "AGT", "ATA", "ATG", "ATT", "CAA", "CAG", "CAT", "CGA", "CGG", "CGT", "CTA", "CTG", "CTT", "GAA", "GAG", "GAT", "GGA", "GGG", "GGT", "GTA", "GTG", "GTT"]}
+{"code": "SMK", "seqs": ["CAG", "CAT", "CCG", "CCT", "GAG", "GAT", "GCG", "GCT"]}
+{"code": "ACK", "seqs": ["ACG", "ACT"]}
+{"code": "KCA", "seqs": ["GCA", "TCA"]}
+{"code": "BKN", "seqs": ["CGA", "CGC", "CGG", "CGT", "CTA", "CTC", "CTG", "CTT", "GGA", "GGC", "GGG", "GGT", "GTA", "GTC", "GTG", "GTT", "TGA", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"]}
+{"code": "GRT", "seqs": ["GAT", "GGT"]}
+{"code": "HGT", "seqs": ["AGT", "CGT", "TGT"]}
+{"code": "TNR", "seqs": ["TAA", "TAG", "TCA", "TCG", "TGA", "TGG", "TTA", "TTG"]}
+{"code": "AHA", "seqs": ["AAA", "ACA", "ATA"]}
+{"code": "SKN", "seqs": ["CGA", "CGC", "CGG", "CGT", "CTA", "CTC", "CTG", "CTT", "GGA", "GGC", "GGG", "GGT", "GTA", "GTC", "GTG", "GTT"]}
+{"code": "KGG", "seqs": ["GGG", "TGG"]}
+{"code": "BGC", "seqs": ["CGC", "GGC", "TGC"]}
+{"code": "DCW", "seqs": ["ACA", "ACT", "GCA", "GCT", "TCA", "TCT"]}
+{"code": "WBB", "seqs": ["ACC", "ACG", "ACT", "AGC", "AGG", "AGT", "ATC", "ATG", "ATT", "TCC", "TCG", "TCT", "TGC", "TGG", "TGT", "TTC", "TTG", "TTT"]}
+{"code": "GKD", "seqs": ["GGA", "GGG", "GGT", "GTA", "GTG", "GTT"]}
+{"code": "ACR", "seqs": ["ACA", "ACG"]}
+{"code": "KTC", "seqs": ["GTC", "TTC"]}
+{"code": "TGR", "seqs": ["TGA", "TGG"]}
+{"code": "VSV", "seqs": ["ACA", "ACC", "ACG", "AGA", "AGC", "AGG", "CCA", "CCC", "CCG", "CGA", "CGC", "CGG", "GCA", "GCC", "GCG", "GGA", "GGC", "GGG"]}
+{"code": "SYA", "seqs": ["CCA", "CTA", "GCA", "GTA"]}
+{"code": "KRT", "seqs": ["GAT", "GGT", "TAT", "TGT"]}
+{"code": "RDG", "seqs": ["AAG", "AGG", "ATG", "GAG", "GGG", "GTG"]}
+{"code": "RAW", "seqs": ["AAA", "AAT", "GAA", "GAT"]}
+{"code": "AVM", "seqs": ["AAA", "AAC", "ACA", "ACC", "AGA", "AGC"]}
+{"code": "KTA", "seqs": ["GTA", "TTA"]}
+{"code": "NAC", "seqs": ["AAC", "CAC", "GAC", "TAC"]}
+{"code": "RMM", "seqs": ["AAA", "AAC", "ACA", "ACC", "GAA", "GAC", "GCA", "GCC"]}
+{"code": "GTW", "seqs": ["GTA", "GTT"]}
+{"code": "TKA", "seqs": ["TGA", "TTA"]}
+{"code": "ARC", "seqs": ["AAC", "AGC"]}
+{"code": "RAS", "seqs": ["AAC", "AAG", "GAC", "GAG"]}
+{"code": "HCB", "seqs": ["ACC", "ACG", "ACT", "CCC", "CCG", "CCT", "TCC", "TCG", "TCT"]}
+{"code": "SKS", "seqs": ["CGC", "CGG", "CTC", "CTG", "GGC", "GGG", "GTC", "GTG"]}
+{"code": "KSN", "seqs": ["GCA", "GCC", "GCG", "GCT", "GGA", "GGC", "GGG", "GGT", "TCA", "TCC", "TCG", "TCT", "TGA", "TGC", "TGG", "TGT"]}
+{"code": "ANA", "seqs": ["AAA", "ACA", "AGA", "ATA"]}
+{"code": "RMK", "seqs": ["AAG", "AAT", "ACG", "ACT", "GAG", "GAT", "GCG", "GCT"]}
+{"code": "MKA", "seqs": ["AGA", "ATA", "CGA", "CTA"]}
+{"code": "GHC", "seqs": ["GAC", "GCC", "GTC"]}
+{"code": "RSC", "seqs": ["ACC", "AGC", "GCC", "GGC"]}
+{"code": "GKA", "seqs": ["GGA", "GTA"]}
+{"code": "MBG", "seqs": ["ACG", "AGG", "ATG", "CCG", "CGG", "CTG"]}
+{"code": "MAN", "seqs": ["AAA", "AAC", "AAG", "AAT", "CAA", "CAC", "CAG", "CAT"]}
+{"code": "CYH", "seqs": ["CCA", "CCC", "CCT", "CTA", "CTC", "CTT"]}
+{"code": "KAC", "seqs": ["GAC", "TAC"]}
+{"code": "ARC", "seqs": ["AAC", "AGC"]}
+{"code": "WCA", "seqs": ["ACA", "TCA"]}
+{"code": "NCW", "seqs": ["ACA", "ACT", "CCA", "CCT", "GCA", "GCT", "TCA", "TCT"]}
+{"code": "YCN", "seqs": ["CCA", "CCC", "CCG", "CCT", "TCA", "TCC", "TCG", "TCT"]}
+{"code": "YCV", "seqs": ["CCA", "CCC", "CCG", "TCA", "TCC", "TCG"]}
+{"code": "YGR", "seqs": ["CGA", "CGG", "TGA", "TGG"]}
+{"code": "SAG", "seqs": ["CAG", "GAG"]}
+{"code": "AMG", "seqs": ["AAG", "ACG"]}
+{"code": "NYB", "seqs": ["ACC", "ACG", "ACT", "ATC", "ATG", "ATT", "CCC", "CCG", "CCT", "CTC", "CTG", "CTT", "GCC", "GCG", "GCT", "GTC", "GTG", "GTT", "TCC", "TCG", "TCT", "TTC", "TTG", "TTT"]}
+{"code": "RCD", "seqs": ["ACA", "ACG", "ACT", "GCA", "GCG", "GCT"]}
+{"code": "GAK", "seqs": ["GAG", "GAT"]}
+{"code": "MHN", "seqs": ["AAA", "AAC", "AAG", "AAT", "ACA", "ACC", "ACG", "ACT", "ATA", "ATC", "ATG", "ATT", "CAA", "CAC", "CAG", "CAT", "CCA", "CCC", "CCG", "CCT", "CTA", "CTC", "CTG", "CTT"]}
+{"code": "CGY", "seqs": ["CGC", "CGT"]}
+{"code": "VGM", "seqs": ["AGA", "AGC", "CGA", "CGC", "GGA", "GGC"]}
+{"code": "RCG", "seqs": ["ACG", "GCG"]}
+{"code": "SYG", "seqs": ["CCG", "CTG", "GCG", "GTG"]}
+{"code": "VKY", "seqs": ["AGC", "AGT", "ATC", "ATT", "CGC", "CGT", "CTC", "CTT", "GGC", "GGT", "GTC", "GTT"]}
+{"code": "MCT", "seqs": ["ACT", "CCT"]}
+{"code": "KAA", "seqs": ["GAA", "TAA"]}
+{"code": "CNB", "seqs": ["CAC", "CAG", "CAT", "CCC", "CCG", "CCT", "CGC", "CGG", "CGT", "CTC", "CTG", "CTT"]}
+{"code": "YYG", "seqs": ["CCG", "CTG", "TCG", "TTG"]}
+{"code": "WTT", "seqs": ["ATT", "TTT"]}
+{"code": "KST", "seqs": ["GCT", "GGT", "TCT", "TGT"]}
+{"code": "GWK", "seqs": ["GAG", "GAT", "GTG", "GTT"]}
+{"code": "AKC", "seqs": ["AGC", "ATC"]}
+{"code": "MMM", "seqs": ["AAA", "AAC", "ACA", "ACC", "CAA", "CAC", "CCA", "CCC"]}
+{"code": "ATN", "seqs": ["ATA", "ATC", "ATG", "ATT"]}
+{"code": "MTW", "seqs": ["ATA", "ATT", "CTA", "CTT"]}
+{"code": "CKM", "seqs": ["CGA", "CGC", "CTA", "CTC"]}
+{"code": "TSA", "seqs": ["TCA", "TGA"]}
+{"code": "KCC", "seqs": ["GCC", "TCC"]}
+{"code": "MYN", "seqs": ["ACA", "ACC", "ACG", "ACT", "ATA", "ATC", "ATG", "ATT", "CCA", "CCC", "CCG", "CCT", "CTA", "CTC", "CTG", "CTT"]}
+{"code": "YWN", "seqs": ["CAA", "CAC", "CAG", "CAT", "CTA", "CTC", "CTG", "CTT", "TAA", "TAC", "TAG", "TAT", "TTA", "TTC", "TTG", "TTT"]}
+{"code": "DAC", "seqs": ["AAC", "GAC", "TAC"]}
+{"code": "BHC", "seqs": ["CAC", "CCC", "CTC", "GAC", "GCC", "GTC", "TAC", "TCC", "TTC"]}
+{"code": "KSA", "seqs": ["GCA", "GGA", "TCA", "TGA"]}
+{"code": "CAN", "seqs": ["CAA", "CAC", "CAG", "CAT"]}
+{"code": "YNS", "seqs": ["CAC", "CAG", "CCC", "CCG", "CGC", "CGG", "CTC", "CTG", "TAC", "TAG", "TCC", "TCG", "TGC", "TGG", "TTC", "TTG"]}
+{"code": "CWA", "seqs": ["CAA", "CTA"]}
+{"code": "AMR", "seqs": ["AAA", "AAG", "ACA", "ACG"]}
+{"code": "YAM", "seqs": ["CAA", "CAC", "TAA", "TAC"]}
+{"code": "TTR", "seqs": ["TTA", "TTG"]}
+{"code": "TYK", "seqs": ["TCG", "TCT", "TTG", "TTT"]}
+{"code": "NMT", "seqs": ["AAT", "ACT", "CAT", "CCT", "GAT", "GCT", "TAT", "TCT"]}
+{"code": "RRK", "seqs": ["AAG", "AAT", "AGG", "AGT", "GAG", "GAT", "GGG", "GGT"]}
+{"code": "SAV", "seqs": ["CAA", "CAC", "CAG", "GAA", "GAC", "GAG"]}
+{"code": "MKW", "seqs": ["AGA", "AGT", "ATA", "ATT", "CGA", "CGT", "CTA", "CTT"]}
+{"code": "BMS", "seqs": ["CAC", "CAG", "CCC", "CCG", "GAC", "GAG", "GCC", "GCG", "TAC", "TAG", "TCC", "TCG"]}
+{"code": "RNM", "seqs": ["AAA", "AAC", "ACA", "ACC", "AGA", "AGC", "ATA", "ATC", "GAA", "GAC", "GCA", "GCC", "GGA", "GGC", "GTA", "GTC"]}
+{"code": "KWW", "seqs": ["GAA", "GAT", "GTA", "GTT", "TAA", "TAT", "TTA", "TTT"]}
+{"code": "CWS", "seqs": ["CAC", "CAG", "CTC", "CTG"]}
+{"code": "GCM", "seqs": ["GCA", "GCC"]}
+{"code": "WBK", "seqs": ["ACG", "ACT", "AGG", "AGT", "ATG", "ATT", "TCG", "TCT", "TGG", "TGT", "TTG", "TTT"]}
+{"code": "TBR", "seqs": ["TCA", "TCG", "TGA", "TGG", "TTA", "TTG"]}
+{"code": "NYD", "seqs": ["ACA", "ACG", "ACT", "ATA", "ATG", "ATT", "CCA", "CCG", "CCT", "CTA", "CTG", "CTT", "GCA", "GCG", "GCT", "GTA", "GTG", "GTT", "TCA", "TCG", "TCT", "TTA", "TTG", "TTT"]}
+{"code": "SCR", "seqs": ["CCA", "CCG", "GCA", "GCG"]}
+{"code": "NWC", "seqs": ["AAC", "ATC", "CAC", "CTC", "GAC", "GTC", "TAC", "TTC"]}
+{"code": "TMT", "seqs": ["TAT", "TCT"]}
+{"code": "SAC", "seqs": ["CAC", "GAC"]}
+{"code": "GCR", "seqs": ["GCA", "GCG"]}
+{"code": "MTK", "seqs": ["ATG", "ATT", "CTG", "CTT"]}
+{"code": "TKW", "seqs": ["TGA", "TGT", "TTA", "TTT"]}
+{"code": "YHH", "seqs": ["CAA", "CAC", "CAT", "CCA", "CCC", "CCT", "CTA", "CTC", "CTT", "TAA", "TAC", "TAT", "TCA", "TCC", "TCT", "TTA", "TTC", "TTT"]}
+{"code": "HWY", "seqs": ["AAC", "AAT", "ATC", "ATT", "CAC", "CAT", "CTC", "CTT", "TAC", "TAT", "TTC", "TTT"]}
+{"code": "TWG", "seqs": ["TAG", "TTG"]}
+{"code": "RBK", "seqs": ["ACG", "ACT", "AGG", "AGT", "ATG", "ATT", "GCG", "GCT", "GGG", "GGT", "GTG", "GTT"]}
+{"code": "DAG", "seqs": ["AAG", "GAG", "TAG"]}
+{"code": "WRK", "seqs": ["AAG", "AAT", "AGG", "AGT", "TAG", "TAT", "TGG", "TGT"]}
+{"code": "TMT", "seqs": ["TAT", "TCT"]}
+{"code": "DMS", "seqs": ["AAC", "AAG", "ACC", "ACG", "GAC", "GAG", "GCC", "GCG", "TAC", "TAG", "TCC", "TCG"]}
+{"code": "WDH", "seqs": ["AAA", "AAC", "AAT", "AGA", "AGC", "AGT", "ATA", "ATC", "ATT", "TAA", "TAC", "TAT", "TGA", "TGC", "TGT", "TTA", "TTC", "TTT"]}
+{"code": "ATV", "seqs": ["ATA", "ATC", "ATG"]}
+{"code": "WAR", "seqs": ["AAA", "AAG", "TAA", "TAG"]}
+{"code": "TTN", "seqs": ["TTA", "TTC", "TTG", "TTT"]}
+{"code": "CGR", "seqs": ["CGA", "CGG"]}
+{"code": "NTC", "seqs": ["ATC", "CTC", "GTC", "TTC"]}
+{"code": "WKT", "seqs": ["AGT", "ATT", "TGT", "TTT"]}
+{"code": "RNY", "seqs": ["AAC", "AAT", "ACC", "ACT", "AGC", "AGT", "ATC", "ATT", "GAC", "GAT", "GCC", "GCT", "GGC", "GGT", "GTC", "GTT"]}
+{"code": "GTW", "seqs": ["GTA", "GTT"]}
+{"code": "BTT", "seqs": ["CTT", "GTT", "TTT"]}
+{"code": "MRK", "seqs": ["AAG", "AAT", "AGG", "AGT", "CAG", "CAT", "CGG", "CGT"]}
+{"code": "WKA", "seqs": ["AGA", "ATA", "TGA", "TTA"]}
+{"code": "RTS", "seqs": ["ATC", "ATG", "GTC", "GTG"]}
+{"code": "CBS", "seqs": ["CCC", "CCG", "CGC", "CGG", "CTC", "CTG"]}
+{"code": "TYH", "seqs": ["TCA", "TCC", "TCT", "TTA", "TTC", "TTT"]}
+{"code": "CWS", "seqs": ["CAC", "CAG", "CTC", "CTG"]}
+{"code": "DSN", "seqs": ["ACA", "ACC", "ACG", "ACT", "AGA", "AGC", "AGG", "AGT", "GCA", "GCC", "GCG", "GCT", "GGA", "GGC", "GGG", "GGT", "TCA", "TCC", "TCG", "TCT", "TGA", "TGC", "TGG", "TGT"]}
+{"code": "TAS", "seqs": ["TAC", "TAG"]}
+{"code": "VNA", "seqs": ["AAA", "ACA", "AGA", "ATA", "CAA", "CCA", "CGA", "CTA", "GAA", "GCA", "GGA", "GTA"]}
+{"code": "WAB", "seqs": ["AAC", "AAG", "AAT", "TAC", "TAG", "TAT"]}
+{"code": "MMC", "seqs": ["AAC", "ACC", "CAC", "CCC"]}
+{"code": "DCS", "seqs": ["ACC", "ACG", "GCC", "GCG", "TCC", "TCG"]}
+{"code": "SST", "seqs": ["CCT", "CGT", "GCT", "GGT"]}
+{"code": "CNG", "seqs": ["CAG", "CCG", "CGG", "CTG"]}
+{"code": "TYC", "seqs": ["TCC", "TTC"]}
+{"code": "MKA", "seqs": ["AGA", "ATA", "CGA", "CTA"]}
+{"code": "TRA", "seqs": ["TAA", "TGA"]}
+{"code": "TGY", "seqs": ["TGC", "TGT"]}
+{"code": "VWC", "seqs": ["AAC", "ATC", "CAC", "CTC", "GAC", "GTC"]}
+{"code": "AMW", "seqs": ["AAA", "AAT", "ACA", "ACT"]}
+{"code": "KCW", "seqs": ["GCA", "GCT", "TCA", "TCT"]}
+{"code": "GYG", "seqs": ["GCG", "GTG"]}
+{"code": "RGG", "seqs": ["AGG", "GGG"]}
+{"code": "WST", "seqs": ["ACT", "AGT", "TCT", "TGT"]}
+{"code": "GMH", "seqs": ["GAA", "GAC", "GAT", "GCA", "GCC", "GCT"]}
+{"code": "WMG", "seqs": ["AAG", "ACG", "TAG", "TCG"]}
+{"code": "KYN", "seqs": ["GCA", "GCC", "GCG", "GCT", "GTA", "GTC", "GTG", "GTT", "TCA", "TCC", "TCG", "TCT", "TTA", "TTC", "TTG", "TTT"]}
+{"code": "DGA", "seqs": ["AGA", "GGA", "TGA"]}
+{"code": "NRY", "seqs": ["AAC", "AAT", "AGC", "AGT", "CAC", "CAT", "CGC", "CGT", "GAC", "GAT", "GGC", "GGT", "TAC", "TAT", "TGC", "TGT"]}
+{"code": "MTW", "seqs": ["ATA", "ATT", "CTA", "CTT"]}
+{"code": "WTG", "seqs": ["ATG", "TTG"]}
+{"code": "MMG", "seqs": ["AAG", "ACG", "CAG", "CCG"]}
+{"code": "NMH", "seqs": ["AAA", "AAC", "AAT", "ACA", "ACC", "ACT", "CAA", "CAC", "CAT", "CCA", "CCC", "CCT", "GAA", "GAC", "GAT", "GCA", "GCC", "GCT", "TAA", "TAC", "TAT", "TCA", "TCC", "TCT"]}
+{"code": "TVA", "seqs": ["TAA", "TCA", "TGA"]}
+{"code": "KCW", "seqs": ["GCA", "GCT", "TCA", "TCT"]}
+{"code": "VGA", "seqs": ["AGA", "CGA", "GGA"]}
+{"code": "NGA", "seqs": ["AGA", "CGA", "GGA", "TGA"]}
+{"code": "AMG", "seqs": ["AAG", "ACG"]}
+{"code": "KMD", "seqs": ["GAA", "GAG", "GAT", "GCA", "GCG", "GCT", "TAA", "TAG", "TAT", "TCA", "TCG", "TCT"]}
+{"code": "MMS", "seqs": ["AAC", "AAG", "ACC", "ACG", "CAC", "CAG", "CCC", "CCG"]}
+{"code": "GNR", "seqs": ["GAA", "GAG", "GCA", "GCG", "GGA", "GGG", "GTA", "GTG"]}
+{"code": "WYD", "seqs": ["ACA", "ACG", "ACT", "ATA", "ATG", "ATT", "TCA", "TCG", "TCT", "TTA", "TTG", "TTT"]}
+{"code": "ASW", "seqs": ["ACA", "ACT", "AGA", "AGT"]}
+{"code": "SRW", "seqs": ["CAA", "CAT", "CGA", "CGT", "GAA", "GAT", "GGA", "GGT"]}
+{"code": "SCY", "seqs": ["CCC", "CCT", "GCC", "GCT"]}
+{"code": "YWK", "seqs": ["CAG", "CAT", "CTG", "CTT", "TAG", "TAT", "TTG", "TTT"]}
+{"code": "NTY", "seqs": ["ATC", "ATT", "CTC", "CTT", "GTC", "GTT", "TTC", "TTT"]}
+{"code": "DCS", "seqs": ["ACC", "ACG", "GCC", "GCG", "TCC", "TCG"]}
+{"code": "KMT", "seqs": ["GAT", "GCT", "TAT", "TCT"]}
+{"code": "AGS", "seqs": ["AGC", "AGG"]}
+{"code": "SDG", "seqs": ["CAG", "CGG", "CTG", "GAG", "GGG", "GTG"]}
+{"code": "KMW", "seqs": ["GAA", "GAT", "GCA", "GCT", "TAA", "TAT", "TCA", "TCT"]}
+{"code": "AGK", "seqs": ["AGG", "AGT"]}
+{"code": "GVS", "seqs": ["GAC", "GAG", "GCC", "GCG", "GGC", "GGG"]}
+{"code": "WAC", "seqs": ["AAC", "TAC"]}
+{"code": "MKN", "seqs": ["AGA", "AGC", "AGG", "AGT", "ATA", "ATC", "ATG", "ATT", "CGA", "CGC", "CGG", "CGT", "CTA", "CTC", "CTG", "CTT"]}
+{"code": "YWD", "seqs": ["CAA", "CAG", "CAT", "CTA", "CTG", "CTT", "TAA", "TAG", "TAT", "TTA", "TTG", "TTT"]}
+{"code": "MTW", "seqs": ["ATA", "ATT", "CTA", "CTT"]}
+{"code": "MSS", "seqs": ["ACC", "ACG", "AGC", "AGG", "CCC", "CCG", "CGC", "CGG"]}
+{"code": "MBV", "seqs": ["ACA", "ACC", "ACG", "AGA", "AGC", "AGG", "ATA", "ATC", "ATG", "CCA", "CCC", "CCG", "CGA", "CGC", "CGG", "CTA", "CTC", "CTG"]}
+{"code": "KBC", "seqs": ["GCC", "GGC", "GTC", "TCC", "TGC", "TTC"]}
+{"code": "RRG", "seqs": ["AAG", "AGG", "GAG", "GGG"]}
+{"code": "YBG", "seqs": ["CCG", "CGG", "CTG", "TCG", "TGG", "TTG"]}
+{"code": "STM", "seqs": ["CTA", "CTC", "GTA", "GTC"]}
+{"code": "MTG", "seqs": ["ATG", "CTG"]}
+{"code": "MDG", "seqs": ["AAG", "AGG", "ATG", "CAG", "CGG", "CTG"]}
+{"code": "WSV", "seqs": ["ACA", "ACC", "ACG", "AGA", "AGC", "AGG", "TCA", "TCC", "TCG", "TGA", "TGC", "TGG"]}
+{"code": "GCH", "seqs": ["GCA", "GCC", "GCT"]}
+{"code": "SAW", "seqs": ["CAA", "CAT", "GAA", "GAT"]}
+{"code": "WTG", "seqs": ["ATG", "TTG"]}
+{"code": "GDK", "seqs": ["GAG", "GAT", "GGG", "GGT", "GTG", "GTT"]}
+{"code": "BKB", "seqs": ["CGC", "CGG", "CGT", "CTC", "CTG", "CTT", "GGC", "GGG", "GGT", "GTC", "GTG", "GTT", "TGC", "TGG", "TGT", "TTC", "TTG", "TTT"]}
+{"code": "AST", "seqs": ["ACT", "AGT"]}
+{"code": "AYG", "seqs": ["ACG", "ATG"]}
+{"code": "CTY", "seqs": ["CTC", "CTT"]}
+{"code": "WVM", "seqs": ["AAA", "AAC", "ACA", "ACC", "AGA", "AGC", "TAA", "TAC", "TCA", "TCC", "TGA", "TGC"]}
+{"code": "RMM", "seqs": ["AAA", "AAC", "ACA", "ACC", "GAA", "GAC", "GCA", "GCC"]}
+{"code": "SGD", "seqs": ["CGA", "CGG", "CGT", "GGA", "GGG", "GGT"]}
+{"code": "GYC", "seqs": ["GCC", "GTC"]}
+{"code": "SMT", "seqs": ["CAT", "CCT", "GAT", "GCT"]}
+{"code": "WRG", "seqs": ["AAG", "AGG", "TAG", "TGG"]}
+{"code": "ATB", "seqs": ["ATC", "ATG", "ATT"]}
+{"code": "NWN", "seqs": ["AAA", "AAC", "AAG", "AAT", "ATA", "ATC", "ATG", "ATT", "CAA", "CAC", "CAG", "CAT", "CTA", "CTC", "CTG", "CTT", "GAA", "GAC", "GAG", "GAT", "GTA", "GTC", "GTG", "GTT", "TAA", "TAC", "TAG", "TAT", "TTA", "TTC", "TTG", "TTT"]}
+{"code": "KAC", "seqs": ["GAC", "TAC"]}
+{"code": "HWC", "seqs": ["AAC", "ATC", "CAC", "CTC", "TAC", "TTC"]}
+{"code": "ASM", "seqs": ["ACA", "ACC", "AGA", "AGC"]}
+{"code": "WRY", "seqs": ["AAC", "AAT", "AGC", "AGT", "TAC", "TAT", "TGC", "TGT"]}
+{"code": "YNT", "seqs": ["CAT", "CCT", "CGT", "CTT", "TAT", "TCT", "TGT", "TTT"]}
+{"code": "TMV", "seqs": ["TAA", "TAC", "TAG", "TCA", "TCC", "TCG"]}
+{"code": "GRN", "seqs": ["GAA", "GAC", "GAG", "GAT", "GGA", "GGC", "GGG", "GGT"]}
+{"code": "AWY", "seqs": ["AAC", "AAT", "ATC", "ATT"]}
+{"code": "MCG", "seqs": ["ACG", "CCG"]}
+{"code": "TRN", "seqs": ["TAA", "TAC", "TAG", "TAT", "TGA", "TGC", "TGG", "TGT"]}
+{"code": "BGC", "seqs": ["CGC", "GGC", "TGC"]}
+{"code": "NYT", "seqs": ["ACT", "ATT", "CCT", "CTT", "GCT", "GTT", "TCT", "TTT"]}
+{"code": "BKT", "seqs": ["CGT", "CTT", "GGT", "GTT", "TGT", "TTT"]}
+{"code": "KBW", "seqs": ["GCA", "GCT", "GGA", "GGT", "GTA", "GTT", "TCA", "TCT", "TGA", "TGT", "TTA", "TTT"]}
+{"code": "DAC", "seqs": ["AAC", "GAC", "TAC"]}
+{"code": "GSM", "seqs": ["GCA", "GCC", "GGA", "GGC"]}
+{"code": "AMA", "seqs": ["AAA", "ACA"]}
+{"code": "RGB", "seqs": ["AGC", "AGG", "AGT", "GGC", "GGG", "GGT"]}
+{"code": "GSS", "seqs": ["GCC", "GCG", "GGC", "GGG"]}
+{"code": "CRC", "seqs": ["CAC", "CGC"]}
+{"code": "WTC", "seqs": ["ATC", "TTC"]}
+{"code": "ABB", "seqs": ["ACC", "ACG", "ACT", "AGC", "AGG", "AGT", "ATC", "ATG", "ATT"]}
+{"code": "TTW", "seqs": ["TTA", "TTT"]}
+{"code": "MGW", "seqs": ["AGA", "AGT", "CGA", "CGT"]}
+{"code": "MNV", "seqs": ["AAA", "AAC", "AAG", "ACA", "ACC", "ACG", "AGA", "AGC", "AGG", "ATA", "ATC", "ATG", "CAA", "CAC", "CAG", "CCA", "CCC", "CCG", "CGA", "CGC", "CGG", "CTA", "CTC", "CTG"]}
+{"code": "MGT", "seqs": ["AGT", "CGT"]}
+{"code": "CKS", "seqs": ["CGC", "CGG", "CTC", "CTG"]}
+{"code": "SWB", "seqs": ["CAC", "CAG", "CAT", "CTC", "CTG", "CTT", "GAC", "GAG", "GAT", "GTC", "GTG", "GTT"]}
+{"code": "GTN", "seqs": ["GTA", "GTC", "GTG", "GTT"]}
+{"code": "ATY", "seqs": ["ATC", "ATT"]}
+{"code": "ASA", "seqs": ["ACA", "AGA"]}
+{"code": "KGR", "seqs": ["GGA", "GGG", "TGA", "TGG"]}
+{"code": "TGD", "seqs": ["TGA", "TGG", "TGT"]}
+{"code": "MKA", "seqs": ["AGA", "ATA", "CGA", "CTA"]}
+{"code": "TYW", "seqs": ["TCA", "TCT", "TTA", "TTT"]}
+{"code": "HGT", "seqs": ["AGT", "CGT", "TGT"]}
+{"code": "TWG", "seqs": ["TAG", "TTG"]}
+{"code": "AKH", "seqs": ["AGA", "AGC", "AGT", "ATA", "ATC", "ATT"]}
+{"code": "CCV", "seqs": ["CCA", "CCC", "CCG"]}
+{"code": "WRY", "seqs": ["AAC", "AAT", "AGC", "AGT", "TAC", "TAT", "TGC", "TGT"]}
+{"code": "SKT", "seqs": ["CGT", "CTT", "GGT", "GTT"]}
+{"code": "WAK", "seqs": ["AAG", "AAT", "TAG", "TAT"]}
+{"code": "RHC", "seqs": ["AAC", "ACC", "ATC", "GAC", "GCC", "GTC"]}
+{"code": "CYH", "seqs": ["CCA", "CCC", "CCT", "CTA", "CTC", "CTT"]}
+{"code": "HWN", "seqs": ["AAA", "AAC", "AAG", "AAT", "ATA", "ATC", "ATG", "ATT", "CAA", "CAC", "CAG", "CAT", "CTA", "CTC", "CTG", "CTT", "TAA", "TAC", "TAG", "TAT", "TTA", "TTC", "TTG", "TTT"]}
+{"code": "ASH", "seqs": ["ACA", "ACC", "ACT", "AGA", "AGC", "AGT"]}
+{"code": "RHC", "seqs": ["AAC", "ACC", "ATC", "GAC", "GCC", "GTC"]}
+{"code": "SGA", "seqs": ["CGA", "GGA"]}
+{"code": "ANG", "seqs": ["AAG", "ACG", "AGG", "ATG"]}
+{"code": "TAS", "seqs": ["TAC", "TAG"]}
+{"code": "NYG", "seqs": ["ACG", "ATG", "CCG", "CTG", "GCG", "GTG", "TCG", "TTG"]}
+{"code": "WMK", "seqs": ["AAG", "AAT", "ACG", "ACT", "TAG", "TAT", "TCG", "TCT"]}
+{"code": "YNM", "seqs": ["CAA", "CAC", "CCA", "CCC", "CGA", "CGC", "CTA", "CTC", "TAA", "TAC", "TCA", "TCC", "TGA", "TGC", "TTA", "TTC"]}
+{"code": "ARK", "seqs": ["AAG", "AAT", "AGG", "AGT"]}
+{"code": "KSY", "seqs": ["GCC", "GCT", "GGC", "GGT", "TCC", "TCT", "TGC", "TGT"]}
+{"code": "KKT", "seqs": ["GGT", "GTT", "TGT", "TTT"]}
+{"code": "TKN", "seqs": ["TGA", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"]}
+{"code": "NMR", "seqs": ["AAA", "AAG", "ACA", "ACG", "CAA", "CAG", "CCA", "CCG", "GAA", "GAG", "GCA", "GCG", "TAA", "TAG", "TCA", "TCG"]}
+{"code": "TBH", "seqs": ["TCA", "TCC", "TCT", "TGA", "TGC", "TGT", "TTA", "TTC", "TTT"]}
+{"code": "MBR", "seqs": ["ACA", "ACG", "AGA", "AGG", "ATA", "ATG", "CCA", "CCG", "CGA", "CGG", "CTA", "CTG"]}
+{"code": "KMY", "seqs": ["GAC", "GAT", "GCC", "GCT", "TAC", "TAT", "TCC", "TCT"]}
+{"code": "ADN", "seqs": ["AAA", "AAC", "AAG", "AAT", "AGA", "AGC", "AGG", "AGT", "ATA", "ATC", "ATG", "ATT"]}
+{"code": "MSB", "seqs": ["ACC", "ACG", "ACT", "AGC", "AGG", "AGT", "CCC", "CCG", "CCT", "CGC", "CGG", "CGT"]}
+{"code": "WTY", "seqs": ["ATC", "ATT", "TTC", "TTT"]}
+{"code": "NMG", "seqs": ["AAG", "ACG", "CAG", "CCG", "GAG", "GCG", "TAG", "TCG"]}
+{"code": "RRR", "seqs": ["AAA", "AAG", "AGA", "AGG", "GAA", "GAG", "GGA", "GGG"]}
+{"code": "KMY", "seqs": ["GAC", "GAT", "GCC", "GCT", "TAC", "TAT", "TCC", "TCT"]}
+{"code": "AKC", "seqs": ["AGC", "ATC"]}
+{"code": "TST", "seqs": ["TCT", "TGT"]}
+{"code": "SNB", "seqs": ["CAC", "CAG", "CAT", "CCC", "CCG", "CCT", "CGC", "CGG", "CGT", "CTC", "CTG", "CTT", "GAC", "GAG", "GAT", "GCC", "GCG", "GCT", "GGC", "GGG", "GGT", "GTC", "GTG", "GTT"]}
+{"code": "HTS", "seqs": ["ATC", "ATG", "CTC", "CTG", "TTC", "TTG"]}
+{"code": "YCR", "seqs": ["CCA", "CCG", "TCA", "TCG"]}
+{"code": "TKY", "seqs": ["TGC", "TGT", "TTC", "TTT"]}
+{"code": "MGC", "seqs": ["AGC", "CGC"]}
+{"code": "GVG", "seqs": ["GAG", "GCG", "GGG"]}
+{"code": "CTM", "seqs": ["CTA", "CTC"]}
+{"code": "GSY", "seqs": ["GCC", "GCT", "GGC", "GGT"]}
+{"code": "MCK", "seqs": ["ACG", "ACT", "CCG", "CCT"]}
+{"code": "YGC", "seqs": ["CGC", "TGC"]}
+{"code": "RDC", "seqs": ["AAC", "AGC", "ATC", "GAC", "GGC", "GTC"]}
+{"code": "SSM", "seqs": ["CCA", "CCC", "CGA", "CGC", "GCA", "GCC", "GGA", "GGC"]}
+{"code": "ACR", "seqs": ["ACA", "ACG"]}
+{"code": "TTV", "seqs": ["TTA", "TTC", "TTG"]}
+{"code": "GDC", "seqs": ["GAC", "GGC", "GTC"]}
+{"code": "WCY", "seqs": ["ACC", "ACT", "TCC", "TCT"]}
+{"code": "ATN", "seqs": ["ATA", "ATC", "ATG", "ATT"]}
+{"code": "ARN", "seqs": ["AAA", "AAC", "AAG", "AAT", "AGA", "AGC", "AGG", "AGT"]}
+{"code": "NRT", "seqs": ["AAT", "AGT", "CAT", "CGT", "GAT", "GGT", "TAT", "TGT"]}
+{"code": "YWC", "seqs": ["CAC", "CTC", "TAC", "TTC"]}
+{"code": "KSS", "seqs": ["GCC", "GCG", "GGC", "GGG", "TCC", "TCG", "TGC", "TGG"]}
+{"code": "TGS", "seqs": ["TGC", "TGG"]}
+{"code": "HKK", "seqs": ["AGG", "AGT", "ATG", "ATT", "CGG", "CGT", "CTG", "CTT", "TGG", "TGT", "TTG", "TTT"]}
+{"code": "GWS", "seqs": ["GAC", "GAG", "GTC", "GTG"]}
+{"code": "ATM", "seqs": ["ATA", "ATC"]}
+{"code": "YGG", "seqs": ["CGG", "TGG"]}
+{"code": "VTW", "seqs": ["ATA", "ATT", "CTA", "CTT", "GTA", "GTT"]}
+{"code": "STC", "seqs": ["CTC", "GTC"]}
+{"code": "WRN", "seqs": ["AAA", "AAC", "AAG", "AAT", "AGA", "AGC", "AGG", "AGT", "TAA", "TAC", "TAG", "TAT", "TGA", "TGC", "TGG", "TGT"]}
+{"code": "YCH", "seqs": ["CCA", "CCC", "CCT", "TCA", "TCC", "TCT"]}
+{"code": "RVD", "seqs": ["AAA", "AAG", "AAT", "ACA", "ACG", "ACT", "AGA", "AGG", "AGT", "GAA", "GAG", "GAT", "GCA", "GCG", "GCT", "GGA", "GGG", "GGT"]}
+{"code": "YRD", "seqs": ["CAA", "CAG", "CAT", "CGA", "CGG", "CGT", "TAA", "TAG", "TAT", "TGA", "TGG", "TGT"]}
+{"code": "YTB", "seqs": ["CTC", "CTG", "CTT", "TTC", "TTG", "TTT"]}
+{"code": "DWD", "seqs": ["AAA", "AAG", "AAT", "ATA", "ATG", "ATT", "GAA", "GAG", "GAT", "GTA", "GTG", "GTT", "TAA", "TAG", "TAT", "TTA", "TTG", "TTT"]}
+{"code": "TMT", "seqs": ["TAT", "TCT"]}
+{"code": "YND", "seqs": ["CAA", "CAG", "CAT", "CCA", "CCG", "CCT", "CGA", "CGG", "CGT", "CTA", "CTG", "CTT", "TAA", "TAG", "TAT", "TCA", "TCG", "TCT", "TGA", "TGG", "TGT", "TTA", "TTG", "TTT"]}
+{"code": "CGN", "seqs": ["CGA", "CGC", "CGG", "CGT"]}
+{"code": "HAG", "seqs": ["AAG", "CAG", "TAG"]}
+{"code": "WMR", "seqs": ["AAA", "AAG", "ACA", "ACG", "TAA", "TAG", "TCA", "TCG"]}
+{"code": "VAS", "seqs": ["AAC", "AAG", "CAC", "CAG", "GAC", "GAG"]}
+{"code": "ADM", "seqs": ["AAA", "AAC", "AGA", "AGC", "ATA", "ATC"]}
+{"code": "ABR", "seqs": ["ACA", "ACG", "AGA", "AGG", "ATA", "ATG"]}
+{"code": "ANN", "seqs": ["AAA", "AAC", "AAG", "AAT", "ACA", "ACC", "ACG", "ACT", "AGA", "AGC", "AGG", "AGT", "ATA", "ATC", "ATG", "ATT"]}
+{"code": "SGY", "seqs": ["CGC", "CGT", "GGC", "GGT"]}
+{"code": "CKS", "seqs": ["CGC", "CGG", "CTC", "CTG"]}
+{"code": "CTB", "seqs": ["CTC", "CTG", "CTT"]}
+{"code": "SRT", "seqs": ["CAT", "CGT", "GAT", "GGT"]}
+{"code": "MTV", "seqs": ["ATA", "ATC", "ATG", "CTA", "CTC", "CTG"]}
+{"code": "CAN", "seqs": ["CAA", "CAC", "CAG", "CAT"]}
+{"code": "HVT", "seqs": ["AAT", "ACT", "AGT", "CAT", "CCT", "CGT", "TAT", "TCT", "TGT"]}
+{"code": "AYM", "seqs": ["ACA", "ACC", "ATA", "ATC"]}
+{"code": "AVC", "seqs": ["AAC", "ACC", "AGC"]}
+{"code": "GAV", "seqs": ["GAA", "GAC", "GAG"]}
+{"code": "TCK", "seqs": ["TCG", "TCT"]}
+{"code": "KSM", "seqs": ["GCA", "GCC", "GGA", "GGC", "TCA", "TCC", "TGA", "TGC"]}
+{"code": "TNY", "seqs": ["TAC", "TAT", "TCC", "TCT", "TGC", "TGT", "TTC", "TTT"]}
+{"code": "GBC", "seqs": ["GCC", "GGC", "GTC"]}
+{"code": "RWV", "seqs": ["AAA", "AAC", "AAG", "ATA", "ATC", "ATG", "GAA", "GAC", "GAG", "GTA", "GTC", "GTG"]}
+{"code": "RRG", "seqs": ["AAG", "AGG", "GAG", "GGG"]}
+{"code": "YTW", "seqs": ["CTA", "CTT", "TTA", "TTT"]}
+{"code": "HVA", "seqs": ["AAA", "ACA", "AGA", "CAA", "CCA", "CGA", "TAA", "TCA", "TGA"]}
+{"code": "YYB", "seqs": ["CCC", "CCG", "CCT", "CTC", "CTG", "CTT", "TCC", "TCG", "TCT", "TTC", "TTG", "TTT"]}
+{"code": "SHM", "seqs": ["CAA", "CAC", "CCA", "CCC", "CTA", "CTC", "GAA", "GAC", "GCA", "GCC", "GTA", "GTC"]}
+{"code": "STA", "seqs": ["CTA", "GTA"]}
+{"code": "RRN", "seqs": ["AAA", "AAC", "AAG", "AAT", "AGA", "AGC", "AGG", "AGT", "GAA", "GAC", "GAG", "GAT", "GGA", "GGC", "GGG", "GGT"]}
+{"code": "YCD", "seqs": ["CCA", "CCG", "CCT", "TCA", "TCG", "TCT"]}
+{"code": "VYM", "seqs": ["ACA", "ACC", "ATA", "ATC", "CCA", "CCC", "CTA", "CTC", "GCA", "GCC", "GTA", "GTC"]}
+{"code": "MNS", "seqs": ["AAC", "AAG", "ACC", "ACG", "AGC", "AGG", "ATC", "ATG", "CAC", "CAG", "CCC", "CCG", "CGC", "CGG", "CTC", "CTG"]}
+{"code": "AMB", "seqs": ["AAC", "AAG", "AAT", "ACC", "ACG", "ACT"]}
+{"code": "HMA", "seqs": ["AAA", "ACA", "CAA", "CCA", "TAA", "TCA"]}
+{"code": "AYT", "seqs": ["ACT", "ATT"]}
+{"code": "NGA", "seqs": ["AGA", "CGA", "GGA", "TGA"]}
+{"code": "YVY", "seqs": ["CAC", "CAT", "CCC", "CCT", "CGC", "CGT", "TAC", "TAT", "TCC", "TCT", "TGC", "TGT"]}
+{"code": "ARY", "seqs": ["AAC", "AAT", "AGC", "AGT"]}
+{"code": "GWA", "seqs": ["GAA", "GTA"]}
+{"code": "NMG", "seqs": ["AAG", "ACG", "CAG", "CCG", "GAG", "GCG", "TAG", "TCG"]}
+{"code": "TGK", "seqs": ["TGG", "TGT"]}
+{"code": "TRV", "seqs": ["TAA", "TAC", "TAG", "TGA", "TGC", "TGG"]}
+{"code": "MGA", "seqs": ["AGA", "CGA"]}
+{"code": "HCG", "seqs": ["ACG", "CCG", "TCG"]}
+{"code": "DTK", "seqs": ["ATG", "ATT", "GTG", "GTT", "TTG", "TTT"]}
+{"code": "VRB", "seqs": ["AAC", "AAG", "AAT", "AGC", "AGG", "AGT", "CAC", "CAG", "CAT", "CGC", "CGG", "CGT", "GAC", "GAG", "GAT", "GGC", "GGG", "GGT"]}
+{"code": "DKK", "seqs": ["AGG", "AGT", "ATG", "ATT", "GGG", "GGT", "GTG", "GTT", "TGG", "TGT", "TTG", "TTT"]}
+{"code": "DCH", "seqs": ["ACA", "ACC", "ACT", "GCA", "GCC", "GCT", "TCA", "TCC", "TCT"]}
+{"code": "HRM", "seqs": ["AAA", "AAC", "AGA", "AGC", "CAA", "CAC", "CGA", "CGC", "TAA", "TAC", "TGA", "TGC"]}
+{"code": "RKS", "seqs": ["AGC", "AGG", "ATC", "ATG", "GGC", "GGG", "GTC", "GTG"]}
+{"code": "VKG", "seqs": ["AGG", "ATG", "CGG", "CTG", "GGG", "GTG"]}
+{"code": "TGM", "seqs": ["TGA", "TGC"]}
+{"code": "CST", "seqs": ["CCT", "CGT"]}
+{"code": "NGT", "seqs": ["AGT", "CGT", "GGT", "TGT"]}
+{"code": "CKG", "seqs": ["CGG", "CTG"]}
+{"code": "RRA", "seqs": ["AAA", "AGA", "GAA", "GGA"]}
+{"code": "TCK", "seqs": ["TCG", "TCT"]}
+{"code": "TSC", "seqs": ["TCC", "TGC"]}
+{"code": "TNM", "seqs": ["TAA", "TAC", "TCA", "TCC", "TGA", "TGC", "TTA", "TTC"]}
+{"code": "NAG", "seqs": ["AAG", "CAG", "GAG", "TAG"]}
+{"code": "AKC", "seqs": ["AGC", "ATC"]}
+{"code": "ASG", "seqs": ["ACG", "AGG"]}
+{"code": "TDW", "seqs": ["TAA", "TAT", "TGA", "TGT", "TTA", "TTT"]}
+{"code": "WMS", "seqs": ["AAC", "AAG", "ACC", "ACG", "TAC", "TAG", "TCC", "TCG"]}
+{"code": "CBM", "seqs": ["CCA", "CCC", "CGA", "CGC", "CTA", "CTC"]}
+{"code": "ACM", "seqs": ["ACA", "ACC"]}
+{"code": "TDT", "seqs": ["TAT", "TGT", "TTT"]}
+{"code": "KAM", "seqs": ["GAA", "GAC", "TAA", "TAC"]}
+{"code": "YCR", "seqs": ["CCA", "CCG", "TCA", "TCG"]}
+{"code": "MWC", "seqs": ["AAC", "ATC", "CAC", "CTC"]}
+{"code": "TWT", "seqs": ["TAT", "TTT"]}
+{"code": "MCW", "seqs": ["ACA", "ACT", "CCA", "CCT"]}
+{"code": "ACV", "seqs": ["ACA", "ACC", "ACG"]}
+{"code": "SNM", "seqs": ["CAA", "CAC", "CCA", "CCC", "CGA", "CGC", "CTA", "CTC", "GAA", "GAC", "GCA", "GCC", "GGA", "GGC", "GTA", "GTC"]}
+{"code": "DRS", "seqs": ["AAC", "AAG", "AGC", "AGG", "GAC", "GAG", "GGC", "GGG", "TAC", "TAG", "TGC", "TGG"]}
+{"code": "AGK", "seqs": ["AGG", "AGT"]}
+{"code": "WMM", "seqs": ["AAA", "AAC", "ACA", "ACC", "TAA", "TAC", "TCA", "TCC"]}
+{"code": "SCR", "seqs": ["CCA", "CCG", "GCA", "GCG"]}
+{"code": "KBB", "seqs": ["GCC", "GCG", "GCT", "GGC", "GGG", "GGT", "GTC", "GTG", "GTT", "TCC", "TCG", "TCT", "TGC", "TGG", "TGT", "TTC", "TTG", "TTT"]}
+{"code": "YTR", "seqs": ["CTA", "CTG", "TTA", "TTG"]}
+{"code": "TDW", "seqs": ["TAA", "TAT", "TGA", "TGT", "TTA", "TTT"]}
+{"code": "KHW", "seqs": ["GAA", "GAT", "GCA", "GCT", "GTA", "GTT", "TAA", "TAT", "TCA", "TCT", "TTA", "TTT"]}
+{"code": "AKN", "seqs": ["AGA", "AGC", "AGG", "AGT", "ATA", "ATC", "ATG", "ATT"]}
+{"code": "WTN", "seqs": ["ATA", "ATC", "ATG", "ATT", "TTA", "TTC", "TTG", "TTT"]}
+{"code": "YGA", "seqs": ["CGA", "TGA"]}
+{"code": "MTA", "seqs": ["ATA", "CTA"]}
+{"code": "CWT", "seqs": ["CAT", "CTT"]}
+{"code": "HVM", "seqs": ["AAA", "AAC", "ACA", "ACC", "AGA", "AGC", "CAA", "CAC", "CCA", "CCC", "CGA", "CGC", "TAA", "TAC", "TCA", "TCC", "TGA", "TGC"]}
+{"code": "RWK", "seqs": ["AAG", "AAT", "ATG", "ATT", "GAG", "GAT", "GTG", "GTT"]}
+{"code": "AWD", "seqs": ["AAA", "AAG", "AAT", "ATA", "ATG", "ATT"]}
+{"code": "SCW", "seqs": ["CCA", "CCT", "GCA", "GCT"]}
+{"code": "TSM", "seqs": ["TCA", "TCC", "TGA", "TGC"]}
+{"code": "SAW", "seqs": ["CAA", "CAT", "GAA", "GAT"]}
+{"code": "GRY", "seqs": ["GAC", "GAT", "GGC", "GGT"]}
+{"code": "WTG", "seqs": ["ATG", "TTG"]}
+{"code": "NTY", "seqs": ["ATC", "ATT", "CTC", "CTT", "GTC", "GTT", "TTC", "TTT"]}
+{"code": "SRS", "seqs": ["CAC", "CAG", "CGC", "CGG", "GAC", "GAG", "GGC", "GGG"]}
+{"code": "DTN", "seqs": ["ATA", "ATC", "ATG", "ATT", "GTA", "GTC", "GTG", "GTT", "TTA", "TTC", "TTG", "TTT"]}
+{"code": "MTW", "seqs": ["ATA", "ATT", "CTA", "CTT"]}
+{"code": "SNS", "seqs": ["CAC", "CAG", "CCC", "CCG", "CGC", "CGG", "CTC", "CTG", "GAC", "GAG", "GCC", "GCG", "GGC", "GGG", "GTC", "GTG"]}
+{"code": "MCS", "seqs": ["ACC", "ACG", "CCC", "CCG"]}
+{"code": "CDV", "seqs": ["CAA", "CAC", "CAG", "CGA", "CGC", "CGG", "CTA", "CTC", "CTG"]}
+{"code": "SMM", "seqs": ["CAA", "CAC", "CCA", "CCC", "GAA", "GAC", "GCA", "GCC"]}
+{"code": "YTM", "seqs": ["CTA", "CTC", "TTA", "TTC"]}
+{"code": "AMM", "seqs": ["AAA", "AAC", "ACA", "ACC"]}
+{"code": "CCR", "seqs": ["CCA", "CCG"]}
+{"code": "CWC", "seqs": ["CAC", "CTC"]}
+{"code": "SAC", "seqs": ["CAC", "GAC"]}
+{"code": "NHD", "seqs": ["AAA", "AAG", "AAT", "ACA", "ACG", "ACT", "ATA", "ATG", "ATT", "CAA", "CAG", "CAT", "CCA", "CCG", "CCT", "CTA", "CTG", "CTT", "GAA", "GAG", "GAT", "GCA", "GCG", "GCT", "GTA", "GTG", "GTT", "TAA", "TAG", "TAT", "TCA", "TCG", "TCT", "TTA", "TTG", "TTT"]}
+{"code": "SAG", "seqs": ["CAG", "GAG"]}
+{"code": "SMC", "seqs": ["CAC", "CCC", "GAC", "GCC"]}
+{"code": "DSN", "seqs": ["ACA", "ACC", "ACG", "ACT", "AGA", "AGC", "AGG", "AGT", "GCA", "GCC", "GCG", "GCT", "GGA", "GGC", "GGG", "GGT", "TCA", "TCC", "TCG", "TCT", "TGA", "TGC", "TGG", "TGT"]}
+{"code": "GYM", "seqs": ["GCA", "GCC", "GTA", "GTC"]}
+{"code": "TAD", "seqs": ["TAA", "TAG", "TAT"]}
+{"code": "BWS", "seqs": ["CAC", "CAG", "CTC", "CTG", "GAC", "GAG", "GTC", "GTG", "TAC", "TAG", "TTC", "TTG"]}
+{"code": "MAC", "seqs": ["AAC", "CAC"]}
+{"code": "KVG", "seqs": ["GAG", "GCG", "GGG", "TAG", "TCG", "TGG"]}
+{"code": "SAM", "seqs": ["CAA", "CAC", "GAA", "GAC"]}
+{"code": "CDM", "seqs": ["CAA", "CAC", "CGA", "CGC", "CTA", "CTC"]}
+{"code": "GCW", "seqs": ["GCA", "GCT"]}
+{"code": "CMY", "seqs": ["CAC", "CAT", "CCC", "CCT"]}
+{"code": "MGA", "seqs": ["AGA", "CGA"]}
+{"code": "AMK", "seqs": ["AAG", "AAT", "ACG", "ACT"]}
+{"code": "ARY", "seqs": ["AAC", "AAT", "AGC", "AGT"]}
+{"code": "HAR", "seqs": ["AAA", "AAG", "CAA", "CAG", "TAA", "TAG"]}
+{"code": "YRH", "seqs": ["CAA", "CAC", "CAT", "CGA", "CGC", "CGT", "TAA", "TAC", "TAT", "TGA", "TGC", "TGT"]}
+{"code": "AYT", "seqs": ["ACT", "ATT"]}
+{"code": "KGD", "seqs": ["GGA", "GGG", "GGT", "TGA", "TGG", "TGT"]}
+{"code": "RCR", "seqs": ["ACA", "ACG", "GCA", "GCG"]}
+{"code": "MGG", "seqs": ["AGG", "CGG"]}
+{"code": "RVK", "seqs": ["AAG", "AAT", "ACG", "ACT", "AGG", "AGT", "GAG", "GAT", "GCG", "GCT", "GGG", "GGT"]}
+{"code": "TNC", "seqs": ["TAC", "TCC", "TGC", "TTC"]}
+{"code": "CNR", "seqs": ["CAA", "CAG", "CCA", "CCG", "CGA", "CGG", "CTA", "CTG"]}
+{"code": "AAW", "seqs": ["AAA", "AAT"]}
+{"code": "RRN", "seqs": ["AAA", "AAC", "AAG", "AAT", "AGA", "AGC", "AGG", "AGT", "GAA", "GAC", "GAG", "GAT", "GGA", "GGC", "GGG", "GGT"]}
+{"code": "AKT", "seqs": ["AGT", "ATT"]}
+{"code": "GWR", "seqs": ["GAA", "GAG", "GTA", "GTG"]}
+{"code": "TRN", "seqs": ["TAA", "TAC", "TAG", "TAT", "TGA", "TGC", "TGG", "TGT"]}
+{"code": "KYG", "seqs": ["GCG", "GTG", "TCG", "TTG"]}
+{"code": "KVA", "seqs": ["GAA", "GCA", "GGA", "TAA", "TCA", "TGA"]}
+{"code": "HMN", "seqs": ["AAA", "AAC", "AAG", "AAT", "ACA", "ACC", "ACG", "ACT", "CAA", "CAC", "CAG", "CAT", "CCA", "CCC", "CCG", "CCT", "TAA", "TAC", "TAG", "TAT", "TCA", "TCC", "TCG", "TCT"]}
+{"code": "KHW", "seqs": ["GAA", "GAT", "GCA", "GCT", "GTA", "GTT", "TAA", "TAT", "TCA", "TCT", "TTA", "TTT"]}
+{"code": "AYW", "seqs": ["ACA", "ACT", "ATA", "ATT"]}
+{"code": "TSN", "seqs": ["TCA", "TCC", "TCG", "TCT", "TGA", "TGC", "TGG", "TGT"]}
+{"code": "MWR", "seqs": ["AAA", "AAG", "ATA", "ATG", "CAA", "CAG", "CTA", "CTG"]}
+{"code": "CDC", "seqs": ["CAC", "CGC", "CTC"]}
+{"code": "YSG", "seqs": ["CCG", "CGG", "TCG", "TGG"]}
+{"code": "ADT", "seqs": ["AAT", "AGT", "ATT"]}
+{"code": "AGN", "seqs": ["AGA", "AGC", "AGG", "AGT"]}
+{"code": "NWM", "seqs": ["AAA", "AAC", "ATA", "ATC", "CAA", "CAC", "CTA", "CTC", "GAA", "GAC", "GTA", "GTC", "TAA", "TAC", "TTA", "TTC"]}
+{"code": "MGY", "seqs": ["AGC", "AGT", "CGC", "CGT"]}
+{"code": "SKR", "seqs": ["CGA", "CGG", "CTA", "CTG", "GGA", "GGG", "GTA", "GTG"]}
+{"code": "KVC", "seqs": ["GAC", "GCC", "GGC", "TAC", "TCC", "TGC"]}
+{"code": "AGW", "seqs": ["AGA", "AGT"]}
+{"code": "RKS", "seqs": ["AGC", "AGG", "ATC", "ATG", "GGC", "GGG", "GTC", "GTG"]}
+{"code": "YYM", "seqs": ["CCA", "CCC", "CTA", "CTC", "TCA", "TCC", "TTA", "TTC"]}
+{"code": "KKR", "seqs": ["GGA", "GGG", "GTA", "GTG", "TGA", "TGG", "TTA", "TTG"]}
+{"code": "ACN", "seqs": ["ACA", "ACC", "ACG", "ACT"]}
+{"code": "NCS", "seqs": ["ACC", "ACG", "CCC", "CCG", "GCC", "GCG", "TCC", "TCG"]}
+{"code": "GAR", "seqs": ["GAA", "GAG"]}
+{"code": "VTV", "seqs": ["ATA", "ATC", "ATG", "CTA", "CTC", "CTG", "GTA", "GTC", "GTG"]}
+{"code": "BAB", "seqs": ["CAC", "CAG", "CAT", "GAC", "GAG", "GAT", "TAC", "TAG", "TAT"]}
+{"code": "BGG", "seqs": ["CGG", "GGG", "TGG"]}
+{"code": "NGG", "seqs": ["AGG", "CGG", "GGG", "TGG"]}
+{"code": "TKN", "seqs": ["TGA", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"]}
+{"code": "TTN", "seqs": ["TTA", "TTC", "TTG", "TTT"]}
+{"code": "GSK", "seqs": ["GCG", "GCT", "GGG", "GGT"]}
+{"code": "CBT", "seqs": ["CCT", "CGT", "CTT"]}
+{"code": "AKC", "seqs": ["AGC", "ATC"]}
+{"code": "ACD", "seqs": ["ACA", "ACG", "ACT"]}
+{"code": "KAG", "seqs": ["GAG", "TAG"]}
+{"code": "KDD", "seqs": ["GAA", "GAG", "GAT", "GGA", "GGG", "GGT", "GTA", "GTG", "GTT", "TAA", "TAG", "TAT", "TGA", "TGG", "TGT", "TTA", "TTG", "TTT"]}
+{"code": "MCT", "seqs": ["ACT", "CCT"]}
+{"code": "GDY", "seqs": ["GAC", "GAT", "GGC", "GGT", "GTC", "GTT"]}
+{"code": "CDG", "seqs": ["CAG", "CGG", "CTG"]}
+{"code": "KKC", "seqs": ["GGC", "GTC", "TGC", "TTC"]}
+{"code": "ANA", "seqs": ["AAA", "ACA", "AGA", "ATA"]}
+{"code": "STD", "seqs": ["CTA", "CTG", "CTT", "GTA", "GTG", "GTT"]}
+{"code": "VGG", "seqs": ["AGG", "CGG", "GGG"]}
+{"code": "BYM", "seqs": ["CCA", "CCC", "CTA", "CTC", "GCA", "GCC", "GTA", "GTC", "TCA", "TCC", "TTA", "TTC"]}
+{"code": "KTB", "seqs": ["GTC", "GTG", "GTT", "TTC", "TTG", "TTT"]}
+{"code": "KYM", "seqs": ["GCA", "GCC", "GTA", "GTC", "TCA", "TCC", "TTA", "TTC"]}
+{"code": "SRY", "seqs": ["CAC", "CAT", "CGC", "CGT", "GAC", "GAT", "GGC", "GGT"]}
+{"code": "MRK", "seqs": ["AAG", "AAT", "AGG", "AGT", "CAG", "CAT", "CGG", "CGT"]}
+{"code": "WAT", "seqs": ["AAT", "TAT"]}
+{"code": "CYT", "seqs": ["CCT", "CTT"]}
+{"code": "TKM", "seqs": ["TGA", "TGC", "TTA", "TTC"]}
+{"code": "AYC", "seqs": ["ACC", "ATC"]}
+{"code": "WNC", "seqs": ["AAC", "ACC", "AGC", "ATC", "TAC", "TCC", "TGC", "TTC"]}
+{"code": "MTY", "seqs": ["ATC", "ATT", "CTC", "CTT"]}
+{"code": "SWA", "seqs": ["CAA", "CTA", "GAA", "GTA"]}
+{"code": "MKY", "seqs": ["AGC", "AGT", "ATC", "ATT", "CGC", "CGT", "CTC", "CTT"]}
+{"code": "THS", "seqs": ["TAC", "TAG", "TCC", "TCG", "TTC", "TTG"]}
+{"code": "AKG", "seqs": ["AGG", "ATG"]}
+{"code": "TKS", "seqs": ["TGC", "TGG", "TTC", "TTG"]}
+{"code": "AYA", "seqs": ["ACA", "ATA"]}
+{"code": "GAW", "seqs": ["GAA", "GAT"]}
+{"code": "YAC", "seqs": ["CAC", "TAC"]}
+{"code": "NYM", "seqs": ["ACA", "ACC", "ATA", "ATC", "CCA", "CCC", "CTA", "CTC", "GCA", "GCC", "GTA", "GTC", "TCA", "TCC", "TTA", "TTC"]}
+{"code": "CYR", "seqs": ["CCA", "CCG", "CTA", "CTG"]}
+{"code": "MWW", "seqs": ["AAA", "AAT", "ATA", "ATT", "CAA", "CAT", "CTA", "CTT"]}
+{"code": "WRY", "seqs": ["AAC", "AAT", "AGC", "AGT", "TAC", "TAT", "TGC", "TGT"]}
+{"code": "DBV", "seqs": ["ACA", "ACC", "ACG", "AGA", "AGC", "AGG", "ATA", "ATC", "ATG", "GCA", "GCC", "GCG", "GGA", "GGC", "GGG", "GTA", "GTC", "GTG", "TCA", "TCC", "TCG", "TGA", "TGC", "TGG", "TTA", "TTC", "TTG"]}
+{"code": "RNC", "seqs": ["AAC", "ACC", "AGC", "ATC", "GAC", "GCC", "GGC", "GTC"]}
+{"code": "SYM", "seqs": ["CCA", "CCC", "CTA", "CTC", "GCA", "GCC", "GTA", "GTC"]}
+{"code": "YAM", "seqs": ["CAA", "CAC", "TAA", "TAC"]}
+{"code": "SCC", "seqs": ["CCC", "GCC"]}
+{"code": "MWA", "seqs": ["AAA", "ATA", "CAA", "CTA"]}
+{"code": "HYS", "seqs": ["ACC", "ACG", "ATC", "ATG", "CCC", "CCG", "CTC", "CTG", "TCC", "TCG", "TTC", "TTG"]}
+{"code": "GMK", "seqs": ["GAG", "GAT", "GCG", "GCT"]}
+{"code": "STB", "seqs": ["CTC", "CTG", "CTT", "GTC", "GTG", "GTT"]}
+{"code": "GSS", "seqs": ["GCC", "GCG", "GGC", "GGG"]}
+{"code": "KKS", "seqs": ["GGC", "GGG", "GTC", "GTG", "TGC", "TGG", "TTC", "TTG"]}
+{"code": "GRB", "seqs": ["GAC", "GAG", "GAT", "GGC", "GGG", "GGT"]}
+{"code": "TKT", "seqs": ["TGT", "TTT"]}
+{"code": "MWV", "seqs": ["AAA", "AAC", "AAG", "ATA", "ATC", "ATG", "CAA", "CAC", "CAG", "CTA", "CTC", "CTG"]}
+{"code": "CTK", "seqs": ["CTG", "CTT"]}
+{"code": "SKW", "seqs": ["CGA", "CGT", "CTA", "CTT", "GGA", "GGT", "GTA", "GTT"]}
+{"code": "CVC", "seqs": ["CAC", "CCC", "CGC"]}
+{"code": "TGS", "seqs": ["TGC", "TGG"]}
+{"code": "HSS", "seqs": ["ACC", "ACG", "AGC", "AGG", "CCC", "CCG", "CGC", "CGG", "TCC", "TCG", "TGC", "TGG"]}
+{"code": "VSM", "seqs": ["ACA", "ACC", "AGA", "AGC", "CCA", "CCC", "CGA", "CGC", "GCA", "GCC", "GGA", "GGC"]}
+{"code": "CVR", "seqs": ["CAA", "CAG", "CCA", "CCG", "CGA", "CGG"]}
+{"code": "TYD", "seqs": ["TCA", "TCG", "TCT", "TTA", "TTG", "TTT"]}
+{"code": "NDV", "seqs": ["AAA", "AAC", "AAG", "AGA", "AGC", "AGG", "ATA", "ATC", "ATG", "CAA", "CAC", "CAG", "CGA", "CGC", "CGG", "CTA", "CTC", "CTG", "GAA", "GAC", "GAG", "GGA", "GGC", "GGG", "GTA", "GTC", "GTG", "TAA", "TAC", "TAG", "TGA", "TGC", "TGG", "TTA", "TTC", "TTG"]}
+{"code": "CWS", "seqs": ["CAC", "CAG", "CTC", "CTG"]}
+{"code": "TRR", "seqs": ["TAA", "TAG", "TGA", "TGG"]}
+{"code": "ACB", "seqs": ["ACC", "ACG", "ACT"]}
+{"code": "CGD", "seqs": ["CGA", "CGG", "CGT"]}
+{"code": "KBT", "seqs": ["GCT", "GGT", "GTT", "TCT", "TGT", "TTT"]}
+{"code": "GWN", "seqs": ["GAA", "GAC", "GAG", "GAT", "GTA", "GTC", "GTG", "GTT"]}
+{"code": "WYA", "seqs": ["ACA", "ATA", "TCA", "TTA"]}
+{"code": "WWH", "seqs": ["AAA", "AAC", "AAT", "ATA", "ATC", "ATT", "TAA", "TAC", "TAT", "TTA", "TTC", "TTT"]}
+{"code": "SYR", "seqs": ["CCA", "CCG", "CTA", "CTG", "GCA", "GCG", "GTA", "GTG"]}
+{"code": "NAH", "seqs": ["AAA", "AAC", "AAT", "CAA", "CAC", "CAT", "GAA", "GAC", "GAT", "TAA", "TAC", "TAT"]}
+{"code": "HWW", "seqs": ["AAA", "AAT", "ATA", "ATT", "CAA", "CAT", "CTA", "CTT", "TAA", "TAT", "TTA", "TTT"]}
+{"code": "MRC", "seqs": ["AAC", "AGC", "CAC", "CGC"]}
+{"code": "YSW", "seqs": ["CCA", "CCT", "CGA", "CGT", "TCA", "TCT", "TGA", "TGT"]}
+{"code": "SCM", "seqs": ["CCA", "CCC", "GCA", "GCC"]}
+{"code": "RTB", "seqs": ["ATC", "ATG", "ATT", "GTC", "GTG", "GTT"]}
+{"code": "ATD", "seqs": ["ATA", "ATG", "ATT"]}
+{"code": "WKN", "seqs": ["AGA", "AGC", "AGG", "AGT", "ATA", "ATC", "ATG", "ATT", "TGA", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"]}
+{"code": "RVK", "seqs": ["AAG", "AAT", "ACG", "ACT", "AGG", "AGT", "GAG", "GAT", "GCG", "GCT", "GGG", "GGT"]}
+{"code": "GHA", "seqs": ["GAA", "GCA", "GTA"]}
+{"code": "HGM", "seqs": ["AGA", "AGC", "CGA", "CGC", "TGA", "TGC"]}
+{"code": "AKM", "seqs": ["AGA", "AGC", "ATA", "ATC"]}
+{"code": "YTC", "seqs": ["CTC", "TTC"]}
+{"code": "WNM", "seqs": ["AAA", "AAC", "ACA", "ACC", "AGA", "AGC", "ATA", "ATC", "TAA", "TAC", "TCA", "TCC", "TGA", "TGC", "TTA", "TTC"]}
+{"code": "YCG", "seqs": ["CCG", "TCG"]}
+{"code": "CRT", "seqs": ["CAT", "CGT"]}
+{"code": "KWC", "seqs": ["GAC", "GTC", "TAC", "TTC"]}
+{"code": "GWT", "seqs": ["GAT", "GTT"]}
+{"code": "CSC", "seqs": ["CCC", "CGC"]}
+{"code": "ANR", "seqs": ["AAA", "AAG", "ACA", "ACG", "AGA", "AGG", "ATA", "ATG"]}
+{"code": "HGN", "seqs": ["AGA", "AGC", "AGG", "AGT", "CGA", "CGC", "CGG", "CGT", "TGA", "TGC", "TGG", "TGT"]}
+{"code": "VTA", "seqs": ["ATA", "CTA", "GTA"]}
+{"code": "YYH", "seqs": ["CCA", "CCC", "CCT", "CTA", "CTC", "CTT", "TCA", "TCC", "TCT", "TTA", "TTC", "TTT"]}
+{"code": "SMB", "seqs": ["CAC", "CAG", "CAT", "CCC", "CCG", "CCT", "GAC", "GAG", "GAT", "GCC", "GCG", "GCT"]}
+{"code": "SGC", "seqs": ["CGC", "GGC"]}
+{"code": "TKC", "seqs": ["TGC", "TTC"]}
+{"code": "WGA", "seqs": ["AGA", "TGA"]}
+{"code": "KGM", "seqs": ["GGA", "GGC", "TGA", "TGC"]}
+{"code": "YYT", "seqs": ["CCT", "CTT", "TCT", "TTT"]}
+{"code": "SNM", "seqs": ["CAA", "CAC", "CCA", "CCC", "CGA", "CGC", "CTA", "CTC", "GAA", "GAC", "GCA", "GCC", "GGA", "GGC", "GTA", "GTC"]}
+{"code": "GMA", "seqs": ["GAA", "GCA"]}
+{"code": "TSN", "seqs": ["TCA", "TCC", "TCG", "TCT", "TGA", "TGC", "TGG", "TGT"]}
+{"code": "WMN", "seqs": ["AAA", "AAC", "AAG", "AAT", "ACA", "ACC", "ACG", "ACT", "TAA", "TAC", "TAG", "TAT", "TCA", "TCC", "TCG", "TCT"]}
+{"code": "MCC", "seqs": ["ACC", "CCC"]}
+{"code": "GMC", "seqs": ["GAC", "GCC"]}
+{"code": "NTC", "seqs": ["ATC", "CTC", "GTC", "TTC"]}
+{"code": "WGG", "seqs": ["AGG", "TGG"]}
+{"code": "CSM", "seqs": ["CCA", "CCC", "CGA", "CGC"]}
+{"code": "CWH", "seqs": ["CAA", "CAC", "CAT", "CTA", "CTC", "CTT"]}
+{"code": "RSW", "seqs": ["ACA", "ACT", "AGA", "AGT", "GCA", "GCT", "GGA", "GGT"]}
+{"code": "MTA", "seqs": ["ATA", "CTA"]}
+{"code": "BWG", "seqs": ["CAG", "CTG", "GAG", "GTG", "TAG", "TTG"]}
+{"code": "DCA", "seqs": ["ACA", "GCA", "TCA"]}
+{"code": "MCT", "seqs": ["ACT", "CCT"]}
+{"code": "WGA", "seqs": ["AGA", "TGA"]}
+{"code": "TWA", "seqs": ["TAA", "TTA"]}
+{"code": "KTG", "seqs": ["GTG", "TTG"]}
+{"code": "CCV", "seqs": ["CCA", "CCC", "CCG"]}
+{"code": "CAM", "seqs": ["CAA", "CAC"]}
+{"code": "HKW", "seqs": ["AGA", "AGT", "ATA", "ATT", "CGA", "CGT", "CTA", "CTT", "TGA", "TGT", "TTA", "TTT"]}
+{"code": "HBG", "seqs": ["ACG", "AGG", "ATG", "CCG", "CGG", "CTG", "TCG", "TGG", "TTG"]}
+{"code": "SWV", "seqs": ["CAA", "CAC", "CAG", "CTA", "CTC", "CTG", "GAA", "GAC", "GAG", "GTA", "GTC", "GTG"]}
+{"code": "DMD", "seqs": ["AAA", "AAG", "AAT", "ACA", "ACG", "ACT", "GAA", "GAG", "GAT", "GCA", "GCG", "GCT", "TAA", "TAG", "TAT", "TCA", "TCG", "TCT"]}
+{"code": "VMW", "seqs": ["AAA", "AAT", "ACA", "ACT", "CAA", "CAT", "CCA", "CCT", "GAA", "GAT", "GCA", "GCT"]}
+{"code": "NAM", "seqs": ["AAA", "AAC", "CAA", "CAC", "GAA", "GAC", "TAA", "TAC"]}
+{"code": "SCG", "seqs": ["CCG", "GCG"]}
+{"code": "WKA", "seqs": ["AGA", "ATA", "TGA", "TTA"]}
+{"code": "GRK", "seqs": ["GAG", "GAT", "GGG", "GGT"]}
+{"code": "GNN", "seqs": ["GAA", "GAC", "GAG", "GAT", "GCA", "GCC", "GCG", "GCT", "GGA", "GGC", "GGG", "GGT", "GTA", "GTC", "GTG", "GTT"]}
+{"code": "BST", "seqs": ["CCT", "CGT", "GCT", "GGT", "TCT", "TGT"]}
+{"code": "CWT", "seqs": ["CAT", "CTT"]}
+{"code": "ACW", "seqs": ["ACA", "ACT"]}
+{"code": "DKY", "seqs": ["AGC", "AGT", "ATC", "ATT", "GGC", "GGT", "GTC", "GTT", "TGC", "TGT", "TTC", "TTT"]}
+{"code": "TSB", "seqs": ["TCC", "TCG", "TCT", "TGC", "TGG", "TGT"]}
+{"code": "AAY", "seqs": ["AAC", "AAT"]}
+{"code": "RWG", "seqs": ["AAG", "ATG", "GAG", "GTG"]}
+{"code": "TYH", "seqs": ["TCA", "TCC", "TCT", "TTA", "TTC", "TTT"]}
+{"code": "WGC", "seqs": ["AGC", "TGC"]}
+{"code": "YGA", "seqs": ["CGA", "TGA"]}
+{"code": "RBR", "seqs": ["ACA", "ACG", "AGA", "AGG", "ATA", "ATG", "GCA", "GCG", "GGA", "GGG", "GTA", "GTG"]}
+{"code": "GWC", "seqs": ["GAC", "GTC"]}
+{"code": "SHY", "seqs": ["CAC", "CAT", "CCC", "CCT", "CTC", "CTT", "GAC", "GAT", "GCC", "GCT", "GTC", "GTT"]}
+{"code": "VAT", "seqs": ["AAT", "CAT", "GAT"]}
+{"code": "ADW", "seqs": ["AAA", "AAT", "AGA", "AGT", "ATA", "ATT"]}
+{"code": "KSS", "seqs": ["GCC", "GCG", "GGC", "GGG", "TCC", "TCG", "TGC", "TGG"]}
+{"code": "GKC", "seqs": ["GGC", "GTC"]}
+{"code": "MMK", "seqs": ["AAG", "AAT", "ACG", "ACT", "CAG", "CAT", "CCG", "CCT"]}
+{"code": "WYW", "seqs": ["ACA", "ACT", "ATA", "ATT", "TCA", "TCT", "TTA", "TTT"]}
+{"code": "TWD", "seqs": ["TAA", "TAG", "TAT", "TTA", "TTG", "TTT"]}
+{"code": "AWC", "seqs": ["AAC", "ATC"]}
+{"code": "AAV", "seqs": ["AAA", "AAC", "AAG"]}
+{"code": "KTC", "seqs": ["GTC", "TTC"]}
+{"code": "VGR", "seqs": ["AGA", "AGG", "CGA", "CGG", "GGA", "GGG"]}
+{"code": "MKC", "seqs": ["AGC", "ATC", "CGC", "CTC"]}
+{"code": "CVC", "seqs": ["CAC", "CCC", "CGC"]}
+{"code": "TAR", "seqs": ["TAA", "TAG"]}
+{"code": "MVG", "seqs": ["AAG", "ACG", "AGG", "CAG", "CCG", "CGG"]}
+{"code": "NAG", "seqs": ["AAG", "CAG", "GAG", "TAG"]}
+{"code": "NGG", "seqs": ["AGG", "CGG", "GGG", "TGG"]}
+{"code": "RMY", "seqs": ["AAC", "AAT", "ACC", "ACT", "GAC", "GAT", "GCC", "GCT"]}
+{"code": "KCM", "seqs": ["GCA", "GCC", "TCA", "TCC"]}
+{"code": "TAH", "seqs": ["TAA", "TAC", "TAT"]}
+{"code": "DCH", "seqs": ["ACA", "ACC", "ACT", "GCA", "GCC", "GCT", "TCA", "TCC", "TCT"]}
+{"code": "ASA", "seqs": ["ACA", "AGA"]}
+{"code": "STB", "seqs": ["CTC", "CTG", "CTT", "GTC", "GTG", "GTT"]}
+{"code": "HAC", "seqs": ["AAC", "CAC", "TAC"]}
+{"code": "KNR", "seqs": ["GAA", "GAG", "GCA", "GCG", "GGA", "GGG", "GTA", "GTG", "TAA", "TAG", "TCA", "TCG", "TGA", "TGG", "TTA", "TTG"]}
+{"code": "WGC", "seqs": ["AGC", "TGC"]}
+{"code": "NCM", "seqs": ["ACA", "ACC", "CCA", "CCC", "GCA", "GCC", "TCA", "TCC"]}
+{"code": "SGS", "seqs": ["CGC", "CGG", "GGC", "GGG"]}
+{"code": "AMV", "seqs": ["AAA", "AAC", "AAG", "ACA", "ACC", "ACG"]}
+{"code": "TAY", "seqs": ["TAC", "TAT"]}
+{"code": "YWS", "seqs": ["CAC", "CAG", "CTC", "CTG", "TAC", "TAG", "TTC", "TTG"]}
+{"code": "ATM", "seqs": ["ATA", "ATC"]}
+{"code": "RYT", "seqs": ["ACT", "ATT", "GCT", "GTT"]}
+{"code": "YAK", "seqs": ["CAG", "CAT", "TAG", "TAT"]}
+{"code": "AYV", "seqs": ["ACA", "ACC", "ACG", "ATA", "ATC", "ATG"]}
+{"code": "AHS", "seqs": ["AAC", "AAG", "ACC", "ACG", "ATC", "ATG"]}
+{"code": "GDS", "seqs": ["GAC", "GAG", "GGC", "GGG", "GTC", "GTG"]}
+{"code": "RST", "seqs": ["ACT", "AGT", "GCT", "GGT"]}
+{"code": "TRR", "seqs": ["TAA", "TAG", "TGA", "TGG"]}
+{"code": "NWH", "seqs": ["AAA", "AAC", "AAT", "ATA", "ATC", "ATT", "CAA", "CAC", "CAT", "CTA", "CTC", "CTT", "GAA", "GAC", "GAT", "GTA", "GTC", "GTT", "TAA", "TAC", "TAT", "TTA", "TTC", "TTT"]}
+{"code": "VTC", "seqs": ["ATC", "CTC", "GTC"]}
+{"code": "KWC", "seqs": ["GAC", "GTC", "TAC", "TTC"]}
+{"code": "SCS", "seqs": ["CCC", "CCG", "GCC", "GCG"]}
+{"code": "KST", "seqs": ["GCT", "GGT", "TCT", "TGT"]}
+{"code": "GAR", "seqs": ["GAA", "GAG"]}
+{"code": "YGW", "seqs": ["CGA", "CGT", "TGA", "TGT"]}
+{"code": "WAS", "seqs": ["AAC", "AAG", "TAC", "TAG"]}
+{"code": "ATM", "seqs": ["ATA", "ATC"]}
+{"code": "RAG", "seqs": ["AAG", "GAG"]}
+{"code": "GYN", "seqs": ["GCA", "GCC", "GCG", "GCT", "GTA", "GTC", "GTG", "GTT"]}
+{"code": "MVR", "seqs": ["AAA", "AAG", "ACA", "ACG", "AGA", "AGG", "CAA", "CAG", "CCA", "CCG", "CGA", "CGG"]}
+{"code": "KRR", "seqs": ["GAA", "GAG", "GGA", "GGG", "TAA", "TAG", "TGA", "TGG"]}
+{"code": "GTW", "seqs": ["GTA", "GTT"]}
+{"code": "TAK", "seqs": ["TAG", "TAT"]}
+{"code": "WWT", "seqs": ["AAT", "ATT", "TAT", "TTT"]}
+{"code": "AGD", "seqs": ["AGA", "AGG", "AGT"]}
+{"code": "GNM", "seqs": ["GAA", "GAC", "GCA", "GCC", "GGA", "GGC", "GTA", "GTC"]}
+{"code": "GWC", "seqs": ["GAC", "GTC"]}
+{"code": "VGV", "seqs": ["AGA", "AGC", "AGG", "CGA", "CGC", "CGG", "GGA", "GGC", "GGG"]}
+{"code": "SDT", "seqs": ["CAT", "CGT", "CTT", "GAT", "GGT", "GTT"]}
+{"code": "AGY", "seqs": ["AGC", "AGT"]}
+{"code": "NGW", "seqs": ["AGA", "AGT", "CGA", "CGT", "GGA", "GGT", "TGA", "TGT"]}
+{"code": "RNM", "seqs": ["AAA", "AAC", "ACA", "ACC", "AGA", "AGC", "ATA", "ATC", "GAA", "GAC", "GCA", "GCC", "GGA", "GGC", "GTA", "GTC"]}
+{"code": "CHK", "seqs": ["CAG", "CAT", "CCG", "CCT", "CTG", "CTT"]}
+{"code": "SDY", "seqs": ["CAC", "CAT", "CGC", "CGT", "CTC", "CTT", "GAC", "GAT", "GGC", "GGT", "GTC", "GTT"]}
+{"code": "KNV", "seqs": ["GAA", "GAC", "GAG", "GCA", "GCC", "GCG", "GGA", "GGC", "GGG", "GTA", "GTC", "GTG", "TAA", "TAC", "TAG", "TCA", "TCC", "TCG", "TGA", "TGC", "TGG", "TTA", "TTC", "TTG"]}
+{"code": "MGG", "seqs": ["AGG", "CGG"]}
+{"code": "RCG", "seqs": ["ACG", "GCG"]}
+{"code": "TCN", "seqs": ["TCA", "TCC", "TCG", "TCT"]}
+{"code": "YRG", "seqs": ["CAG", "CGG", "TAG", "TGG"]}
+{"code": "GYD", "seqs": ["GCA", "GCG", "GCT", "GTA", "GTG", "GTT"]}
+{"code": "VYW", "seqs": ["ACA", "ACT", "ATA", "ATT", "CCA", "CCT", "CTA", "CTT", "GCA", "GCT", "GTA", "GTT"]}
+{"code": "MYM", "seqs": ["ACA", "ACC", "ATA", "ATC", "CCA", "CCC", "CTA", "CTC"]}
+{"code": "SCG", "seqs": ["CCG", "GCG"]}
+{"code": "SWT", "seqs": ["CAT", "CTT", "GAT", "GTT"]}
+{"code": "TSG", "seqs": ["TCG", "TGG"]}
+{"code": "YHK", "seqs": ["CAG", "CAT", "CCG", "CCT", "CTG", "CTT", "TAG", "TAT", "TCG", "TCT", "TTG", "TTT"]}
+{"code": "KGG", "seqs": ["GGG", "TGG"]}
+{"code": "TVW", "seqs": ["TAA", "TAT", "TCA", "TCT", "TGA", "TGT"]}
+{"code": "AMN", "seqs": ["AAA", "AAC", "AAG", "AAT", "ACA", "ACC", "ACG", "ACT"]}
+{"code": "BAS", "seqs": ["CAC", "CAG", "GAC", "GAG", "TAC", "TAG"]}
+{"code": "NKT", "seqs": ["AGT", "ATT", "CGT", "CTT", "GGT", "GTT", "TGT", "TTT"]}
+{"code": "CHM", "seqs": ["CAA", "CAC", "CCA", "CCC", "CTA", "CTC"]}
+{"code": "TYT", "seqs": ["TCT", "TTT"]}
+{"code": "NSW", "seqs": ["ACA", "ACT", "AGA", "AGT", "CCA", "CCT", "CGA", "CGT", "GCA", "GCT", "GGA", "GGT", "TCA", "TCT", "TGA", "TGT"]}
+{"code": "TSM", "seqs": ["TCA", "TCC", "TGA", "TGC"]}
+{"code": "YMK", "seqs": ["CAG", "CAT", "CCG", "CCT", "TAG", "TAT", "TCG", "TCT"]}
+{"code": "YGR", "seqs": ["CGA", "CGG", "TGA", "TGG"]}
+{"code": "TTW", "seqs": ["TTA", "TTT"]}
+{"code": "CGY", "seqs": ["CGC", "CGT"]}
+{"code": "KTC", "seqs": ["GTC", "TTC"]}
+{"code": "MWG", "seqs": ["AAG", "ATG", "CAG", "CTG"]}
+{"code": "WTD", "seqs": ["ATA", "ATG", "ATT", "TTA", "TTG", "TTT"]}
+{"code": "DMT", "seqs": ["AAT", "ACT", "GAT", "GCT", "TAT", "TCT"]}
+{"code": "BRD", "seqs": ["CAA", "CAG", "CAT", "CGA", "CGG", "CGT", "GAA", "GAG", "GAT", "GGA", "GGG", "GGT", "TAA", "TAG", "TAT", "TGA", "TGG", "TGT"]}
+{"code": "WCB", "seqs": ["ACC", "ACG", "ACT", "TCC", "TCG", "TCT"]}
+{"code": "MTT", "seqs": ["ATT", "CTT"]}
+{"code": "AYA", "seqs": ["ACA", "ATA"]}
+{"code": "MVG", "seqs": ["AAG", "ACG", "AGG", "CAG", "CCG", "CGG"]}
+{"code": "AWW", "seqs": ["AAA", "AAT", "ATA", "ATT"]}
+{"code": "WRC", "seqs": ["AAC", "AGC", "TAC", "TGC"]}
+{"code": "SKA", "seqs": ["CGA", "CTA", "GGA", "GTA"]}
+{"code": "ASY", "seqs": ["ACC", "ACT", "AGC", "AGT"]}
+{"code": "HCG", "seqs": ["ACG", "CCG", "TCG"]}
+{"code": "HAT", "seqs": ["AAT", "CAT", "TAT"]}
+{"code": "CDD", "seqs": ["CAA", "CAG", "CAT", "CGA", "CGG", "CGT", "CTA", "CTG", "CTT"]}
+{"code": "ASA", "seqs": ["ACA", "AGA"]}
+{"code": "KGT", "seqs": ["GGT", "TGT"]}
+{"code": "RGG", "seqs": ["AGG", "GGG"]}
+{"code": "KCR", "seqs": ["GCA", "GCG", "TCA", "TCG"]}
+{"code": "RCH", "seqs": ["ACA", "ACC", "ACT", "GCA", "GCC", "GCT"]}
+{"code": "KBT", "seqs": ["GCT", "GGT", "GTT", "TCT", "TGT", "TTT"]}
+{"code": "AWC", "seqs": ["AAC", "ATC"]}
+{"code": "TSC", "seqs": ["TCC", "TGC"]}
+{"code": "GKS", "seqs": ["GGC", "GGG", "GTC", "GTG"]}
+{"code": "NBV", "seqs": ["ACA", "ACC", "ACG", "AGA", "AGC", "AGG", "ATA", "ATC", "ATG", "CCA", "CCC", "CCG", "CGA", "CGC", "CGG", "CTA", "CTC", "CTG", "GCA", "GCC", "GCG", "GGA", "GGC", "GGG", "GTA", "GTC", "GTG", "TCA", "TCC", "TCG", "TGA", "TGC", "TGG", "TTA", "TTC", "TTG"]}
+{"code": "SRG", "seqs": ["CAG", "CGG", "GAG", "GGG"]}
+{"code": "VAC", "seqs": ["AAC", "CAC", "GAC"]}
+{"code": "ASW", "seqs": ["ACA", "ACT", "AGA", "AGT"]}
+{"code": "GAB", "seqs": ["GAC", "GAG", "GAT"]}
+{"code": "KAK", "seqs": ["GAG", "GAT", "TAG", "TAT"]}
+{"code": "VCR", "seqs": ["ACA", "ACG", "CCA", "CCG", "GCA", "GCG"]}
+{"code": "RTC", "seqs": ["ATC", "GTC"]}
+{"code": "SSG", "seqs": ["CCG", "CGG", "GCG", "GGG"]}
+{"code": "NTT", "seqs": ["ATT", "CTT", "GTT", "TTT"]}
+{"code": "GCR", "seqs": ["GCA", "GCG"]}
+{"code": "GTB", "seqs": ["GTC", "GTG", "GTT"]}
+{"code": "BYN", "seqs": ["CCA", "CCC", "CCG", "CCT", "CTA", "CTC", "CTG", "CTT", "GCA", "GCC", "GCG", "GCT", "GTA", "GTC", "GTG", "GTT", "TCA", "TCC", "TCG", "TCT", "TTA", "TTC", "TTG", "TTT"]}
+{"code": "KGC", "seqs": ["GGC", "TGC"]}
+{"code": "RKC", "seqs": ["AGC", "ATC", "GGC", "GTC"]}
+{"code": "YMA", "seqs": ["CAA", "CCA", "TAA", "TCA"]}
+{"code": "TYA", "seqs": ["TCA", "TTA"]}
+{"code": "KTB", "seqs": ["GTC", "GTG", "GTT", "TTC", "TTG", "TTT"]}
+{"code": "GTY", "seqs": ["GTC", "GTT"]}
+{"code": "KAT", "seqs": ["GAT", "TAT"]}
+{"code": "RRB", "seqs": ["AAC", "AAG", "AAT", "AGC", "AGG", "AGT", "GAC", "GAG", "GAT", "GGC", "GGG", "GGT"]}
+{"code": "TAK", "seqs": ["TAG", "TAT"]}
+{"code": "HSM", "seqs": ["ACA", "ACC", "AGA", "AGC", "CCA", "CCC", "CGA", "CGC", "TCA", "TCC", "TGA", "TGC"]}
+{"code": "RCT", "seqs": ["ACT", "GCT"]}
+{"code": "RCN", "seqs": ["ACA", "ACC", "ACG", "ACT", "GCA", "GCC", "GCG", "GCT"]}
+{"code": "KMA", "seqs": ["GAA", "GCA", "TAA", "TCA"]}
+{"code": "MVS", "seqs": ["AAC", "AAG", "ACC", "ACG", "AGC", "AGG", "CAC", "CAG", "CCC", "CCG", "CGC", "CGG"]}
+{"code": "NTT", "seqs": ["ATT", "CTT", "GTT", "TTT"]}
+{"code": "SWW", "seqs": ["CAA", "CAT", "CTA", "CTT", "GAA", "GAT", "GTA", "GTT"]}
+{"code": "SYM", "seqs": ["CCA", "CCC", "CTA", "CTC", "GCA", "GCC", "GTA", "GTC"]}
+{"code": "GBR", "seqs": ["GCA", "GCG", "GGA", "GGG", "GTA", "GTG"]}
+{"code": "RRC", "seqs": ["AAC", "AGC", "GAC", "GGC"]}
+{"code": "AYK", "seqs": ["ACG", "ACT", "ATG", "ATT"]}
+{"code": "VGS", "seqs": ["AGC", "AGG", "CGC", "CGG", "GGC", "GGG"]}
+{"code": "MYA", "seqs": ["ACA", "ATA", "CCA", "CTA"]}
+{"code": "YCA", "seqs": ["CCA", "TCA"]}
+{"code": "TAR", "seqs": ["TAA", "TAG"]}
+{"code": "NKK", "seqs": ["AGG", "AGT", "ATG", "ATT", "CGG", "CGT", "CTG", "CTT", "GGG", "GGT", "GTG", "GTT", "TGG", "TGT", "TTG", "TTT"]}
+{"code": "HMC", "seqs": ["AAC", "ACC", "CAC", "CCC", "TAC", "TCC"]}
+{"code": "GGN", "seqs": ["GGA", "GGC", "GGG", "GGT"]}
+{"code": "KHC", "seqs": ["GAC", "GCC", "GTC", "TAC", "TCC", "TTC"]}
+{"code": "SKT", "seqs": ["CGT", "CTT", "GGT", "GTT"]}
+{"code": "VRC", "seqs": ["AAC", "AGC", "CAC", "CGC", "GAC", "GGC"]}
+{"code": "WHC", "seqs": ["AAC", "ACC", "ATC", "TAC", "TCC", "TTC"]}
+{"code": "CRA", "seqs": ["CAA", "CGA"]}
+{"code": "YBN", "seqs": ["CCA", "CCC", "CCG", "CCT", "CGA", "CGC", "CGG", "CGT", "CTA", "CTC", "CTG", "CTT", "TCA", "TCC", "TCG", "TCT", "TGA", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"]}
+{"code": "GNG", "seqs": ["GAG", "GCG", "GGG", "GTG"]}
+{"code": "VBG", "seqs": ["ACG", "AGG", "ATG", "CCG", "CGG", "CTG", "GCG", "GGG", "GTG"]}
+{"code": "CKD", "seqs": ["CGA", "CGG", "CGT", "CTA", "CTG", "CTT"]}
+{"code": "CSG", "seqs": ["CCG", "CGG"]}
+{"code": "MHM", "seqs": ["AAA", "AAC", "ACA", "ACC", "ATA", "ATC", "CAA", "CAC", "CCA", "CCC", "CTA", "CTC"]}
+{"code": "DCC", "seqs": ["ACC", "GCC", "TCC"]}
+{"code": "MTT", "seqs": ["ATT", "CTT"]}
+{"code": "TTD", "seqs": ["TTA", "TTG", "TTT"]}
+{"code": "YCM", "seqs": ["CCA", "CCC", "TCA", "TCC"]}
+{"code": "TSK", "seqs": ["TCG", "TCT", "TGG", "TGT"]}
+{"code": "KTK", "seqs": ["GTG", "GTT", "TTG", "TTT"]}
+{"code": "CSR", "seqs": ["CCA", "CCG", "CGA", "CGG"]}
+{"code": "SCK", "seqs": ["CCG", "CCT", "GCG", "GCT"]}
+{"code": "MCA", "seqs": ["ACA", "CCA"]}
+{"code": "WCA", "seqs": ["ACA", "TCA"]}
+{"code": "WAM", "seqs": ["AAA", "AAC", "TAA", "TAC"]}
+{"code": "CMG", "seqs": ["CAG", "CCG"]}
+{"code": "SYW", "seqs": ["CCA", "CCT", "CTA", "CTT", "GCA", "GCT", "GTA", "GTT"]}
+{"code": "KTV", "seqs": ["GTA", "GTC", "GTG", "TTA", "TTC", "TTG"]}
+{"code": "CWR", "seqs": ["CAA", "CAG", "CTA", "CTG"]}
+{"code": "YTS", "seqs": ["CTC", "CTG", "TTC", "TTG"]}
+{"code": "MSR", "seqs": ["ACA", "ACG", "AGA", "AGG", "CCA", "CCG", "CGA", "CGG"]}
+{"code": "CHA", "seqs": ["CAA", "CCA", "CTA"]}
+{"code": "BSD", "seqs": ["CCA", "CCG", "CCT", "CGA", "CGG", "CGT", "GCA", "GCG", "GCT", "GGA", "GGG", "GGT", "TCA", "TCG", "TCT", "TGA", "TGG", "TGT"]}
+{"code": "NKC", "seqs": ["AGC", "ATC", "CGC", "CTC", "GGC", "GTC", "TGC", "TTC"]}
+{"code": "GYG", "seqs": ["GCG", "GTG"]}
+{"code": "TAH", "seqs": ["TAA", "TAC", "TAT"]}
+{"code": "GMV", "seqs": ["GAA", "GAC", "GAG", "GCA", "GCC", "GCG"]}
+{"code": "RAW", "seqs": ["AAA", "AAT", "GAA", "GAT"]}
+{"code": "GYS", "seqs": ["GCC", "GCG", "GTC", "GTG"]}
+{"code": "CTS", "seqs": ["CTC", "CTG"]}
+{"code": "VGA", "seqs": ["AGA", "CGA", "GGA"]}
+{"code": "RCT", "seqs": ["ACT", "GCT"]}
+{"code": "KSV", "seqs": ["GCA", "GCC", "GCG", "GGA", "GGC", "GGG", "TCA", "TCC", "TCG", "TGA", "TGC", "TGG"]}
+{"code": "WRB", "seqs": ["AAC", "AAG", "AAT", "AGC", "AGG", "AGT", "TAC", "TAG", "TAT", "TGC", "TGG", "TGT"]}
+{"code": "GRC", "seqs": ["GAC", "GGC"]}
+{"code": "YTA", "seqs": ["CTA", "TTA"]}
+{"code": "TRG", "seqs": ["TAG", "TGG"]}
+{"code": "YAG", "seqs": ["CAG", "TAG"]}
+{"code": "SBK", "seqs": ["CCG", "CCT", "CGG", "CGT", "CTG", "CTT", "GCG", "GCT", "GGG", "GGT", "GTG", "GTT"]}
+{"code": "GHG", "seqs": ["GAG", "GCG", "GTG"]}
+{"code": "CMY", "seqs": ["CAC", "CAT", "CCC", "CCT"]}
+{"code": "GGR", "seqs": ["GGA", "GGG"]}
+{"code": "MCV", "seqs": ["ACA", "ACC", "ACG", "CCA", "CCC", "CCG"]}
+{"code": "BDW", "seqs": ["CAA", "CAT", "CGA", "CGT", "CTA", "CTT", "GAA", "GAT", "GGA", "GGT", "GTA", "GTT", "TAA", "TAT", "TGA", "TGT", "TTA", "TTT"]}
+{"code": "CNG", "seqs": ["CAG", "CCG", "CGG", "CTG"]}
+{"code": "WAC", "seqs": ["AAC", "TAC"]}
+{"code": "WBA", "seqs": ["ACA", "AGA", "ATA", "TCA", "TGA", "TTA"]}
+{"code": "YWA", "seqs": ["CAA", "CTA", "TAA", "TTA"]}
+{"code": "KGK", "seqs": ["GGG", "GGT", "TGG", "TGT"]}
+{"code": "WGK", "seqs": ["AGG", "AGT", "TGG", "TGT"]}
+{"code": "SVK", "seqs": ["CAG", "CAT", "CCG", "CCT", "CGG", "CGT", "GAG", "GAT", "GCG", "GCT", "GGG", "GGT"]}
+{"code": "WKS", "seqs": ["AGC", "AGG", "ATC", "ATG", "TGC", "TGG", "TTC", "TTG"]}
+{"code": "MRA", "seqs": ["AAA", "AGA", "CAA", "CGA"]}
+{"code": "DWT", "seqs": ["AAT", "ATT", "GAT", "GTT", "TAT", "TTT"]}
+{"code": "GVA", "seqs": ["GAA", "GCA", "GGA"]}
+{"code": "TDT", "seqs": ["TAT", "TGT", "TTT"]}
+{"code": "KTN", "seqs": ["GTA", "GTC", "GTG", "GTT", "TTA", "TTC", "TTG", "TTT"]}
+{"code": "YMN", "seqs": ["CAA", "CAC", "CAG", "CAT", "CCA", "CCC", "CCG", "CCT", "TAA", "TAC", "TAG", "TAT", "TCA", "TCC", "TCG", "TCT"]}
+{"code": "YRD", "seqs": ["CAA", "CAG", "CAT", "CGA", "CGG", "CGT", "TAA", "TAG", "TAT", "TGA", "TGG", "TGT"]}
+{"code": "YMR", "seqs": ["CAA", "CAG", "CCA", "CCG", "TAA", "TAG", "TCA", "TCG"]}
+{"code": "WRK", "seqs": ["AAG", "AAT", "AGG", "AGT", "TAG", "TAT", "TGG", "TGT"]}
+{"code": "SKR", "seqs": ["CGA", "CGG", "CTA", "CTG", "GGA", "GGG", "GTA", "GTG"]}
+{"code": "VTT", "seqs": ["ATT", "CTT", "GTT"]}
+{"code": "KCA", "seqs": ["GCA", "TCA"]}
+{"code": "TSD", "seqs": ["TCA", "TCG", "TCT", "TGA", "TGG", "TGT"]}
+{"code": "KST", "seqs": ["GCT", "GGT", "TCT", "TGT"]}
+{"code": "SVS", "seqs": ["CAC", "CAG", "CCC", "CCG", "CGC", "CGG", "GAC", "GAG", "GCC", "GCG", "GGC", "GGG"]}
+{"code": "ACK", "seqs": ["ACG", "ACT"]}
+{"code": "TSR", "seqs": ["TCA", "TCG", "TGA", "TGG"]}
+{"code": "STG", "seqs": ["CTG", "GTG"]}
+{"code": "TGY", "seqs": ["TGC", "TGT"]}
+{"code": "AGK", "seqs": ["AGG", "AGT"]}
+{"code": "MST", "seqs": ["ACT", "AGT", "CCT", "CGT"]}
+{"code": "RTR", "seqs": ["ATA", "ATG", "GTA", "GTG"]}
+{"code": "GCY", "seqs": ["GCC", "GCT"]}
+{"code": "BCT", "seqs": ["CCT", "GCT", "TCT"]}
+{"code": "CSM", "seqs": ["CCA", "CCC", "CGA", "CGC"]}
+{"code": "TTR", "seqs": ["TTA", "TTG"]}
+{"code": "MSY", "seqs": ["ACC", "ACT", "AGC", "AGT", "CCC", "CCT", "CGC", "CGT"]}
+{"code": "RRN", "seqs": ["AAA", "AAC", "AAG", "AAT", "AGA", "AGC", "AGG", "AGT", "GAA", "GAC", "GAG", "GAT", "GGA", "GGC", "GGG", "GGT"]}
+{"code": "WRC", "seqs": ["AAC", "AGC", "TAC", "TGC"]}
+{"code": "GDA", "seqs": ["GAA", "GGA", "GTA"]}
+{"code": "SAG", "seqs": ["CAG", "GAG"]}
+{"code": "GBY", "seqs": ["GCC", "GCT", "GGC", "GGT", "GTC", "GTT"]}
+{"code": "KNH", "seqs": ["GAA", "GAC", "GAT", "GCA", "GCC", "GCT", "GGA", "GGC", "GGT", "GTA", "GTC", "GTT", "TAA", "TAC", "TAT", "TCA", "TCC", "TCT", "TGA", "TGC", "TGT", "TTA", "TTC", "TTT"]}
+{"code": "GGR", "seqs": ["GGA", "GGG"]}
+{"code": "BAD", "seqs": ["CAA", "CAG", "CAT", "GAA", "GAG", "GAT", "TAA", "TAG", "TAT"]}
+{"code": "YHY", "seqs": ["CAC", "CAT", "CCC", "CCT", "CTC", "CTT", "TAC", "TAT", "TCC", "TCT", "TTC", "TTT"]}
+{"code": "DSM", "seqs": ["ACA", "ACC", "AGA", "AGC", "GCA", "GCC", "GGA", "GGC", "TCA", "TCC", "TGA", "TGC"]}
+{"code": "GCW", "seqs": ["GCA", "GCT"]}
+{"code": "GCY", "seqs": ["GCC", "GCT"]}
+{"code": "SCC", "seqs": ["CCC", "GCC"]}
+{"code": "AAR", "seqs": ["AAA", "AAG"]}
+{"code": "RCW", "seqs": ["ACA", "ACT", "GCA", "GCT"]}
+{"code": "HAW", "seqs": ["AAA", "AAT", "CAA", "CAT", "TAA", "TAT"]}
+{"code": "KNR", "seqs": ["GAA", "GAG", "GCA", "GCG", "GGA", "GGG", "GTA", "GTG", "TAA", "TAG", "TCA", "TCG", "TGA", "TGG", "TTA", "TTG"]}
+{"code": "YGK", "seqs": ["CGG", "CGT", "TGG", "TGT"]}
+{"code": "SWC", "seqs": ["CAC", "CTC", "GAC", "GTC"]}
+{"code": "SGS", "seqs": ["CGC", "CGG", "GGC", "GGG"]}
+{"code": "ARG", "seqs": ["AAG", "AGG"]}
+{"code": "KBN", "seqs": ["GCA", "GCC", "GCG", "GCT", "GGA", "GGC", "GGG", "GGT", "GTA", "GTC", "GTG", "GTT", "TCA", "TCC", "TCG", "TCT", "TGA", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"]}
+{"code": "YAA", "seqs": ["CAA", "TAA"]}
+{"code": "SCC", "seqs": ["CCC", "GCC"]}
+{"code": "RTG", "seqs": ["ATG", "GTG"]}
+{"code": "GWD", "seqs": ["GAA", "GAG", "GAT", "GTA", "GTG", "GTT"]}
+{"code": "NYD", "seqs": ["ACA", "ACG", "ACT", "ATA", "ATG", "ATT", "CCA", "CCG", "CCT", "CTA", "CTG", "CTT", "GCA", "GCG", "GCT", "GTA", "GTG", "GTT", "TCA", "TCG", "TCT", "TTA", "TTG", "TTT"]}
+{"code": "RCA", "seqs": ["ACA", "GCA"]}
+{"code": "SMB", "seqs": ["CAC", "CAG", "CAT", "CCC", "CCG", "CCT", "GAC", "GAG", "GAT", "GCC", "GCG", "GCT"]}
+{"code": "WAC", "seqs": ["AAC", "TAC"]}
+{"code": "ATW", "seqs": ["ATA", "ATT"]}
+{"code": "ANM", "seqs": ["AAA", "AAC", "ACA", "ACC", "AGA", "AGC", "ATA", "ATC"]}
+{"code": "ABT", "seqs": ["ACT", "AGT", "ATT"]}
+{"code": "RGT", "seqs": ["AGT", "GGT"]}
+{"code": "NGN", "seqs": ["AGA", "AGC", "AGG", "AGT", "CGA", "CGC", "CGG", "CGT", "GGA", "GGC", "GGG", "GGT", "TGA", "TGC", "TGG", "TGT"]}
+{"code": "RCB", "seqs": ["ACC", "ACG", "ACT", "GCC", "GCG", "GCT"]}
+{"code": "VAG", "seqs": ["AAG", "CAG", "GAG"]}
+{"code": "YVB", "seqs": ["CAC", "CAG", "CAT", "CCC", "CCG", "CCT", "CGC", "CGG", "CGT", "TAC", "TAG", "TAT", "TCC", "TCG", "TCT", "TGC", "TGG", "TGT"]}
+{"code": "CDK", "seqs": ["CAG", "CAT", "CGG", "CGT", "CTG", "CTT"]}
+{"code": "YNB", "seqs": ["CAC", "CAG", "CAT", "CCC", "CCG", "CCT", "CGC", "CGG", "CGT", "CTC", "CTG", "CTT", "TAC", "TAG", "TAT", "TCC", "TCG", "TCT", "TGC", "TGG", "TGT", "TTC", "TTG", "TTT"]}
+{"code": "AVT", "seqs": ["AAT", "ACT", "AGT"]}
+{"code": "CCH", "seqs": ["CCA", "CCC", "CCT"]}
+{"code": "TAS", "seqs": ["TAC", "TAG"]}
+{"code": "SAH", "seqs": ["CAA", "CAC", "CAT", "GAA", "GAC", "GAT"]}
+{"code": "YRC", "seqs": ["CAC", "CGC", "TAC", "TGC"]}
+{"code": "VYT", "seqs": ["ACT", "ATT", "CCT", "CTT", "GCT", "GTT"]}
+{"code": "NHC", "seqs": ["AAC", "ACC", "ATC", "CAC", "CCC", "CTC", "GAC", "GCC", "GTC", "TAC", "TCC", "TTC"]}
+{"code": "CHM", "seqs": ["CAA", "CAC", "CCA", "CCC", "CTA", "CTC"]}
+{"code": "CND", "seqs": ["CAA", "CAG", "CAT", "CCA", "CCG", "CCT", "CGA", "CGG", "CGT", "CTA", "CTG", "CTT"]}
+{"code": "BAA", "seqs": ["CAA", "GAA", "TAA"]}
+{"code": "GYC", "seqs": ["GCC", "GTC"]}
+{"code": "SMA", "seqs": ["CAA", "CCA", "GAA", "GCA"]}
+{"code": "WAG", "seqs": ["AAG", "TAG"]}
+{"code": "BHD", "seqs": ["CAA", "CAG", "CAT", "CCA", "CCG", "CCT", "CTA", "CTG", "CTT", "GAA", "GAG", "GAT", "GCA", "GCG", "GCT", "GTA", "GTG", "GTT", "TAA", "TAG", "TAT", "TCA", "TCG", "TCT", "TTA", "TTG", "TTT"]}
+{"code": "WVC", "seqs": ["AAC", "ACC", "AGC", "TAC", "TCC", "TGC"]}
+{"code": "VTH", "seqs": ["ATA", "ATC", "ATT", "CTA", "CTC", "CTT", "GTA", "GTC", "GTT"]}
+{"code": "AGK", "seqs": ["AGG", "AGT"]}
+{"code": "TWC", "seqs": ["TAC", "TTC"]}
+{"code": "BDM", "seqs": ["CAA", "CAC", "CGA", "CGC", "CTA", "CTC", "GAA", "GAC", "GGA", "GGC", "GTA", "GTC", "TAA", "TAC", "TGA", "TGC", "TTA", "TTC"]}
+{"code": "MGD", "seqs": ["AGA", "AGG", "AGT", "CGA", "CGG", "CGT"]}
+{"code": "KVA", "seqs": ["GAA", "GCA", "GGA", "TAA", "TCA", "TGA"]}
+{"code": "RCS", "seqs": ["ACC", "ACG", "GCC", "GCG"]}
+{"code": "MVK", "seqs": ["AAG", "AAT", "ACG", "ACT", "AGG", "AGT", "CAG", "CAT", "CCG", "CCT", "CGG", "CGT"]}
+{"code": "BKR", "seqs": ["CGA", "CGG", "CTA", "CTG", "GGA", "GGG", "GTA", "GTG", "TGA", "TGG", "TTA", "TTG"]}
+{"code": "WKW", "seqs": ["AGA", "AGT", "ATA", "ATT", "TGA", "TGT", "TTA", "TTT"]}
+{"code": "CRM", "seqs": ["CAA", "CAC", "CGA", "CGC"]}
+{"code": "YRB", "seqs": ["CAC", "CAG", "CAT", "CGC", "CGG", "CGT", "TAC", "TAG", "TAT", "TGC", "TGG", "TGT"]}
+{"code": "YMN", "seqs": ["CAA", "CAC", "CAG", "CAT", "CCA", "CCC", "CCG", "CCT", "TAA", "TAC", "TAG", "TAT", "TCA", "TCC", "TCG", "TCT"]}
+{"code": "ABA", "seqs": ["ACA", "AGA", "ATA"]}
+{"code": "MAK", "seqs": ["AAG", "AAT", "CAG", "CAT"]}
+{"code": "BCK", "seqs": ["CCG", "CCT", "GCG", "GCT", "TCG", "TCT"]}
+{"code": "ASR", "seqs": ["ACA", "ACG", "AGA", "AGG"]}
+{"code": "STT", "seqs": ["CTT", "GTT"]}
+{"code": "YAA", "seqs": ["CAA", "TAA"]}
+{"code": "WKC", "seqs": ["AGC", "ATC", "TGC", "TTC"]}
+{"code": "AGN", "seqs": ["AGA", "AGC", "AGG", "AGT"]}
+{"code": "AMG", "seqs": ["AAG", "ACG"]}
+{"code": "SCK", "seqs": ["CCG", "CCT", "GCG", "GCT"]}
+{"code": "SCC", "seqs": ["CCC", "GCC"]}
+{"code": "YMM", "seqs": ["CAA", "CAC", "CCA", "CCC", "TAA", "TAC", "TCA", "TCC"]}
+{"code": "RTG", "seqs": ["ATG", "GTG"]}
+{"code": "MAY", "seqs": ["AAC", "AAT", "CAC", "CAT"]}
+{"code": "MNH", "seqs": ["AAA", "AAC", "AAT", "ACA", "ACC", "ACT", "AGA", "AGC", "AGT", "ATA", "ATC", "ATT", "CAA", "CAC", "CAT", "CCA", "CCC", "CCT", "CGA", "CGC", "CGT", "CTA", "CTC", "CTT"]}
+{"code": "HVA", "seqs": ["AAA", "ACA", "AGA", "CAA", "CCA", "CGA", "TAA", "TCA", "TGA"]}
+{"code": "NHM", "seqs": ["AAA", "AAC", "ACA", "ACC", "ATA", "ATC", "CAA", "CAC", "CCA", "CCC", "CTA", "CTC", "GAA", "GAC", "GCA", "GCC", "GTA", "GTC", "TAA", "TAC", "TCA", "TCC", "TTA", "TTC"]}
+{"code": "GBG", "seqs": ["GCG", "GGG", "GTG"]}
+{"code": "KGS", "seqs": ["GGC", "GGG", "TGC", "TGG"]}
+{"code": "RRG", "seqs": ["AAG", "AGG", "GAG", "GGG"]}
+{"code": "KNA", "seqs": ["GAA", "GCA", "GGA", "GTA", "TAA", "TCA", "TGA", "TTA"]}
+{"code": "KCG", "seqs": ["GCG", "TCG"]}
+{"code": "VCH", "seqs": ["ACA", "ACC", "ACT", "CCA", "CCC", "CCT", "GCA", "GCC", "GCT"]}
+{"code": "CMW", "seqs": ["CAA", "CAT", "CCA", "CCT"]}
+{"code": "GMG", "seqs": ["GAG", "GCG"]}
+{"code": "BCG", "seqs": ["CCG", "GCG", "TCG"]}
+{"code": "NRG", "seqs": ["AAG", "AGG", "CAG", "CGG", "GAG", "GGG", "TAG", "TGG"]}
+{"code": "KCT", "seqs": ["GCT", "TCT"]}
+{"code": "DBA", "seqs": ["ACA", "AGA", "ATA", "GCA", "GGA", "GTA", "TCA", "TGA", "TTA"]}
+{"code": "MTK", "seqs": ["ATG", "ATT", "CTG", "CTT"]}
+{"code": "CVG", "seqs": ["CAG", "CCG", "CGG"]}
+{"code": "DAT", "seqs": ["AAT", "GAT", "TAT"]}
+{"code": "KAG", "seqs": ["GAG", "TAG"]}
+{"code": "WMM", "seqs": ["AAA", "AAC", "ACA", "ACC", "TAA", "TAC", "TCA", "TCC"]}
+{"code": "MVT", "seqs": ["AAT", "ACT", "AGT", "CAT", "CCT", "CGT"]}
+{"code": "GWT", "seqs": ["GAT", "GTT"]}
+{"code": "SVY", "seqs": ["CAC", "CAT", "CCC", "CCT", "CGC", "CGT", "GAC", "GAT", "GCC", "GCT", "GGC", "GGT"]}
+{"code": "ATM", "seqs": ["ATA", "ATC"]}
+{"code": "TRN", "seqs": ["TAA", "TAC", "TAG", "TAT", "TGA", "TGC", "TGG", "TGT"]}
+{"code": "YRG", "seqs": ["CAG", "CGG", "TAG", "TGG"]}
+{"code": "GWW", "seqs": ["GAA", "GAT", "GTA", "GTT"]}
+{"code": "KTS", "seqs": ["GTC", "GTG", "TTC", "TTG"]}
+{"code": "VCW", "seqs": ["ACA", "ACT", "CCA", "CCT", "GCA", "GCT"]}
+{"code": "NMM", "seqs": ["AAA", "AAC", "ACA", "ACC", "CAA", "CAC", "CCA", "CCC", "GAA", "GAC", "GCA", "GCC", "TAA", "TAC", "TCA", "TCC"]}
+{"code": "WAW", "seqs": ["AAA", "AAT", "TAA", "TAT"]}
+{"code": "KHW", "seqs": ["GAA", "GAT", "GCA", "GCT", "GTA", "GTT", "TAA", "TAT", "TCA", "TCT", "TTA", "TTT"]}
+{"code": "BSA", "seqs": ["CCA", "CGA", "GCA", "GGA", "TCA", "TGA"]}
+{"code": "RCC", "seqs": ["ACC", "GCC"]}
+{"code": "CYG", "seqs": ["CCG", "CTG"]}
+{"code": "WRH", "seqs": ["AAA", "AAC", "AAT", "AGA", "AGC", "AGT", "TAA", "TAC", "TAT", "TGA", "TGC", "TGT"]}
+{"code": "KTY", "seqs": ["GTC", "GTT", "TTC", "TTT"]}
+{"code": "HVA", "seqs": ["AAA", "ACA", "AGA", "CAA", "CCA", "CGA", "TAA", "TCA", "TGA"]}
+{"code": "NHM", "seqs": ["AAA", "AAC", "ACA", "ACC", "ATA", "ATC", "CAA", "CAC", "CCA", "CCC", "CTA", "CTC", "GAA", "GAC", "GCA", "GCC", "GTA", "GTC", "TAA", "TAC", "TCA", "TCC", "TTA", "TTC"]}
+{"code": "CGK", "seqs": ["CGG", "CGT"]}
+{"code": "AYV", "seqs": ["ACA", "ACC", "ACG", "ATA", "ATC", "ATG"]}
+{"code": "HWA", "seqs": ["AAA", "ATA", "CAA", "CTA", "TAA", "TTA"]}
+{"code": "RVS", "seqs": ["AAC", "AAG", "ACC", "ACG", "AGC", "AGG", "GAC", "GAG", "GCC", "GCG", "GGC", "GGG"]}
+{"code": "RAS", "seqs": ["AAC", "AAG", "GAC", "GAG"]}
+{"code": "ACV", "seqs": ["ACA", "ACC", "ACG"]}
+{"code": "AYG", "seqs": ["ACG", "ATG"]}
+{"code": "YCD", "seqs": ["CCA", "CCG", "CCT", "TCA", "TCG", "TCT"]}
+{"code": "AWC", "seqs": ["AAC", "ATC"]}
+{"code": "AWT", "seqs": ["AAT", "ATT"]}
+{"code": "SYT", "seqs": ["CCT", "CTT", "GCT", "GTT"]}
+{"code": "VND", "seqs": ["AAA", "AAG", "AAT", "ACA", "ACG", "ACT", "AGA", "AGG", "AGT", "ATA", "ATG", "ATT", "CAA", "CAG", "CAT", "CCA", "CCG", "CCT", "CGA", "CGG", "CGT", "CTA", "CTG", "CTT", "GAA", "GAG", "GAT", "GCA", "GCG", "GCT", "GGA", "GGG", "GGT", "GTA", "GTG", "GTT"]}
+{"code": "WAR", "seqs": ["AAA", "AAG", "TAA", "TAG"]}

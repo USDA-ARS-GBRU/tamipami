@@ -1,0 +1,17 @@
+{
+  "3": {
+    "samples": 1000,
+    "successes": 1000,
+    "failures": 0
+  },
+  "4": {
+    "samples": 1000,
+    "successes": 1000,
+    "failures": 0
+  },
+  "5": {
+    "samples": 1000,
+    "successes": 1000,
+    "failures": 0
+  }
+}
