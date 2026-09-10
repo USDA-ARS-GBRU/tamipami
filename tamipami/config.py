@@ -3,6 +3,7 @@ import os
 import yaml
 import logging
 
+logger = logging.getLogger(__name__)
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -29,11 +30,11 @@ def load_config(config_file=None):
         with open(config_file, "r") as file:
             return yaml.safe_load(file)
     except FileNotFoundError:
-        print(f"Error: The configuration file {config_file} was not found.")
+        logger.error(f"Error: The configuration file {config_file} was not found.")
     except yaml.YAMLError as e:
-        print(f"Error: Failed to parse YAML file {config_file}: {e}")
+        logger.error(f"Error: Failed to parse YAML file {config_file}: {e}")
     except Exception as e:
-        logging.error(f"Failed to load configuration file {config_file}: {e}")
+        logger.error(f"Failed to load configuration file {config_file}: {e}")
         raise
 
 

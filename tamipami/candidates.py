@@ -1,12 +1,12 @@
-# candidates_from_tree_and_pos.py
 from __future__ import annotations
-
+import logging
 from typing import Dict, List, Set, Tuple, Optional
 from itertools import product
-from pathlib import Path
 
 import numpy as np
 import scipy.cluster.hierarchy as sch
+
+logger = logging.getLogger(__name__)
 
 # --- IUPAC maps (complete for subsets of {A,C,G,T}) ---
 IUPAC_TO_BASES: Dict[str, Tuple[str, ...]] = {

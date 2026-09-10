@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """entropy :  a TamiPami module for working with entropy of sequence sets"""
 
+import logging
 import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
 
+logger = logging.getLogger(__name__)
 
 def strings_to_char_array(strings: list[str]) -> np.ndarray:
     """
@@ -134,7 +136,7 @@ def tot_ent(cumm_ent_array: np.ndarray, length: int, orientation: str) -> np.nda
     elif orientation == "5prime":
         sub_array = cumm_ent_array[:, length:]
     else:
-        raise ValueError("Invalid orientation value. Expected '3prime' or '5prime'.")
+        raise ValueError("Invalid orientation value. Expected '3prime' or '5prime'. select a library or enter the orientation of the sequence.")
     return np.sum(sub_array, axis=1)
 
 

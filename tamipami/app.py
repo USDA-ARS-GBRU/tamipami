@@ -16,9 +16,9 @@ import gzip
 import shutil
 from pathlib import Path
 import json
+import logging 
 
-import streamlit as st
-import pandas as pd
+
 
 from tamipami.config import config
 from tamipami import pam
@@ -26,7 +26,12 @@ from tamipami import fastq
 from tamipami import degenerate
 from tamipami import tpio
 from tamipami._version import __version__
+from tamipami.cli import logger_setup
 
+logger_setup(logfile="tamipam_streamlit.log")
+logger = logging.getLogger(__name__)
+
+import streamlit as st
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # This is your Project Root
 

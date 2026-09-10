@@ -16,6 +16,7 @@ from Bio import SeqIO
 
 from tamipami.config import config
 
+logger = logging.getLogger(__name__)
 
 def iterate_kmer(k: int) -> dict[str, int]:
     """
@@ -37,12 +38,7 @@ def iterate_kmer(k: int) -> dict[str, int]:
     return {kmer: 0 for kmer in sorted(kmers)}
 
 
-import subprocess
-import logging
-import re
-from Bio import SeqIO
 
-from tamipami.config import config
 
 
 def merge_reads_stream(fastq: str, fastq2: str) -> subprocess.Popen:
@@ -64,7 +60,7 @@ def merge_reads_stream(fastq: str, fastq2: str) -> subprocess.Popen:
         "interleaved=f",
     ]
     parameters.extend(config["bbmerge"])
-    logging.info(parameters)
+    logger.info(parameters)
     proc = subprocess.Popen(
         parameters, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
     )
@@ -115,7 +111,7 @@ def count_pam_stream(
                     kmer_dict[pamseq] += 1
         return kmer_dict, tot_reads, guide_detections
     except Exception as e:
-        logging.error("Error during streaming PAM/TAM counting: %s", e)
+        logger.error("Error during streaming PAM/TAM counting: %s", e)
         raise
 
 
@@ -141,7 +137,7 @@ def process(
 
     try:
         if fastq2:
-            logging.info(
+            logger.info(
                 "Paired-end input detected; merging reads and streaming to PAM/TAM counter."
             )
             proc = merge_reads_stream(fastq=fastq, fastq2=fastq2)
@@ -155,10 +151,10 @@ def process(
                 )
                 stderr_output = proc.stderr.read()
                 if stderr_output:
-                    logging.info(f"BBmerge output: {stderr_output}")
+                    logger.info(f"BBmerge output: {stderr_output}")
             except Exception as e:
                 stderr_output = proc.stderr.read()
-                logging.error(f"BBmerge error: {stderr_output}")
+                logger.error(f"BBmerge error: {stderr_output}")
                 raise e
             finally:
                 proc.stdout.close()
@@ -166,7 +162,7 @@ def process(
                 proc.wait()
 
         else:
-            logging.info(
+            logger.info(
                 "Single-end input detected; streaming reads directly to PAM/TAM counter."
             )
             if fastq.endswith(".gz"):
@@ -183,6 +179,6 @@ def process(
             finally:
                 fh.close()
     except Exception as e:
-        logging.error(f"Error during streaming merge/count: {e}")
+        logger.error(f"Error during streaming merge/count: {e}")
         raise
     return pamcount, tot_reads, target_detections

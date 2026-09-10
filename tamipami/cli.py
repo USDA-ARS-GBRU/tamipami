@@ -20,48 +20,45 @@ from tamipami.config import config
 from tamipami._version import __version__
 
 
-def _logger_setup(logfile: str) -> None:
-    """Set up logging configuration to output logs to a specified file and the console.
+import os
+import logging
+import sys
 
-    This function configures the logging system to write logs to a specified
-    logfile and also outputs logs of level INFO or higher to the console. The
-    log level, format, and date format can be customized using environment
-    variables.
-
-    Args:
-        logfile: The path to the log file where logs will be written.
-
-    Raises:
-        FileNotFoundError: If the directory for the logfile does not exist.
-    """
+def logger_setup(logfile: str) -> None:
     logdir = os.path.dirname(logfile)
     if logdir and not os.path.exists(logdir):
         os.makedirs(logdir, exist_ok=True)
-
+        
     log_level = os.getenv("LOG_LEVEL", "DEBUG")
+    numeric_level = getattr(logging, log_level.upper(), logging.DEBUG)
+    
+    # Get the root logger directly
+    root_logger = logging.getLogger("")
+    root_logger.setLevel(numeric_level)
+    
+    # CRITICAL: Clear any existing handlers added by Streamlit
+    if root_logger.hasHandlers():
+        root_logger.handlers.clear()
+
+    # 1. File Handler Setup
     log_format = os.getenv(
         "LOG_FORMAT", "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"
     )
     date_format = os.getenv("DATE_FORMAT", "%m-%d %H:%M")
+    
+    file_handler = logging.FileHandler(logfile, mode="w")
+    file_handler.setFormatter(logging.Formatter(log_format, datefmt=date_format))
+    root_logger.addHandler(file_handler)
 
-    logging.basicConfig(
-        level=getattr(logging, log_level),
-        format=log_format,
-        datefmt=date_format,
-        filename=logfile,
-        filemode="w",
-    )
-    # define a Handler which writes INFO messages or higher to the sys.stderr
-    console: logging.StreamHandler = logging.StreamHandler()
+    # 2. Console Handler Setup (Fixed your variable assignment bug here)
+    console = logging.StreamHandler(sys.stderr) 
     console.setLevel(logging.INFO)
-    # set a format which is simpler for console use
-    formatter: logging.Formatter = logging.Formatter(
-        "%(asctime)s: %(levelname)-8s %(message)s"
-    )
-    # tell the handler to use this format
-    console.setFormatter(formatter)
-    # add the handler to the root logger
-    logging.getLogger("").addHandler(console)
+    
+    console_formatter = logging.Formatter("%(asctime)s: %(levelname)-8s %(message)s")
+    console.setFormatter(console_formatter)
+    
+    root_logger.addHandler(console)
+
 
 
 def myparser() -> argparse.ArgumentParser:
@@ -475,7 +472,7 @@ def main(args: argparse.Namespace = None) -> None:
     parser = myparser()
     args = args or parser.parse_args()
 
-    _logger_setup(args.log)
+    logger_setup(args.log)
     logging.info("Begin processing PAM/TAM sequencing libraries")
     logging.info(args)
     if args.subcommand == "process":

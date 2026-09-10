@@ -25,6 +25,8 @@ from typing import Dict, List, Set, Tuple, FrozenSet, Iterable, Optional
 
 from ortools.sat.python import cp_model
 
+logger = logging.getLogger(__name__)
+
 # --- Import exact candidate enumerator ---
 try:
     # Package-relative import (preferred)
@@ -141,7 +143,7 @@ def minimal_exact_cover(
     # --- Stage 1: minimize number of selected patterns ---
     model.Minimize(sum(x))
     status = solver.Solve(model)
-    logging.info("Stage 1 status=%s objective=%s", status, solver.ObjectiveValue())
+    logger.info("Stage 1 status=%s objective=%s", status, solver.ObjectiveValue())
 
     if status != cp_model.OPTIMAL:
         raise RuntimeError(
@@ -153,7 +155,7 @@ def minimal_exact_cover(
     model.Add(sum(x) == min_patterns)
     model.Minimize(sum(x[i] * deg_positions[i] for i in range(n_cands)))
     status = solver.Solve(model)
-    logging.info("Stage 2 status=%s objective=%s", status, solver.ObjectiveValue())
+    logger.info("Stage 2 status=%s objective=%s", status, solver.ObjectiveValue())
 
     if status != cp_model.OPTIMAL:
         raise RuntimeError(
@@ -165,7 +167,7 @@ def minimal_exact_cover(
     model.Add(sum(x[i] * deg_positions[i] for i in range(n_cands)) == min_degpos)
     model.Minimize(sum(x[i] * complexities[i] for i in range(n_cands)))
     status = solver.Solve(model)
-    logging.info("Stage 3 status=%s objective=%s", status, solver.ObjectiveValue())
+    logger.info("Stage 3 status=%s objective=%s", status, solver.ObjectiveValue())
 
     if status != cp_model.OPTIMAL:
         raise RuntimeError(
@@ -215,11 +217,11 @@ def seqs_to_degenerates(
         cand_list = candidates.enumerate_all_candidates(
             seqs, method=linkage, keep_only_maximal=keep_only_maximal
         )
-        logging.info(
+        logger.info(
             "Enumerated %d candidates (maximal=%s, linkage=%s)",
             len(cand_list), keep_only_maximal, linkage
         )
         return minimal_exact_cover(seqs=seqs, candidates_list=cand_list, time_limit=time_limit)
     except Exception as e:
-        logging.exception(f"An error occurred in seqs_to_degenerates: {e}")
+        logger.exception(f"An error occurred in seqs_to_degenerates: {e}")
         raise

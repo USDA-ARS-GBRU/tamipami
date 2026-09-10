@@ -1,6 +1,8 @@
 import argparse
 import json
+import logging 
 
+logger = logging.getLogger(__name__)
 
 def cutoff_arg_validator(value: str) -> dict:
     """
