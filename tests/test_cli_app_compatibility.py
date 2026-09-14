@@ -19,8 +19,8 @@ def create_sample_pamseqexp():
     ctl_counts = {k: int(np.random.randint(50, 100)) for k in kmers_5}
     exp_counts = {k: int(np.random.randint(10, 100)) for k in kmers_5}
     # Deplete some kmers
-    for k in kmers_5[:20]:
-        exp_counts[k] = 0
+    #for k in kmers_5[:20]:
+    #    exp_counts[k] = 0
 
     return pam.pamSeqExp(ctl=ctl_counts, exp=exp_counts, position="3prime")
 

@@ -321,6 +321,7 @@ def process_data(args):
             orientation=orientation,
         )
         pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw, position=orientation)
+        pamexpobj.ensure_multikmerdict(mink=3)  # build once, explicitly
         return pamexpobj, run_summ
     except Exception as e:
         st.error(

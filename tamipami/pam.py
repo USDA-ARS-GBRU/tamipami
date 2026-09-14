@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """pam:  a TamiPami module for working with PAM/TAM spacer sequences"""
 
+
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import scipy
@@ -12,8 +13,10 @@ import scipy.stats
 import ckmeans
 import logomaker
 from skbio.stats import composition
+from scipy.stats import gaussian_kde
 
 logger = logging.getLogger(__name__)
+
 
 class pamSeqExp:
     """A class for managing and analyzing kmer count data from PAM/TAM sequencing experiments.
@@ -22,22 +25,6 @@ class pamSeqExp:
     calculate kmer lengths, summarize kmer data, combine control and experimental data, group and sum kmers,
     and create multilevel kmer dictionaries. It also includes functionality to find breakpoints, check noise levels,
     and generate sequence motif logos.
-
-    Attributes:
-        ctl: Dictionary of kmers and their counts from the control library.
-        exp: Dictionary of kmers and their counts from the experimental library.
-        position: Positional information of the PAM relative to the guide site.
-        multikmerdict: Dictionary containing multilevel kmer data.
-
-    Methods:
-        _kmer_len: Verifies the length of all kmers in a dictionary.
-        _kmersummary: Summarizes kmer data into counts and centered log ratio.
-        _combine_single_pair: Combines control and experimental data, calculates z-scores and significance.
-        _group_and_sum_kmers: Groups and sums kmer counts for different lengths.
-        _create_multilevel: Creates a multilevel dictionary of kmer data.
-        find_breakpoint: Finds breakpoints in kmer data based on z-score or difference.
-        check_N: Estimates the fraction of standard deviation due to shot noise.
-        make_logo: Generates a sequence motif logo based on kmer significance.
     """
 
     def __init__(
@@ -45,7 +32,7 @@ class pamSeqExp:
         ctl: dict[str, int] = None,
         exp: dict[str, int] = None,
         position: str = None,
-        multikmerdict: dict[pd.DataFrame] = None,
+        multikmerdict: Dict[int, pd.DataFrame] = None,
     ) -> None:
         """
         Initializes the pamSeqExp object with kmer count data and positional information.
@@ -53,40 +40,43 @@ class pamSeqExp:
         Args:
             ctl: Dictionary of kmers and their counts from the uncut control sequencing library.
             exp: Dictionary of kmers and their counts from the library cut with the endonuclease.
-            position: Positional information on the orientation of the PAM relative to the guide site: '3prime' or '5prime'.
-            multikmerdict: Precomputed dictionary containing multilevel kmer data.
-
-        Raises:
-            ValueError: If neither or both sets of parameters (`ctl`, `exp`, `position` and `multikmerdict`) are provided.
-
-        Returns:
-            None
+            position: Orientation of the PAM relative to the guide site: '3prime' or '5prime'.
+            multikmerdict: Optional precomputed dict[int -> DataFrame] containing multilevel kmer data.
         """
-        if not (all([ctl, exp, position]) ^ (multikmerdict is not None)):
-            raise ValueError(
-                "Please provide either `ctl`, `exp`, and `position` or a `multikmerdict` object."
-            )
-        if not multikmerdict:
-            self.ctl = ctl
-            self.exp = exp
-            self.position = position
-            self.multikmerdict = None
-            self._create_multilevel()
-        else:
-            self.multikmerdict = multikmerdict
+        self.ctl = ctl
+        self.exp = exp
+        self.position = position
 
+        # Do NOT build in __init__; Streamlit hot-reloader can cause timing issues.
+        # Use lazy initialization instead.
+        if multikmerdict is not None and not isinstance(multikmerdict, dict):
+            raise TypeError("multikmerdict must be a dict[int -> pd.DataFrame].")
+        self._multikmerdict: Optional[Dict[int, pd.DataFrame]] = multikmerdict
+
+        # Optional knobs (can be set by caller)
+        self.alpha0: float = getattr(self, "alpha0", 0.5)              # Jeffreys prior
+        self.dirichlet_draws: int = getattr(self, "dirichlet_draws", 8000)
+        self.random_seed: Optional[int] = getattr(self, "random_seed", None)
+
+    # ---------- Lazy initialization helpers ----------
+    def ensure_multikmerdict(self, mink: int = 3) -> Dict[int, pd.DataFrame]:
+        """Build multikmerdict if it hasn't been built yet."""
+        if self._multikmerdict is None:
+            self._create_multilevel(mink=mink)
+        return self._multikmerdict
+
+    @property
+    def multikmerdict(self) -> Dict[int, pd.DataFrame]:
+        """Property that lazily builds multikmerdict on first access."""
+        return self.ensure_multikmerdict()
+
+    @multikmerdict.setter
+    def multikmerdict(self, value: Dict[int, pd.DataFrame]) -> None:
+        self._multikmerdict = value
+
+    # ---------- Core utilities ----------
     def _kmer_len(self, kmers: dict[str, int]) -> int:
-        """Verify the uniformity of kmer lengths in a dictionary.
-
-        Args:
-            kmers (dict[str, int]): A dictionary of kmers and their counts.
-
-        Returns:
-            int: The length of the kmers.
-
-        Raises:
-            ValueError: If the length of all kmers is not the same or if the dictionary is empty.
-        """
+        """Verify the uniformity of kmer lengths in a dictionary."""
         kmerlen: Optional[int] = None
         for kmer in kmers.keys():
             if not kmerlen:
@@ -105,18 +95,7 @@ class pamSeqExp:
         """
         Summarizes kmer data into a dictionary containing kmers, their counts,
         and the centered log ratio (CLR) of the data.
-
-        Args:
-            kmer_dict (dict[str, int]): A dictionary of kmers and their counts.
-
-        Returns:
-            Dict[str, List]: A dictionary with keys 'kmers', 'counts', and 'clr',
-            each containing a list of kmers, their counts, and the CLR of the data, respectively.
-
-        Raises:
-            ValueError: If the sum of counts is zero or negative, or if any count is negative.
         """
-
         kmers = list(kmer_dict.keys())
         counts = list(kmer_dict.values())
 
@@ -125,7 +104,7 @@ class pamSeqExp:
                 "Sum of counts is zero or negative. Check Library, spacer, and orientation settings."
             )
             raise ValueError(
-                "No targets were identified in your data, Please check your Library, spacer ,and orientation settings"
+                "No targets were identified in your data. Please check your Library, spacer, and orientation settings."
             )
 
         if any(c < 0 for c in counts):
@@ -143,264 +122,375 @@ class pamSeqExp:
 
         return {"kmers": kmers, "counts": counts, "clr": clr}
 
-
-
     def _combine_single_pair(
-        self, exper: dict[str, Optional[list]], ctl: dict[str, Optional[list]]
+        self, exper: dict[str, List], ctl: dict[str, List]
     ) -> pd.DataFrame:
         """
-        Robust hybrid method for compositional k-mer depletion.
-        
-        • Background mean: Half-Sample Mode (Bickel's method), highly robust 
-        and non-parametric optimization for sharp peaks.
-        • Variance (sigma): Left-folded reflection around the HSM peak.
-        • FDR: Benjamini–Hochberg step-up adjustment.
+        Empirical-null compositional depletion test with finite-depth uncertainty
+        propagation using a **paired baseline Dirichlet** sampler + **precision-weighted
+        left-fold sigma** for the empirical null.
+
+        Inputs MUST be outputs of _kmersummary:
+            { "kmers": [...], "counts": [...], "clr": [...] }
+
+        Steps:
+        1) Paired Dirichlet: sample a shared baseline b from pooled counts,
+            then sample control and experimental compositions conditioned on b.
+        2) CLR per posterior draw; Diff = clr(control) - clr(experimental)
+        3) Empirical null: HSM(diff_mean), sigma via left-fold reflection
+            with inverse-variance weights (precision-weighted)
+        4) Per-component tests: z_j = (Δ̂_j - μ_L) / sqrt(σ_L^2 + SE_j^2)
+        5) BH-FDR
+        6) 95% credible intervals added (ci_lo, ci_hi)
         """
-        # ---- Input consistency ----
-        if exper["kmers"] != ctl["kmers"]:
-            raise ValueError("Kmers from the experimental and control data do not match.")
+        # ----- Validate alignment -----
+        kmers_exp = np.asarray(exper["kmers"])
+        kmers_ctl = np.asarray(ctl["kmers"])
+        if not np.array_equal(kmers_exp, kmers_ctl):
+            raise ValueError("Experimental and control kmers do not match.")
 
-        # ---- Build frame ----
-        df = pd.DataFrame({
-            "kmers": ctl["kmers"],
-            "ctl_raw": ctl["counts"],
-            "exp_raw": exper["counts"],
-            "ctl_clr": ctl["clr"],
-            "exp_clr": exper["clr"],
-        })
+        kmers = kmers_ctl
+        x_ctl = np.asarray(ctl["counts"], dtype=float)
+        x_exp = np.asarray(exper["counts"], dtype=float)
+        ctl_clr = np.asarray(ctl["clr"], dtype=float)
+        exp_clr = np.asarray(exper["clr"], dtype=float)
+        D = kmers.size
 
-        # Paired subtraction: positive => depletion in experimental sample
-        df["diff"] = df["ctl_clr"] - df["exp_clr"]
-        diff = df["diff"].values
+        # ----- Paired baseline Dirichlet sampler -----
+        # Shared baseline prior from pooled counts (empirical Bayes)
+        alpha0 = getattr(self, "alpha0", 0.5)
+        M      = getattr(self, "dirichlet_draws", 8000)
+        seed   = getattr(self, "random_seed", None)
+        rng    = np.random.default_rng(seed)
 
-        # ----------------------------------------------------------------------
-        # Half-Sample Mode (HSM) Engine
-        # ----------------------------------------------------------------------
+        # Pooled parameters (shared library bias)
+        alpha_pool = x_ctl + x_exp + alpha0
+
+        # Observed CLR difference -> componentwise ratio r (mean shift for experimental)
+        # This uses your already-computed CLRs to define the experimental mean perturbation.
+        diff_obs = exp_clr - ctl_clr
+        r = np.exp(diff_obs)  # element-wise; experimental mean ~ b * r (renormalized)
+
+        # Dirichlet concentration anchored by depths (allow optional scaling)
+        k_ctl = float(np.sum(x_ctl))
+        k_exp = float(np.sum(x_exp))
+        kappa_scale = float(getattr(self, "kappa_scale", 1.0))  # e.g., 0.8–1.0 if you want mild overdispersion
+        k_ctl_eff = max(1.0, kappa_scale * k_ctl)
+        k_exp_eff = max(1.0, kappa_scale * k_exp)
+
+        # (Optional) adaptive cap to avoid huge M*D in CI
+        mc_cap = int(getattr(self, "mc_work_cap", 2_000_000))  # cap of total samples M*D
+        M_eff  = min(M, max(1000, mc_cap // max(D, 1)))
+
+        # Paired sampling loop
+        deltas = np.empty((M_eff, D), dtype=float)
+        for m in range(M_eff):
+            # 1) Shared baseline draw
+            b = rng.dirichlet(alpha_pool)
+
+            # 2) Control draw around baseline
+            p_c = rng.dirichlet(k_ctl_eff * b)
+
+            # 3) Experimental mean: baseline * ratio, renormalized; then draw
+            mean_e = b * r
+            mean_e = mean_e / mean_e.sum()
+            p_e = rng.dirichlet(k_exp_eff * mean_e)
+
+            # 4) CLR and paired difference
+            log_pc = np.log(p_c); clr_c = log_pc - log_pc.mean()
+            log_pe = np.log(p_e); clr_e = log_pe - log_pe.mean()
+            deltas[m] = clr_c - clr_e
+
+        # Posterior summaries of the paired difference
+        diff_mean = deltas.mean(axis=0)
+        diff_se   = deltas.std(axis=0, ddof=1)
+        ci_lo, ci_hi = np.quantile(deltas, [0.025, 0.975], axis=0)
+
+        # ----- Empirical null: HSM on diff_mean -----
         def _half_sample_mode(x: np.ndarray) -> float:
-            """Iterative half-sample mode estimator (Bickel's method)."""
-            x_sorted = np.sort(x)
-            while len(x_sorted) > 3:
-                n = len(x_sorted)
+            xs = np.sort(x)
+            while xs.size > 3:
+                n = xs.size
                 w = int(np.ceil(n / 2))
-                # Find the contiguous window of size w with the smallest span
-                spans = x_sorted[w:] - x_sorted[:-w]
-                best_idx = np.argmin(spans)
-                x_sorted = x_sorted[best_idx : best_idx + w]
-            return float(np.median(x_sorted))
+                spans = xs[w:] - xs[:-w]
+                i = int(np.argmin(spans))
+                xs = xs[i : i + w]
+            return float(np.median(xs))
 
-        # Calculate center point
-        bg_peak_center = _half_sample_mode(diff)
-        logger.info(f"Background peak center (HSM): {bg_peak_center:.4f}")
+        mu_left = _half_sample_mode(diff_mean)
 
-        # ----------------------------------------------------------------------
-        # Reflection (folded-left) variance
-        # ----------------------------------------------------------------------
-        left_vals = diff[diff <= bg_peak_center] - bg_peak_center
-        
-        if left_vals.size >= 5 and np.any(left_vals != 0.0):
-            reflected = np.concatenate([left_vals, -left_vals])
-            sigma_diff_noise = float(np.std(reflected, ddof=1))
-            logger.info(f"Reflected variance computed from {left_vals.size} left-side values.")
+        # ----- Precision-weighted left-fold sigma -----
+        # Left offsets relative to mu_left; weights from posterior precision 1/se^2
+        left_mask    = (diff_mean <= mu_left)
+        left_offsets = diff_mean[left_mask] - mu_left
+        diff_se_left = diff_se[left_mask]
+
+        if left_offsets.size >= 5 and np.any(left_offsets != 0):
+            eps   = float(getattr(self, "null_eps", 1e-12))            # stability
+            w     = 1.0 / (diff_se_left**2 + eps)                      # inverse-variance weights
+            qclip = float(getattr(self, "null_weight_clip_q", 0.95))   # clip extreme weights
+            w_cap = np.quantile(w, qclip)
+            w     = np.minimum(w, w_cap)
+
+            # Reflect for symmetry; compute weighted SD
+            reflected = np.concatenate([left_offsets, -left_offsets])
+            w_sym     = np.concatenate([w, w])
+            mean_w    = np.average(reflected, weights=w_sym)
+            sigma_left = float(np.sqrt(np.average((reflected - mean_w)**2, weights=w_sym)))
         else:
-            # Fallback: MAD (normal-consistent) if left side is structurally degenerate
-            mad = float(np.median(np.abs(diff - bg_peak_center)))
-            sigma_diff_noise = 1.4826 * mad
-            logger.info(f"Left side degenerate ({left_vals.size} values), using MAD fallback.")
+            # Robust fallback: MAD -> sigma on diff_mean
+            mad = float(np.median(np.abs(diff_mean - mu_left)))
+            sigma_left = 1.4826 * mad
 
-        # Numerical floor to prevent divide-by-zero on completely uniform data
-        sigma_diff_noise = max(sigma_diff_noise, 1e-4)
+        sigma_left = max(sigma_left, 1e-8)
 
-        # ---- Z-scores & right-tailed p-values ----
-        centered_diff = df["diff"] - bg_peak_center
-        df["zscore"] = centered_diff / sigma_diff_noise
-        df["pvalue"] = scipy.stats.norm.sf(df["zscore"])
+        # ----- Component-wise tests (right-tailed) -----
+        var = sigma_left**2 + diff_se**2
+        z   = (diff_mean - mu_left) / np.sqrt(var)
+        p   = scipy.stats.norm.sf(z)
 
-        # ---- Classical Benjamini–Hochberg (step-up) ----
+        # BH-FDR
         def _bh_adjust(pvals: np.ndarray) -> np.ndarray:
             m = pvals.size
-            if m == 0:
-                return pvals
             order = np.argsort(pvals)
             ranked = pvals[order]
-            bh = ranked * m / (np.arange(1, m + 1))
+            bh = ranked * m / np.arange(1, m + 1)
             q_ranked = np.minimum.accumulate(bh[::-1])[::-1]
             q_ranked = np.minimum(q_ranked, 1.0)
-            qvals = np.empty_like(q_ranked)
-            qvals[order] = q_ranked
-            return qvals
+            q = np.empty_like(q_ranked)
+            q[order] = q_ranked
+            return q
 
-        df["p_adjust_BH"] = _bh_adjust(df["pvalue"].values)
+        q = _bh_adjust(p)
+        is_cut = (q <= 0.05) & (z > 0)
 
-        # Valid cut: BH threshold AND positive side (depletion)
-        df["is_statistically_cut"] = (df["p_adjust_BH"] <= 0.05) & (df["zscore"] > 0)
+        # ----- Effect sizes (centered at empirical null) -----
+        corrected       = diff_mean - mu_left
+        true_survival   = np.exp(-corrected)
+        raw_depletion   = (1.0 - true_survival) * 100.0
 
-        # ---- Effect size (% depleted) ----
-        corrected_log_ratio = df["diff"] - bg_peak_center
-        true_survival_ratio = np.exp(-corrected_log_ratio)
-        raw_depletion = (1.0 - true_survival_ratio) * 100.0
-        
-        df["true_percent_depleted"] = raw_depletion.clip(0, 100)
+        # ----- Assemble output DataFrame with final schema names -----
+        df = pd.DataFrame({
+            "kmers": kmers,
+            "ctl_raw": x_ctl,
+            "exp_raw": x_exp,
+
+            # Observed CLR (from _kmersummary)
+            "ctl_clr": ctl_clr,
+            "exp_clr": exp_clr,
+
+            # Effect & uncertainty from paired sampler
+            "diff":   diff_mean,
+            "diff_se": diff_se,
+            "ci_lo":  ci_lo,
+            "ci_hi":  ci_hi,
+
+            # Empirical null params (scalars repeated for convenience)
+            "mu_left":   mu_left,
+            "sigma_left": sigma_left,
+
+            # Testing & FDR
+            "zscore": z,
+            "pvalue": p,
+            "p_adjust_BH": q,
+            "is_statistically_cut": is_cut,
+
+            # Effect size (% depleted), centered at empirical null
+            "true_percent_depleted": np.clip(raw_depletion, 0, 100),
+        })
+
         df["shrunk_percent_depleted"] = np.where(
-            df["is_statistically_cut"], raw_depletion, 0.0
-        ).clip(0, 100)
+            df["is_statistically_cut"], df["true_percent_depleted"], 0.0
+        )
 
-        return df.sort_values(by="kmers")
+        return df.sort_values("kmers")
 
+    # ---------- Group & sum kmers ----------
 
 
     def _group_and_sum_kmers(
         self, df: pd.DataFrame, N: int, position: str = "3prime"
-    ) -> tuple[dict[str, int], dict[str, int]]:
+    ) -> Tuple[dict[str, int], dict[str, int]]:
         """
         Groups and sums kmer counts from a DataFrame for a specified kmer length.
-
-        This method processes a DataFrame containing kmer data, grouping and summing
-        the counts of kmers based on a specified shorter kmer length. It allows for
-        analysis of different kmer lengths without re-reading the data.
-
-        Args:
-            df (pd.DataFrame): The DataFrame containing kmer data with columns 'kmers',
-                'ctl_raw', and 'exp_raw'.
-            N (int): The length of the kmer to summarize to, which must be smaller than
-                the length of the input kmers.
-            position (str, optional): Specifies the orientation of the kmer grouping,
-                either '3prime' for 5'-guide-PAM-3' or '5prime' for 5'-PAM-guide-3'.
-                Defaults to '3prime'.
-
-        Returns:
-            tuple[dict[str, int], dict[str, int]]: A tuple containing two dictionaries
-            with grouped kmers as keys and their summed counts as values for control
-            and experimental data, respectively.
-
-        Raises:
-            ValueError: If the DataFrame does not contain the required columns, if
-                'ctl_raw' or 'exp_raw' columns contain non-integer values, if N is not
-                a positive integer, or if position is not '3prime' or '5prime'.
+        Ensures output counts are integers (as required by downstream code).
         """
-        if (
-            "kmers" not in df.columns
-            or "ctl_raw" not in df.columns
-            or "exp_raw" not in df.columns
-        ):
-            raise ValueError(
-                "DataFrame must contain 'kmers', 'ctl_raw', and 'exp_raw' columns"
-            )
-        if not all(isinstance(x, int) for x in df["ctl_raw"]) or not all(
-            isinstance(x, int) for x in df["exp_raw"]
-        ):
-            raise ValueError(
-                "'ctl_raw' and 'exp_raw' columns must contain positive integers"
-            )
+        required = {"kmers", "ctl_raw", "exp_raw"}
+        if not required.issubset(df.columns):
+            raise ValueError("DataFrame must contain 'kmers', 'ctl_raw', and 'exp_raw' columns")
+
         if N <= 0:
             raise ValueError("N must be a positive integer")
         if position not in ["3prime", "5prime"]:
             raise ValueError("position must be '3prime' or '5prime'")
+
+        # Create grouping key
+        df = df.copy()
         if position == "3prime":
             df["grouped_kmer"] = df["kmers"].str[:N]
-        elif position == "5prime":
+        else:  # "5prime"
             df["grouped_kmer"] = df["kmers"].str[-N:]
+
+        # Group & sum
         grouped_df = (
-            df.groupby("grouped_kmer")
+            df.groupby("grouped_kmer", as_index=False)
             .agg({"ctl_raw": "sum", "exp_raw": "sum"})
-            .reset_index()
         )
         grouped_df.rename(columns={"grouped_kmer": "kmers"}, inplace=True)
-        return (
-            grouped_df.set_index("kmers")["ctl_raw"].to_dict(),
-            grouped_df.set_index("kmers")["exp_raw"].to_dict(),
-        )
 
+        # ---- Robust dtype handling for integer counts ----
+        def _ensure_integer_counts(series: pd.Series, name: str) -> pd.Series:
+            # If already integer dtype, return as-is
+            if pd.api.types.is_integer_dtype(series.dtype):
+                return series
+
+            # Convert to numeric (handles object/str), raising on bad values
+            series_num = pd.to_numeric(series, errors="raise")
+
+            # Check "integer-like": all values close to nearest integer
+            rounded = np.round(series_num)
+            if np.allclose(series_num, rounded, rtol=0, atol=1e-8):
+                # Safe to cast
+                return rounded.astype(int)
+
+            # If not integer-like, fail loudly
+            raise ValueError(
+                f"Column '{name}' contains non-integer values after grouping. "
+                f"Got dtype={series.dtype}, example values={series_num.iloc[:5].tolist()}"
+            )
+
+        grouped_df["ctl_raw"] = _ensure_integer_counts(grouped_df["ctl_raw"], "ctl_raw")
+        grouped_df["exp_raw"] = _ensure_integer_counts(grouped_df["exp_raw"], "exp_raw")
+
+        # Return dicts
+        ctl_dict = grouped_df.set_index("kmers")["ctl_raw"].to_dict()
+        exp_dict = grouped_df.set_index("kmers")["exp_raw"].to_dict()
+        return ctl_dict, exp_dict
+
+
+    # ---------- Create multilevel dict ----------
     def _create_multilevel(self, mink: int = 3) -> None:
-        multikmerdict = {}
+        """Build multikmerdict: dict[int -> DataFrame] across k-mer lengths."""
+        if self.ctl is None or self.exp is None or self.position is None:
+            raise ValueError("ctl, exp, and position must be provided to build multilevel data.")
+
+        multikmerdict: Dict[int, pd.DataFrame] = {}
+
+        # Longest k-mer level
         kl = self._kmer_len(self.ctl)
         ctlsum = self._kmersummary(self.ctl)
         expsum = self._kmersummary(self.exp)
         multikmerdict[kl] = self._combine_single_pair(exper=expsum, ctl=ctlsum)
+
+        # Shorter levels down to mink
         while kl > mink:
             short_ctl, short_exp = self._group_and_sum_kmers(
                 df=multikmerdict[kl], N=kl - 1, position=self.position
             )
+            ctlsum_short = self._kmersummary(short_ctl)
+            expsum_short = self._kmersummary(short_exp)
             multikmerdict[kl - 1] = self._combine_single_pair(
-                self._kmersummary(short_exp), self._kmersummary(short_ctl)
+                exper=expsum_short, ctl=ctlsum_short
             )
-            kl = kl - 1
-        self.multikmerdict = multikmerdict
+            kl -= 1
+
+        # Store in private attribute (do NOT build in __init__)
+        self._multikmerdict = multikmerdict
+
+    # ---------- Breakpoint / diagnostics / logo ----------
+
 
     def find_breakpoint(self, length: int, type: str = "zscore") -> float:
         """
-        Finds the breakpoint in kmer data for a specified length and type.
+        Auto-split cutoff for a given k-mer length and score type ("diff" or "zscore").
 
-        This method retrieves kmer data from the multikmer dictionary for a given
-        length and calculates the breakpoint using the ckmeans algorithm. The type
-        of data used for breakpoint calculation can be either 'zscore' or 'diff'.
-
-        For information on the algorithm see: Haizhou Wang and Mingzhou Song. 2011.
-        Ckmeans.1d.dp: Optimal k-means Clustering in One Dimension by Dynamic Programming.
-        The R Journal. 3:2, pages 29-33. doi:10.32614/RJ-2011-015.
-
-        Args:
-            length (int): The length of the kmer data to analyze.
-            type (str, optional): The type of data to use for breakpoint calculation,
-                either 'zscore' or 'diff'. Defaults to 'zscore'.
+        Strategy:
+        1) Clean data (finite values).
+        2) Get two clusters via ckmeans (k=2).
+        3) Find KDE valley between cluster means (minimum density).
+        4) Guardrails: for zscore, enforce non-negative cutoff; constrain to sensible percentiles.
+        5) Fallbacks: μ_left + 2σ_left or 80th percentile when bimodality is weak.
 
         Returns:
-            float: The calculated breakpoint value.
-
-        Raises:
-            ValueError: If `type` is not 'zscore' or 'diff', or if `multikmerdict`
-                is not initialized.
-            KeyError: If the specified length is not found in `multikmerdict`.
+        float cutoff value suitable for isolating the right tail (positives).
         """
         if type not in ["zscore", "diff"]:
             raise ValueError("Parameter `type` should be 'diff' or 'zscore'")
-        if self.multikmerdict is None:
-            raise ValueError("`multikmerdict` is not initialized.")
-        if length not in self.multikmerdict:
+
+        df = self.multikmerdict.get(int(length))
+        if df is None:
             raise KeyError(f"Length {length} not found in multikmerdict.")
-        data = self.multikmerdict[int(length)][type].to_numpy()
-        return ckmeans.breaks(data, 2)[0]
 
-    def check_N(self, n: int) -> tuple[float]:
-        """
-        Estimates the fraction of standard deviation due to shot noise for a given kmer length.
+        x = df[type].to_numpy(dtype=float)
+        x = x[np.isfinite(x)]
+        if x.size == 0:
+            # No data; conservative default
+            return 0.0 if type == "zscore" else float(self.multikmerdict[length]["mu_left"].iloc[0])
 
-        This method calculates the ratio of the square root of the mean to the standard deviation
-        for control and experimental raw data vectors associated with a specified kmer length.
-        It raises an error if the multikmer dictionary is not initialized or if the specified
-        kmer length is not found.
-
-        Args:
-            n (int): The kmer length for which to perform the noise check.
-
-        Returns:
-            tuple[float]: A tuple containing the calculated noise estimates for control and
-            experimental data.
-
-        Raises:
-            ValueError: If `multikmerdict` is not initialized.
-            KeyError: If the specified kmer length is not found in `multikmerdict`.
-        """
-        if self.multikmerdict is None:
-            raise ValueError("`multikmerdict` is not initialized.")
-
-        def check(vect: List[float]):
-            if vect.empty:
+        # If the distribution is too small or near-constant, return a robust default
+        if x.size < 16 or np.allclose(np.std(x), 0.0, atol=1e-12):
+            if type == "zscore":
                 return 0.0
-            vect_array = np.array(vect)
-            stdev = np.std(vect_array)
-            if stdev == 0:
-                return 0.0  # or another appropriate default value
-            return np.sqrt(np.mean(vect_array)) / stdev
+            # For diff, a sensible split is μ_left + 2σ_left (repeated scalar per row)
+            mu_left = float(self.multikmerdict[length]["mu_left"].iloc[0])
+            sigma_left = float(self.multikmerdict[length]["sigma_left"].iloc[0])
+            return mu_left + 2.0 * sigma_left
 
+        # --- Cluster with ckmeans (k=2) ---
+        # Note: ckmeans expects 1D array; breaks returns boundary between clusters
         try:
-            ctl_raw_sd = check(self.multikmerdict[n]["ctl_raw"])
-            exp_raw_sd = check(self.multikmerdict[n]["exp_raw"])
-        except KeyError as e:
-            logger.error(
-                f"KeyError: {e} - The key {n} does not exist in multikmerdict."
-            )
-            raise
-        return ctl_raw_sd, exp_raw_sd
+            boundary = float(ckmeans.breaks(x, 2)[0])
+        except Exception:
+            # Fallback if ckmeans fails
+            boundary = float(np.median(x))
+
+        # Identify cluster masks based on boundary
+        left_mask  = x <= boundary
+        right_mask = x > boundary
+
+        # Guard against degenerate clustering
+        if left_mask.sum() < 4 or right_mask.sum() < 4:
+            # Not reliably bimodal; use percentile-based split
+            # For zscore, prefer a non-negative cutoff
+            if type == "zscore":
+                return max(0.0, float(np.percentile(x, 80)))
+            else:
+                mu_left = float(self.multikmerdict[length]["mu_left"].iloc[0])
+                sigma_left = float(self.multikmerdict[length]["sigma_left"].iloc[0])
+                # Slightly more conservative than 80th percentile
+                return max(mu_left + 2.0 * sigma_left, float(np.percentile(x, 75)))
+
+        m1 = float(np.mean(x[left_mask]))
+        m2 = float(np.mean(x[right_mask]))
+
+        # Ensure m1 <= m2 (swap if necessary)
+        if m1 > m2:
+            m1, m2 = m2, m1
+
+        # --- KDE valley between cluster means ---
+        try:
+            kde = gaussian_kde(x)
+            # Build grid between the two cluster means; extend slightly to be safe
+            pad = 0.05 * (m2 - m1 + 1e-12)
+            grid = np.linspace(m1 - pad, m2 + pad, 512)
+            dens = kde(grid)
+            # Find the valley (minimum density) between the peaks
+            idx_min = int(np.argmin(dens))
+            cutoff = float(grid[idx_min])
+        except Exception:
+            # Fallback to boundary when KDE fails
+            cutoff = boundary
+
+        # --- Guardrails ---
+        # Constrain to sensible percentiles to avoid pathological minima
+        p60, p99 = np.percentile(x, [60, 99])
+        cutoff = float(np.clip(cutoff, p60, p99))
+
+        # For zscore, enforce non-negative cutoff (we only want the right tail)
+        if type == "zscore":
+            cutoff = max(0.0, cutoff)
+
+        return cutoff
 
     def make_logo(
         self,
@@ -409,67 +499,57 @@ class pamSeqExp:
         score_type: str = "zscore",
         above: bool = True,
         filename: str = None,
-    ) -> None:
+    ) -> plt.Figure | None:
         """
-        Generates and saves a sequence motif logo based on kmer significance.
-
-        This method filters kmer data from the multikmer dictionary based on the
-        specified length, cutoff, and score type. It then creates a sequence motif
-        logo using the Logomaker library and saves it to a file if a filename is
-        provided.
-
-        Args:
-            length (int): The length of the kmers to analyze.
-            cutoff (float): The threshold for filtering kmers based on the score type.
-            score_type (str, optional): The type of score to use for filtering,
-                defaults to "zscore".
-            above (bool, optional): If True, filters kmers with scores below the cutoff;
-                if False, filters kmers with scores above the cutoff. Defaults to True.
-            filename (str, optional): The path to save the logo image file. Must end
-                with .pdf, .jpg, or .png.
-
-        Raises:
-            KeyError: If the specified length is not found in multikmerdict.
-            ValueError: If an invalid value is encountered during logo generation.
-            Exception: For any unexpected errors during sequence motif graphic generation.
+        Generates and (optionally) saves a sequence motif logo based on kmer significance.
 
         Returns:
-            None
+            matplotlib.figure.Figure if successful; None only if an unexpected error occurs.
         """
         try:
             if length not in self.multikmerdict:
                 raise KeyError(f"Length {length} not found in multikmerdict.")
             df = self.multikmerdict[length]
+
+            if score_type not in df.columns:
+                raise ValueError(f"score_type '{score_type}' not found in DataFrame columns.")
+
+            # Note: keep your original semantics — above=True selects < cutoff
             if above:
                 df_filtered = df[df[score_type] < cutoff]
             else:
                 df_filtered = df[df[score_type] >= cutoff]
+
+            # Build probability matrix and logo
             prob_df = logomaker.alignment_to_matrix(
                 sequences=df_filtered["kmers"], to_type="probability", pseudocount=0
             )
-            logo_fig = logomaker.Logo(prob_df, color_scheme="colorblind_safe")
+            logo = logomaker.Logo(prob_df, color_scheme="colorblind_safe")
+
+            # Retrieve the matplotlib Figure from the Logo's axes
+            fig = logo.ax.figure
+
+            # Save if requested
             if filename:
                 valid_extensions = (".pdf", ".jpg", ".png")
                 if filename.endswith(valid_extensions):
-                    plt.savefig(filename)
+                    fig.savefig(filename, bbox_inches="tight")
                 else:
                     logger.warning(
-                        "Invalid file extension. Please use one of the following: .pdf, .jpg, .png"
+                        "Invalid file extension. Please use one of: .pdf, .jpg, .png"
                     )
-            else:
-                return plt
+
+            # Always return the figure so the caller (Streamlit/app) can display it
+            return fig
+
         except KeyError as e:
-            logger.error(
-                "KeyError: Could not find the specified length in multikmerdict."
-            )
-            raise e
+            logger.error("KeyError: Could not find the specified length in multikmerdict.")
+            raise
         except ValueError as e:
-            logger.error(
-                "ValueError: Invalid value encountered during logo generation."
-            )
-            raise e
+            logger.error("ValueError: Invalid value encountered during logo generation.")
+            raise
         except Exception as e:
             logger.error(
                 "Unexpected error occurred during sequence motif graphic generation."
             )
-            raise e
+            raise

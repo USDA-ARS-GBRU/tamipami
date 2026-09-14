@@ -24,6 +24,8 @@ import os
 import logging
 import sys
 
+logger = logging.getLogger(__name__)
+
 def logger_setup(logfile: str) -> None:
     logdir = os.path.dirname(logfile)
     if logdir and not os.path.exists(logdir):
@@ -295,6 +297,7 @@ def process(args: argparse.Namespace = None) -> tuple[pam.pamSeqExp, dict]:
             (exp_raw, run_summ["exp"]["tot"], run_summ["exp"]["targets"]) = results[1]
 
             pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw, position=orientation)
+            pamexpobj.ensure_multikmerdict(mink=3)  # build once, explicitly
             return pamexpobj, run_summ
     except FileNotFoundError as e:
         logging.error(f"File not found: {e}")
@@ -415,7 +418,6 @@ def _mk_outputs(pamseqobj: pam.pamSeqExp, outdir: str, lenval: int, cutoff: floa
         logging.error(f"Unexpected error occurred for kmer length {lenval}: {str(e)}")
         raise e
 
-
 def predict(args: argparse.Namespace = None) -> None:
     """
     Predicts TAM/PAM sites using input data from an HDF file or stream.
@@ -432,7 +434,10 @@ def predict(args: argparse.Namespace = None) -> None:
         AssertionError: If the provided cutoff lengths do not match the
         available kmer lengths in the data.
     """
-    data = tpio.import_hdf(from_buffer=not args.input, filename=args.input)
+    # We are given a file path in --input, so read from file (not buffer)
+    data = tpio.import_hdf(from_buffer=False, filename=args.input)
+
+    # data is already a fully-formed dict[int -> DataFrame]; do NOT rebuild
     pamseqobj = pam.pamSeqExp(multikmerdict=data)
     kmdkeys = pamseqobj.multikmerdict.keys()
 
@@ -446,6 +451,7 @@ def predict(args: argparse.Namespace = None) -> None:
             lenval: pamseqobj.find_breakpoint(length=lenval) for lenval in kmdkeys
         }
         logging.info(f"Computed cutoff: {cutoff}")
+
     pd_out = _create_directories(args.predict_out, map(str, kmdkeys))
 
     for lenval in kmdkeys:

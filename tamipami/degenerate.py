@@ -60,34 +60,27 @@ IUPAC_CODES: Dict[str, Set[str]] = {
 IUPAC_LOOKUP: Dict[FrozenSet[str], str] = {frozenset(v): k for k, v in IUPAC_CODES.items()}
 
 
-# --------------------------------------------------------------------------------------
-# Lexicographic, OPTIMAL-only exact-cover solver
-# --------------------------------------------------------------------------------------
+from ortools.sat.python import cp_model
+import multiprocessing
+from typing import List, Tuple, Set, Optional
+
 def minimal_exact_cover(
     seqs: List[str],
     candidates_list: List[Tuple[str, Set[str]]],
     time_limit: float = 30.0,
     num_workers: Optional[int] = None,
+    strict_exact: bool = False,  # Accept FEASIBLE when False
 ) -> List:
     """
-    Exact-cover with lexicographic objective (OPTIMAL-only):
+    Exact-cover with lexicographic objective:
 
-    Stage 1: Minimize number of selected patterns
-    Stage 2: Fix Stage 1 optimum; minimize total #degenerate positions across selected patterns
-    Stage 3: Fix Stage 1+2 optima; minimize total allowed bases across all positions
+      Stage 1: Minimize number of selected patterns.
+      Stage 2: Fix Stage 1 optimum; minimize total #degenerate positions.
+      Stage 3: Fix Stage 1+2 optima; minimize total allowed bases.
 
-    Raises if any stage is not OPTIMAL (feasible-but-not-proven-minimal solutions are rejected).
-
-    Args:
-        seqs: Sorted list of sequences to cover (order doesn't matter; uniqueness does).
-        candidates_list: List of (code, covered_set) where:
-            - code: IUPAC degenerate string (e.g., "MRT...")
-            - covered_set: set of sequences this code expands to and covers
-        time_limit: CP-SAT solver time per stage (seconds).
-        num_workers: optional worker threads; defaults to CPU count.
-
-    Returns:
-        Listchosen candidate codes forming the lexicographically minimal exact cover.
+    If strict_exact=False (default), return the best FEASIBLE assignment when OPTIMAL
+    is not proven within 'time_limit'. Exact-cover constraints ensure every sequence
+    is covered exactly once in all returned solutions.
     """
     # --- Indexing & incidence ---
     seq_index = {s: i for i, s in enumerate(seqs)}
@@ -115,15 +108,10 @@ def minimal_exact_cover(
     # --- Per-candidate metrics ---
     deg_positions: List[int] = []
     complexities: List[int] = []
-
     for code, _ in candidates_list:
-        # number of positions that are degenerate (allowed set size > 1)
         deg_count = sum(1 for ch in code if len(IUPAC_CODES[ch]) > 1)
         deg_positions.append(deg_count)
-        
-        # total allowed bases across all positions (sum of set sizes)
         complexities.append(sum(len(IUPAC_CODES[ch]) for ch in code))
-
 
     # --- Build model & variables once; re-use across stages ---
     model = cp_model.CpModel()
@@ -136,20 +124,32 @@ def minimal_exact_cover(
     # Solver setup
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = time_limit
-    solver.parameters.relative_gap_limit = 0.0  # require exact optimality
+    solver.parameters.relative_gap_limit = 0.0  # request optimality
     solver.parameters.num_search_workers = num_workers or multiprocessing.cpu_count()
     solver.parameters.log_search_progress = False
+
+    def _extract_codes() -> List:
+        return [candidates_list[i][0] for i in range(n_cands) if solver.Value(x[i]) == 1]
 
     # --- Stage 1: minimize number of selected patterns ---
     model.Minimize(sum(x))
     status = solver.Solve(model)
     logger.info("Stage 1 status=%s objective=%s", status, solver.ObjectiveValue())
 
-    if status != cp_model.OPTIMAL:
-        raise RuntimeError(
-            f"Stage 1 not optimal (status={status}). Increase time_limit or reduce candidates."
+    if status == cp_model.OPTIMAL:
+        min_patterns = int(solver.ObjectiveValue())
+    elif status == cp_model.FEASIBLE and not strict_exact:
+        # Accept feasible solution immediately
+        logger.warning(
+            "Exact-cover accepted FEASIBLE at Stage 1 (not proven OPTIMAL). "
+            "Increase time_limit if strict optimality is required."
         )
-    min_patterns = int(solver.ObjectiveValue())
+        return _extract_codes()
+    else:
+        # No solution or strict mode requested without OPTIMAL proof
+        raise RuntimeError(
+            f"Stage 1 not optimal (status={status}). Increase time_limit or relax strict_exact."
+        )
 
     # --- Stage 2: fix #patterns; minimize total degenerate positions ---
     model.Add(sum(x) == min_patterns)
@@ -157,11 +157,17 @@ def minimal_exact_cover(
     status = solver.Solve(model)
     logger.info("Stage 2 status=%s objective=%s", status, solver.ObjectiveValue())
 
-    if status != cp_model.OPTIMAL:
-        raise RuntimeError(
-            f"Stage 2 not optimal (status={status}). Increase time_limit or reduce candidates."
+    if status == cp_model.OPTIMAL:
+        min_degpos = int(solver.ObjectiveValue())
+    elif status == cp_model.FEASIBLE and not strict_exact:
+        logger.warning(
+            "Exact-cover accepted FEASIBLE at Stage 2 (not proven OPTIMAL)."
         )
-    min_degpos = int(solver.ObjectiveValue())
+        return _extract_codes()
+    else:
+        raise RuntimeError(
+            f"Stage 2 not optimal (status={status}). Increase time_limit or relax strict_exact."
+        )
 
     # --- Stage 3: fix previous minima; minimize total bases ---
     model.Add(sum(x[i] * deg_positions[i] for i in range(n_cands)) == min_degpos)
@@ -169,14 +175,17 @@ def minimal_exact_cover(
     status = solver.Solve(model)
     logger.info("Stage 3 status=%s objective=%s", status, solver.ObjectiveValue())
 
-    if status != cp_model.OPTIMAL:
-        raise RuntimeError(
-            f"Stage 3 not optimal (status={status}). Increase time_limit or reduce candidates."
+    if status == cp_model.OPTIMAL:
+        return _extract_codes()
+    elif status == cp_model.FEASIBLE and not strict_exact:
+        logger.warning(
+            "Exact-cover accepted FEASIBLE at Stage 3 (not proven OPTIMAL)."
         )
-
-    # Extract chosen patterns
-    chosen_codes = [candidates_list[i][0] for i in range(n_cands) if solver.Value(x[i]) == 1]
-    return chosen_codes
+        return _extract_codes()
+    else:
+        raise RuntimeError(
+            f"Stage 3 not optimal (status={status}). Increase time_limit or relax strict_exact."
+        )
 
 
 # --------------------------------------------------------------------------------------
@@ -185,7 +194,7 @@ def minimal_exact_cover(
 def seqs_to_degenerates(
     seqs: Iterable[str],
     D: int = 2,                      # kept for API compatibility; ignored by enumeration
-    time_limit: float = 30.0,
+    time_limit: float = 5.0,
     linkage: str = "average",        # 'average' (default) or 'complete' preferred for Hamming
     keep_only_maximal: bool = False  # speed heuristic; default False to preserve optimality options
 ) -> List:
