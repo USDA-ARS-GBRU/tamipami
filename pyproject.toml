@@ -12,7 +12,7 @@ authors = [
 maintainers = [
     {name = "Adam R. Rivers", email =  "adam.rivers@usda.gov"},]
 license = {file = "LICENSE.txt"}
-readme = "README.md"
+readme = "readme.md"
 keywords = ["CRISPR","Cas"]
 requires-python = ">=3.10"
 

@@ -1,5 +1,5 @@
 include pip-requirements.txt
 include conda-requirements.txt
 include tamipami/assets/*
-include README.md
+include readme.md
 include LICENSE.txt
