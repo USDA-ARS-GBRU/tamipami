@@ -22,6 +22,8 @@ def load_config(config_file=None):
         dict: The loaded configuration data.
 
     Raises:
+        FileNotFoundError: If the configuration file does not exist.
+        yaml.YAMLError: If the configuration file cannot be parsed.
         Exception: If an unexpected error occurs during file loading.
     """
     if config_file is None:
@@ -31,8 +33,10 @@ def load_config(config_file=None):
             return yaml.safe_load(file)
     except FileNotFoundError:
         logger.error(f"Error: The configuration file {config_file} was not found.")
+        raise
     except yaml.YAMLError as e:
         logger.error(f"Error: Failed to parse YAML file {config_file}: {e}")
+        raise
     except Exception as e:
         logger.error(f"Failed to load configuration file {config_file}: {e}")
         raise

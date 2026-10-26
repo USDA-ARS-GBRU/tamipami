@@ -27,7 +27,7 @@ class TestExportHdf:
         assert result == b'test_buffer'
         mock_store.assert_called_once_with(
             'tamipami.h5',
-            mode='a',
+            mode='w',
             driver='H5FD_CORE',
             driver_core_backing_store=0,
             complevel=6
@@ -49,7 +49,7 @@ class TestExportHdf:
         assert result == b''
         mock_store.assert_called_once_with(
             'tamipami.h5',
-            mode='a',
+            mode='w',
             driver='H5FD_CORE',
             driver_core_backing_store=0,
             complevel=6
@@ -70,7 +70,7 @@ class TestExportHdf:
         # Assert
         mock_store.assert_called_once_with(
             'tamipami.h5',
-            mode='a',
+            mode='w',
             driver='H5FD_CORE',
             driver_core_backing_store=1,
             complevel=6
@@ -90,7 +90,7 @@ class TestExportHdf:
             export_hdf(test_dict, filename=invalid_filename)
         mock_store.assert_called_once_with(
             invalid_filename,
-            mode='a',
+            mode='w',
             driver='H5FD_CORE',
             driver_core_backing_store=0,
             complevel=6
@@ -113,7 +113,7 @@ class TestExportHdf:
         assert result == b'empty_buffer'
         mock_store.assert_called_once_with(
             'tamipami.h5',
-            mode='a',
+            mode='w',
             driver='H5FD_CORE',
             driver_core_backing_store=0,
             complevel=6
@@ -132,7 +132,7 @@ class TestExportHdf:
         # Assert
         mock_store.assert_called_once_with(
             'tamipami.h5',
-            mode='a',
+            mode='w',
             driver='H5FD_CORE',
             driver_core_backing_store=1,
             complevel=6

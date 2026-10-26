@@ -1,11 +1,11 @@
-import os
-
 # -*- coding: utf-8 -*-
 """
 fastq: A tamipami module for processing FASTQs from  PAM/TAM sequencing libraries
 
 """
+import os
 import subprocess
+import tempfile
 import logging
 import re
 import itertools
@@ -38,16 +38,50 @@ def iterate_kmer(k: int) -> dict[str, int]:
     return {kmer: 0 for kmer in sorted(kmers)}
 
 
+def validate_spacer(spacer: str) -> str:
+    """
+    Normalize a spacer sequence and verify it contains only A, C, G and T.
+
+    Args:
+        spacer: The spacer sequence supplied by the user.
+
+    Returns:
+        The upper-cased spacer with surrounding whitespace removed.
+
+    Raises:
+        ValueError: If the spacer is empty or contains characters other than A, C, G, T.
+    """
+    if not isinstance(spacer, str):
+        raise ValueError("A spacer sequence must be provided, or a library selected.")
+    spacer = spacer.strip().upper()
+    if not re.fullmatch(r"[ACGT]+", spacer):
+        raise ValueError(
+            "The spacer sequence must be non-empty and contain only A, C, G and T."
+        )
+    return spacer
 
 
+def _safe_link(path: str, linkdir: str, name: str) -> str:
+    """
+    Symlink `path` into `linkdir` under a shell-safe name, keeping a .gz suffix.
 
-def merge_reads_stream(fastq: str, fastq2: str) -> subprocess.Popen:
+    bbmerge.sh passes its arguments through `eval`, so paths containing spaces,
+    parentheses or other shell metacharacters must never reach it directly.
+    """
+    linkname = os.path.join(linkdir, name + (".fastq.gz" if path.endswith(".gz") else ".fastq"))
+    os.symlink(os.path.abspath(path), linkname)
+    return linkname
+
+
+def merge_reads_stream(fastq: str, fastq2: str, stderr=subprocess.PIPE) -> subprocess.Popen:
     """
     Merge paired-end FASTQ files using BBmerge and stream merged reads to stdout.
 
     Args:
         fastq: The path to the forward FASTQ file.
         fastq2: The path to the reverse FASTQ file.
+        stderr: Where BBmerge's stderr is sent. Pass a file object to avoid filling the
+            pipe buffer while stdout is being consumed.
 
     Returns:
         A subprocess.Popen object with stdout as a stream of merged FASTQ records.
@@ -62,7 +96,7 @@ def merge_reads_stream(fastq: str, fastq2: str) -> subprocess.Popen:
     parameters.extend(config["bbmerge"])
     logger.info(parameters)
     proc = subprocess.Popen(
-        parameters, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        parameters, stdout=subprocess.PIPE, stderr=stderr, text=True
     )
     return proc
 
@@ -87,28 +121,31 @@ def count_pam_stream(
     """
     if orientation not in {"5prime", "3prime"}:
         raise ValueError("`orientation` must be '5prime' or '3prime'.")
+    spacer = validate_spacer(spacer)
+    pamlen = int(pamlen)
 
     kmer_dict = iterate_kmer(pamlen)
     guide_detections = 0
     tot_reads = 0
     try:
         seqrecords = SeqIO.parse(fastq_stream, "fastq")
-        for tot_reads, record in enumerate(seqrecords):
+        for record in seqrecords:
+            tot_reads += 1
             seqstr = str(record.reverse_complement().seq)
-            result = re.search(spacer, seqstr)
-            if result:
-                if orientation == "5prime":
-                    spacerstart = result.start()
-                    pamstart = spacerstart - int(pamlen)
-                    pamseq = seqstr[pamstart:spacerstart]
-                    guide_detections += 1
-                elif orientation == "3prime":
-                    spacerend = result.end()
-                    pamend = spacerend + int(pamlen)
-                    pamseq = seqstr[spacerend:pamend]
-                    guide_detections += 1
-                if pamseq in kmer_dict:
-                    kmer_dict[pamseq] += 1
+            spacerstart = seqstr.find(spacer)
+            if spacerstart == -1:
+                continue
+            guide_detections += 1
+            if orientation == "5prime":
+                pamstart = spacerstart - pamlen
+                if pamstart < 0:
+                    continue  # PAM truncated by the start of the read
+                pamseq = seqstr[pamstart:spacerstart]
+            else:
+                spacerend = spacerstart + len(spacer)
+                pamseq = seqstr[spacerend : spacerend + pamlen]
+            if pamseq in kmer_dict:
+                kmer_dict[pamseq] += 1
         return kmer_dict, tot_reads, guide_detections
     except Exception as e:
         logger.error("Error during streaming PAM/TAM counting: %s", e)
@@ -134,32 +171,41 @@ def process(
     """
     if orientation not in {"5prime", "3prime"}:
         raise ValueError("`orientation` must be '5prime' or '3prime'.")
+    spacer = validate_spacer(spacer)
 
     try:
         if fastq2:
             logger.info(
                 "Paired-end input detected; merging reads and streaming to PAM/TAM counter."
             )
-            proc = merge_reads_stream(fastq=fastq, fastq2=fastq2)
-
-            try:
-                pamcount, tot_reads, target_detections = count_pam_stream(
-                    pamlen=pamlen,
-                    spacer=spacer,
-                    orientation=orientation,
-                    fastq_stream=proc.stdout,
-                )
-                stderr_output = proc.stderr.read()
+            for path in (fastq, fastq2):
+                if not os.path.isfile(path):
+                    raise FileNotFoundError(f"Input file not found: {path}")
+            # BBmerge stderr goes to a temp file so a chatty run cannot fill the pipe and deadlock
+            with tempfile.TemporaryDirectory(prefix="tamipami_bbmerge_") as linkdir, \
+                    tempfile.TemporaryFile(mode="w+") as errfile:
+                in1 = _safe_link(fastq, linkdir, "in1")
+                in2 = _safe_link(fastq2, linkdir, "in2")
+                proc = merge_reads_stream(fastq=in1, fastq2=in2, stderr=errfile)
+                try:
+                    pamcount, tot_reads, target_detections = count_pam_stream(
+                        pamlen=pamlen,
+                        spacer=spacer,
+                        orientation=orientation,
+                        fastq_stream=proc.stdout,
+                    )
+                finally:
+                    proc.stdout.close()
+                    returncode = proc.wait()
+                    errfile.seek(0)
+                    stderr_output = errfile.read()
+                if returncode != 0:
+                    logger.error(f"BBmerge error: {stderr_output}")
+                    raise RuntimeError(
+                        f"BBmerge failed with exit code {returncode}. Please verify your input files."
+                    )
                 if stderr_output:
                     logger.info(f"BBmerge output: {stderr_output}")
-            except Exception as e:
-                stderr_output = proc.stderr.read()
-                logger.error(f"BBmerge error: {stderr_output}")
-                raise e
-            finally:
-                proc.stdout.close()
-                proc.stderr.close()
-                proc.wait()
 
         else:
             logger.info(

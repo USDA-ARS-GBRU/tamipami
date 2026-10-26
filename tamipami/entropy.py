@@ -202,7 +202,7 @@ def analyze_clusters(df: pd.DataFrame) -> tuple[int, float]:
     # Perform k-means clustering with 2 clusters
     kmeans = KMeans(n_clusters=2, random_state=42)
     df["cluster"] = kmeans.fit_predict(df[["max_gradient", "zscore_at_max_gradient"]])
-    print(df)
+    logger.debug(df)
     # Identify the cluster with the largest max_gradient
     cluster_max_gradients = df.groupby("cluster")["max_gradient"].max()
     target_cluster = cluster_max_gradients.idxmax()

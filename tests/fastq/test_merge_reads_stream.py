@@ -25,7 +25,7 @@ def test_count_pam_stream_counts_sequences(mocker):
     result, tot_reads, guide_detections = count_pam_stream(spacer, pamlen, orientation, fastq_stream)
     assert result["AAA"] == 1
     assert guide_detections == 1
-    assert tot_reads == 0  # Only one record, so enumerate starts at 0
+    assert tot_reads == 1
 
 def test_iterate_kmer_invalid_k_raises():
     with pytest.raises(ValueError):
@@ -40,11 +40,15 @@ def test_count_pam_stream_invalid_orientation_raises():
     with pytest.raises(ValueError):
         count_pam_stream("GATTACA", 3, "invalid_orientation", fastq_stream)
 
-def test_process_and_count_pam_stream_error_handling(mocker):
+def test_process_and_count_pam_stream_error_handling(mocker, tmp_path):
+    fq1 = tmp_path / "fq1.fastq"
+    fq2 = tmp_path / "fq2.fastq"
+    fq1.write_text("")
+    fq2.write_text("")
     # Simulate merge_reads_stream raising an exception
     mocker.patch("tamipami.fastq.merge_reads_stream", side_effect=RuntimeError("merge failed"))
     with pytest.raises(RuntimeError):
-        process("fq1", "fq2", 3, "GATTACA", "5prime")
+        process(str(fq1), str(fq2), 3, "GATTACA", "5prime")
     # Simulate count_pam_stream raising an exception
     mock_merge = mocker.patch("tamipami.fastq.merge_reads_stream")
     mock_proc = mocker.Mock()
@@ -52,4 +56,4 @@ def test_process_and_count_pam_stream_error_handling(mocker):
     mock_merge.return_value = mock_proc
     mocker.patch("tamipami.fastq.count_pam_stream", side_effect=RuntimeError("count failed"))
     with pytest.raises(RuntimeError):
-        process("fq1", "fq2", 3, "GATTACA", "5prime")
+        process(str(fq1), str(fq2), 3, "GATTACA", "5prime")

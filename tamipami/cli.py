@@ -10,6 +10,7 @@ import multiprocessing
 from pathlib import Path
 
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from tamipami import pam
 from tamipami import degenerate
@@ -19,20 +20,15 @@ from tamipami.cli_utils import cutoff_arg_validator
 from tamipami.config import config
 from tamipami._version import __version__
 
-
-import os
-import logging
-import sys
-
 logger = logging.getLogger(__name__)
 
-def logger_setup(logfile: str) -> None:
+def logger_setup(logfile: str, filemode: str = "w") -> None:
     logdir = os.path.dirname(logfile)
     if logdir and not os.path.exists(logdir):
         os.makedirs(logdir, exist_ok=True)
         
-    log_level = os.getenv("LOG_LEVEL", "DEBUG")
-    numeric_level = getattr(logging, log_level.upper(), logging.DEBUG)
+    log_level = os.getenv("LOG_LEVEL", "INFO")
+    numeric_level = getattr(logging, log_level.upper(), logging.INFO)
     
     # Get the root logger directly
     root_logger = logging.getLogger("")
@@ -48,11 +44,11 @@ def logger_setup(logfile: str) -> None:
     )
     date_format = os.getenv("DATE_FORMAT", "%m-%d %H:%M")
     
-    file_handler = logging.FileHandler(logfile, mode="w")
+    file_handler = logging.FileHandler(logfile, mode=filemode)
     file_handler.setFormatter(logging.Formatter(log_format, datefmt=date_format))
     root_logger.addHandler(file_handler)
 
-    # 2. Console Handler Setup (Fixed your variable assignment bug here)
+    # 2. Console Handler Setup
     console = logging.StreamHandler(sys.stderr) 
     console.setLevel(logging.INFO)
     
@@ -177,16 +173,17 @@ def myparser() -> argparse.ArgumentParser:
         "--input",
         type=str,
         required=False,
-        help="An file containing the data from a TamiPami process run or downloaded data from the web ap, if not input is provided STDIN will be assumed",
+        help="An file containing the data from a TamiPami process run or downloaded data from the web app, if no input is provided STDIN will be assumed",
     )
     parser_predict.add_argument(
         "--cutoff",
         type=cutoff_arg_validator,
-        required=True,
+        required=False,
         help=(
             "Cutoff thresholds as a JSON dictionary with integer keys [3-5] and numeric values. "
             'Example: \'{"3": 0.7, "4": 0.85, "5": 0.93}\'. '
-            "Keys must be integers between 3 and 5. Values must be numbers."
+            "Keys must be integers between 3 and 5. Values must be numbers. "
+            "If omitted, a cutoff is computed automatically for each length."
         ),
     )
     parser_predict.add_argument(
@@ -310,10 +307,6 @@ def process(args: argparse.Namespace = None) -> tuple[pam.pamSeqExp, dict]:
         raise
 
 
-import os
-import logging
-
-
 def _create_directories(outdir: str, subdir_list: list) -> str:
     """Create a main output directory and specified subdirectories.
 
@@ -382,7 +375,8 @@ def _mk_outputs(pamseqobj: pam.pamSeqExp, outdir: str, lenval: int, cutoff: floa
         raise ValueError("`lenval` must be a positive integer.")
     try:
         df = pamseqobj.multikmerdict[lenval]
-        pamseqobj.make_logo(
+        os.makedirs(os.path.join(outdir, str(lenval)), exist_ok=True)
+        fig = pamseqobj.make_logo(
             length=lenval,
             cutoff=cutoff,
             score_type="zscore",
@@ -391,7 +385,8 @@ def _mk_outputs(pamseqobj: pam.pamSeqExp, outdir: str, lenval: int, cutoff: floa
                 outdir, str(lenval), "logo." + config["logo_file_type"]
             ),
         )
-        os.makedirs(os.path.join(outdir, str(lenval)), exist_ok=True)
+        if fig is not None:
+            plt.close(fig)
         df.to_csv(os.path.join(outdir, str(lenval), "data.csv"), index=False)
         maxbins = config.get("histogram_bins", 100)
         tpio.histogram_plot(
@@ -434,8 +429,11 @@ def predict(args: argparse.Namespace = None) -> None:
         AssertionError: If the provided cutoff lengths do not match the
         available kmer lengths in the data.
     """
-    # We are given a file path in --input, so read from file (not buffer)
-    data = tpio.import_hdf(from_buffer=False, filename=args.input)
+    # Read from --input if given, otherwise from STDIN
+    if args.input:
+        data = tpio.import_hdf(from_buffer=False, filename=args.input)
+    else:
+        data = tpio.import_hdf(from_buffer=True)
 
     # data is already a fully-formed dict[int -> DataFrame]; do NOT rebuild
     pamseqobj = pam.pamSeqExp(multikmerdict=data)
@@ -443,9 +441,11 @@ def predict(args: argparse.Namespace = None) -> None:
 
     if args.cutoff:
         cutoff = {int(key): value for key, value in args.cutoff.items()}
-        assert set(cutoff.keys()) == set(
-            kmdkeys
-        ), "A length listed in the --cutoff input does not match the lengths available."
+        if set(cutoff.keys()) != set(kmdkeys):
+            raise ValueError(
+                f"The --cutoff lengths {sorted(cutoff)} do not match the lengths available "
+                f"in the input {sorted(kmdkeys)}."
+            )
     else:
         cutoff = {
             lenval: pamseqobj.find_breakpoint(length=lenval) for lenval in kmdkeys
@@ -490,7 +490,7 @@ def main(args: argparse.Namespace = None) -> None:
     elif args.subcommand == "serve":
         import subprocess
 
-        script = "tamipami/app.py"
+        script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app.py")
         port = str(getattr(args, "port", 8501))
         host = getattr(args, "host", "0.0.0.0")
         cmd = [

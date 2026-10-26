@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import logging
 import multiprocessing
+import os
 from typing import Dict, List, Set, Tuple, FrozenSet, Iterable, Optional
 
 from ortools.sat.python import cp_model
@@ -60,9 +61,13 @@ IUPAC_CODES: Dict[str, Set[str]] = {
 IUPAC_LOOKUP: Dict[FrozenSet[str], str] = {frozenset(v): k for k, v in IUPAC_CODES.items()}
 
 
-from ortools.sat.python import cp_model
-import multiprocessing
-from typing import List, Tuple, Set, Optional
+def _default_num_workers() -> int:
+    """CP-SAT worker count: TAMIPAMI_SOLVER_WORKERS if set, else up to 8 cores."""
+    env = os.getenv("TAMIPAMI_SOLVER_WORKERS")
+    if env:
+        return max(1, int(env))
+    return max(1, min(8, multiprocessing.cpu_count()))
+
 
 def minimal_exact_cover(
     seqs: List[str],
@@ -70,6 +75,7 @@ def minimal_exact_cover(
     time_limit: float = 30.0,
     num_workers: Optional[int] = None,
     strict_exact: bool = False,  # Accept FEASIBLE when False
+    deterministic_time: Optional[float] = None,
 ) -> List:
     """
     Exact-cover with lexicographic objective:
@@ -81,6 +87,10 @@ def minimal_exact_cover(
     If strict_exact=False (default), return the best FEASIBLE assignment when OPTIMAL
     is not proven within 'time_limit'. Exact-cover constraints ensure every sequence
     is covered exactly once in all returned solutions.
+
+    If `deterministic_time` is set, each stage is limited by CP-SAT's deterministic time
+    (with interleaved search) instead of wall-clock time, so identical inputs give identical
+    results on any machine; `time_limit` then only acts as a wall-clock backstop.
     """
     # --- Indexing & incidence ---
     seq_index = {s: i for i, s in enumerate(seqs)}
@@ -116,76 +126,76 @@ def minimal_exact_cover(
     # --- Build model & variables once; re-use across stages ---
     model = cp_model.CpModel()
     x = [model.NewBoolVar(f"x_{i}") for i in range(n_cands)]
+    n_selected = cp_model.LinearExpr.Sum(x)
+    total_degpos = cp_model.LinearExpr.WeightedSum(x, deg_positions)
+    total_bases = cp_model.LinearExpr.WeightedSum(x, complexities)
 
     # Exact cover constraints: each sequence covered exactly once
     for seq_idx in range(n_seqs):
-        model.Add(sum(x[c] for c in covers[seq_idx]) == 1)
+        model.AddExactlyOne(x[c] for c in covers[seq_idx])
 
     # Solver setup
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = time_limit
     solver.parameters.relative_gap_limit = 0.0  # request optimality
-    solver.parameters.num_search_workers = num_workers or multiprocessing.cpu_count()
+    solver.parameters.num_search_workers = num_workers or _default_num_workers()
     solver.parameters.log_search_progress = False
+    if deterministic_time is not None:
+        solver.parameters.max_deterministic_time = deterministic_time
+        solver.parameters.interleave_search = True
 
     def _extract_codes() -> List:
         return [candidates_list[i][0] for i in range(n_cands) if solver.Value(x[i]) == 1]
 
-    # --- Stage 1: minimize number of selected patterns ---
-    model.Minimize(sum(x))
-    status = solver.Solve(model)
-    logger.info("Stage 1 status=%s objective=%s", status, solver.ObjectiveValue())
+    # Lexicographic stages: (objective, constraint fixing its optimum for later stages)
+    stages = [n_selected, total_degpos, total_bases]
+    best_codes: Optional[List] = None
+    for stage_no, objective in enumerate(stages, start=1):
+        model.Minimize(objective)
+        status = solver.Solve(model)
+        logger.info("Stage %d status=%s objective=%s", stage_no, status, solver.ObjectiveValue())
 
-    if status == cp_model.OPTIMAL:
-        min_patterns = int(solver.ObjectiveValue())
-    elif status == cp_model.FEASIBLE and not strict_exact:
-        # Accept feasible solution immediately
-        logger.warning(
-            "Exact-cover accepted FEASIBLE at Stage 1 (not proven OPTIMAL). "
-            "Increase time_limit if strict optimality is required."
-        )
-        return _extract_codes()
-    else:
-        # No solution or strict mode requested without OPTIMAL proof
-        raise RuntimeError(
-            f"Stage 1 not optimal (status={status}). Increase time_limit or relax strict_exact."
-        )
+        if status == cp_model.OPTIMAL:
+            best_codes = _extract_codes()
+            # Fix this optimum and start the next stage from the current solution,
+            # which is feasible for it by construction
+            model.Add(objective == int(round(solver.ObjectiveValue())))
+            model.ClearHints()
+            for var in x:
+                model.AddHint(var, solver.Value(var))
+        elif status == cp_model.FEASIBLE and not strict_exact:
+            logger.warning(
+                "Exact-cover accepted FEASIBLE at Stage %d (not proven OPTIMAL). "
+                "Increase time_limit if strict optimality is required.", stage_no
+            )
+            return _extract_codes()
+        elif best_codes is not None and not strict_exact:
+            # A later stage found nothing in time; the previous stage's cover is still exact
+            logger.warning(
+                "Stage %d found no solution (status=%s); returning Stage %d result.",
+                stage_no, status, stage_no - 1
+            )
+            return best_codes
+        else:
+            raise RuntimeError(
+                f"Stage {stage_no} not optimal (status={status}). "
+                "Increase time_limit or relax strict_exact."
+            )
+    return best_codes
 
-    # --- Stage 2: fix #patterns; minimize total degenerate positions ---
-    model.Add(sum(x) == min_patterns)
-    model.Minimize(sum(x[i] * deg_positions[i] for i in range(n_cands)))
-    status = solver.Solve(model)
-    logger.info("Stage 2 status=%s objective=%s", status, solver.ObjectiveValue())
 
-    if status == cp_model.OPTIMAL:
-        min_degpos = int(solver.ObjectiveValue())
-    elif status == cp_model.FEASIBLE and not strict_exact:
-        logger.warning(
-            "Exact-cover accepted FEASIBLE at Stage 2 (not proven OPTIMAL)."
-        )
-        return _extract_codes()
-    else:
-        raise RuntimeError(
-            f"Stage 2 not optimal (status={status}). Increase time_limit or relax strict_exact."
-        )
+# Deterministic CP-SAT budget per stage. On the RTW554 example, 20 was the smallest budget
+# that found a solution for every selection tested; 30 adds margin (~6-7 s on an M-series Mac).
+DETERMINISTIC_TIME = 30.0
 
-    # --- Stage 3: fix previous minima; minimize total bases ---
-    model.Add(sum(x[i] * deg_positions[i] for i in range(n_cands)) == min_degpos)
-    model.Minimize(sum(x[i] * complexities[i] for i in range(n_cands)))
-    status = solver.Solve(model)
-    logger.info("Stage 3 status=%s objective=%s", status, solver.ObjectiveValue())
 
-    if status == cp_model.OPTIMAL:
-        return _extract_codes()
-    elif status == cp_model.FEASIBLE and not strict_exact:
-        logger.warning(
-            "Exact-cover accepted FEASIBLE at Stage 3 (not proven OPTIMAL)."
-        )
-        return _extract_codes()
-    else:
-        raise RuntimeError(
-            f"Stage 3 not optimal (status={status}). Increase time_limit or relax strict_exact."
-        )
+def _cover_score(codes: List[str]) -> Tuple[int, int, int]:
+    """Lexicographic objective of a cover: (#patterns, #degenerate positions, #bases)."""
+    return (
+        len(codes),
+        sum(1 for code in codes for ch in code if len(IUPAC_CODES[ch]) > 1),
+        sum(len(IUPAC_CODES[ch]) for code in codes for ch in code),
+    )
 
 
 # --------------------------------------------------------------------------------------
@@ -194,7 +204,8 @@ def minimal_exact_cover(
 def seqs_to_degenerates(
     seqs: Iterable[str],
     D: int = 2,                      # kept for API compatibility; ignored by enumeration
-    time_limit: float = 5.0,
+    time_limit: float = 60.0,
+    deterministic_time: Optional[float] = DETERMINISTIC_TIME,
     linkage: str = "average",        # 'average' (default) or 'complete' preferred for Hamming
     keep_only_maximal: bool = False  # speed heuristic; default False to preserve optimality options
 ) -> List:
@@ -207,7 +218,10 @@ def seqs_to_degenerates(
     Args:
         seqs: Equal-length sequences over A,C,G,T.
         D: Ignored (prefilter replaced by exact enumeration); kept for API compatibility.
-        time_limit: CP-SAT time per lexicographic stage (seconds).
+        time_limit: Wall-clock backstop per lexicographic stage (seconds). Results are only
+            reproducible when `deterministic_time` is reached first.
+        deterministic_time: CP-SAT deterministic time budget per stage; None uses
+            wall-clock `time_limit` only (faster to tune, but not reproducible).
         linkage: Dendrogram linkage for tree-induced candidates ('average' or 'complete').
         keep_only_maximal: If True, restrict candidates to maximal exact rectangles (heuristic).
 
@@ -223,14 +237,29 @@ def seqs_to_degenerates(
         return seqs
 
     try:
-        cand_list = candidates.enumerate_all_candidates(
-            seqs, method=linkage, keep_only_maximal=keep_only_maximal
+        # 1) Tree-induced candidates are few and always contain every singleton, so this
+        #    solves quickly and gives a valid cover to fall back on and to hint the full solve.
+        tree_cands = candidates.tree_induced_candidates(seqs, method=linkage)
+        solve = dict(time_limit=time_limit, deterministic_time=deterministic_time)
+        tree_codes = minimal_exact_cover(seqs=seqs, candidates_list=tree_cands, **solve)
+        if len(tree_codes) == 1:
+            return tree_codes  # a single exact rectangle is the unique optimum
+
+        # 2) Full candidate set
+        cand_list = candidates.combine_candidates(
+            seqs, tree_cands, keep_only_maximal=keep_only_maximal
         )
         logger.info(
             "Enumerated %d candidates (maximal=%s, linkage=%s)",
             len(cand_list), keep_only_maximal, linkage
         )
-        return minimal_exact_cover(seqs=seqs, candidates_list=cand_list, time_limit=time_limit)
+        try:
+            codes = minimal_exact_cover(seqs=seqs, candidates_list=cand_list, **solve)
+        except RuntimeError as e:
+            logger.warning("Full candidate solve failed (%s); using tree-induced cover.", e)
+            return tree_codes
+        # A time-limited FEASIBLE result is never allowed to be worse than the tree cover
+        return min(codes, tree_codes, key=_cover_score)
     except Exception as e:
         logger.exception(f"An error occurred in seqs_to_degenerates: {e}")
         raise

@@ -26,7 +26,7 @@ def test_count_pam_stream_5prime_correct_count():
     ]
     fastq = io.StringIO(make_fastq(records))
     kmer_counts, tot_reads, guide_detections = count_pam_stream("GGG", 2, "5prime", fastq)
-    assert tot_reads == 3  # enumerate starts at 0, so 3 means 4 reads
+    assert tot_reads == 4
     assert guide_detections == 4
     # Only CC and AA should be counted
     assert kmer_counts["CC"] == 3
@@ -47,7 +47,7 @@ def test_count_pam_stream_3prime_correct_count():
     ]
     fastq = io.StringIO(make_fastq(records))
     kmer_counts, tot_reads, guide_detections = count_pam_stream("GGG", 2, "3prime", fastq)
-    assert tot_reads == 3
+    assert tot_reads == 4
     assert guide_detections == 4
     assert kmer_counts["CC"] == 2
     assert kmer_counts["TT"] == 1
@@ -64,7 +64,7 @@ def test_count_pam_stream_no_guide_sequence():
     ]
     fastq = io.StringIO(make_fastq(records))
     kmer_counts, tot_reads, guide_detections = count_pam_stream("GGG", 2, "5prime", fastq)
-    assert tot_reads == 1
+    assert tot_reads == 2
     assert guide_detections == 0
     assert all(count == 0 for count in kmer_counts.values())
 
@@ -82,3 +82,26 @@ def test_count_pam_stream_malformed_fastq():
     fastq = io.StringIO(malformed_fastq)
     with pytest.raises(Exception):
         count_pam_stream("GGG", 2, "5prime", fastq)
+
+
+@pytest.mark.parametrize("spacer", ["", "(A+)+C", "GGN", "GG G", None])
+def test_count_pam_stream_rejects_invalid_spacer(spacer):
+    fastq = io.StringIO(make_fastq([("r1", "AACCCGGTT", "IIIIIIIII")]))
+    with pytest.raises(ValueError):
+        count_pam_stream(spacer, 2, "5prime", fastq)
+
+
+def test_count_pam_stream_normalizes_spacer_case_and_whitespace():
+    fastq = io.StringIO(make_fastq([("r1", "AACCCGGTT", "IIIIIIIII")]))
+    kmer_counts, _, guide_detections = count_pam_stream(" ggg ", 2, "5prime", fastq)
+    assert guide_detections == 1
+    assert kmer_counts["CC"] == 1
+
+
+def test_count_pam_stream_5prime_truncated_pam_not_counted():
+    # Reverse complement is GGGTTCCAA: the spacer is at the read start, so no PAM precedes it
+    fastq = io.StringIO(make_fastq([("r1", "TTGGAACCC", "IIIIIIIII")]))
+    kmer_counts, tot_reads, guide_detections = count_pam_stream("GGG", 2, "5prime", fastq)
+    assert tot_reads == 1
+    assert guide_detections == 1
+    assert sum(kmer_counts.values()) == 0

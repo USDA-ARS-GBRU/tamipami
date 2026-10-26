@@ -56,7 +56,8 @@ class pamSeqExp:
         # Optional knobs (can be set by caller)
         self.alpha0: float = getattr(self, "alpha0", 0.5)              # Jeffreys prior
         self.dirichlet_draws: int = getattr(self, "dirichlet_draws", 8000)
-        self.random_seed: Optional[int] = getattr(self, "random_seed", None)
+        # Fixed default seed so identical inputs give identical results; set to None for a random seed
+        self.random_seed: Optional[int] = getattr(self, "random_seed", 0)
 
     # ---------- Lazy initialization helpers ----------
     def ensure_multikmerdict(self, mink: int = 3) -> Dict[int, pd.DataFrame]:
@@ -160,7 +161,7 @@ class pamSeqExp:
         # Shared baseline prior from pooled counts (empirical Bayes)
         alpha0 = getattr(self, "alpha0", 0.5)
         M      = getattr(self, "dirichlet_draws", 8000)
-        seed   = getattr(self, "random_seed", None)
+        seed   = getattr(self, "random_seed", 0)
         rng    = np.random.default_rng(seed)
 
         # Pooled parameters (shared library bias)
@@ -182,6 +183,10 @@ class pamSeqExp:
         mc_cap = int(getattr(self, "mc_work_cap", 2_000_000))  # cap of total samples M*D
         M_eff  = min(M, max(1000, mc_cap // max(D, 1)))
 
+        # Floor for Dirichlet draws: very small concentrations can underflow to exactly 0,
+        # and log(0) would turn the whole CLR vector into NaN
+        p_floor = np.finfo(float).tiny
+
         # Paired sampling loop
         deltas = np.empty((M_eff, D), dtype=float)
         for m in range(M_eff):
@@ -197,6 +202,8 @@ class pamSeqExp:
             p_e = rng.dirichlet(k_exp_eff * mean_e)
 
             # 4) CLR and paired difference
+            p_c = np.maximum(p_c, p_floor)
+            p_e = np.maximum(p_e, p_floor)
             log_pc = np.log(p_c); clr_c = log_pc - log_pc.mean()
             log_pe = np.log(p_e); clr_e = log_pe - log_pe.mean()
             deltas[m] = clr_c - clr_e
@@ -531,12 +538,12 @@ class pamSeqExp:
 
             # Save if requested
             if filename:
-                valid_extensions = (".pdf", ".jpg", ".png")
+                valid_extensions = (".pdf", ".svg", ".eps", ".ps", ".png", ".jpg", ".jpeg", ".tiff")
                 if filename.endswith(valid_extensions):
                     fig.savefig(filename, bbox_inches="tight")
                 else:
                     logger.warning(
-                        "Invalid file extension. Please use one of: .pdf, .jpg, .png"
+                        "Invalid file extension. Please use one of: %s", ", ".join(valid_extensions)
                     )
 
             # Always return the figure so the caller (Streamlit/app) can display it
