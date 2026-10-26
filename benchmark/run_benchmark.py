@@ -14,7 +14,7 @@ from statistics import mean
 import csv
 import gzip
 
-CUTOFF = '{"3":2,"4":2,"5":2,"6":2}'
+CUTOFF = '{"3":2,"4":2,"5":2}'
 
 def count_gzipped_fastq_reads(filepath):
     """
