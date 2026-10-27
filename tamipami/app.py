@@ -95,6 +95,7 @@ with st.expander(label="Use Instructions", icon=":material/help_center:"):
                 5. Hit 'Submit'. This will process your files.
                 6. After you have hit 'Submit' you can explore your data interactively. The key interface is the Zscore slider bar. Moving that will set the 
                 cutoff value to separate kmers that cut from those that did not. This will update the histogram of sequence zscores, the table of reads  the degenerate sequences created and the sequence motif.
+                By default no more than the top 50% of k-mers can be selected; a lower cutoff is raised to that limit. Uncheck "Limit selection to the top 50% of k-mers" to remove it.
                 7. Be sure to explore each length tab, to select the PAM/TAM site best supported by your data.
                 8. Export the raw run data.
 
@@ -340,8 +341,9 @@ def update_slider(n, sliderkey):
 
 
 @st.cache_data
-def compute_degenerate(filtered_kmers_tuple):
-    return degenerate.seqs_to_degenerates(list(filtered_kmers_tuple))
+def compute_degenerate(filtered_kmers):
+    """Return (degenerate codes, proven minimal) for the selected k-mers."""
+    return tuple(degenerate.solve_degenerates(list(filtered_kmers)))
 
 
 def main(args):
@@ -382,6 +384,18 @@ def main(args):
                 "image from [Walton et al. 2021]( https://doi.org/10.1038/s41596-020-00465-2)"
             )
 
+        limit_selection = st.checkbox(
+            f"Limit selection to the top {pam.MAX_SELECTED_FRACTION:.0%} of k-mers",
+            value=True,
+            key="limit_selection",
+            help=(
+                "Raises any cutoff that would select more than half of the k-mers of a length. "
+                "Even near-PAMless nucleases such as SpRY prefer NRN, which excludes about half of "
+                "all k-mers, and smaller selections give degenerate sequences that are found "
+                "faster and are proven to be the smallest set."
+            ),
+        )
+
         length_keys = list(st.session_state.pamexpobj.multikmerdict.keys())
         tablabels = [f"Length {x}" for x in length_keys]
         tabs = st.tabs(tablabels)
@@ -418,6 +432,15 @@ def main(args):
                     if slider_key in st.session_state
                     else float(df["zscore"].min())
                 )
+                if limit_selection:
+                    limited = st.session_state.pamexpobj.limit_cutoff(length=key, cutoff=cutoff)
+                    if limited > cutoff:
+                        st.info(
+                            f"The cutoff was raised from {cutoff:.2f} to {limited:.2f} so that "
+                            f"only the top {pam.MAX_SELECTED_FRACTION:.0%} of k-mers are selected.",
+                            icon=":material/filter_alt:",
+                        )
+                        cutoff = limited
 
                 althist = tpio.histogram_plot(
                     df,
@@ -433,8 +456,15 @@ def main(args):
                 filtered_df = df[df["zscore"] >= cutoff] if cutoff is not None else df
                 with degenerates:
                     try:
-                        dseqs = compute_degenerate(filtered_df["kmers"].tolist())
+                        dseqs, proven = compute_degenerate(filtered_df["kmers"].tolist())
                         st.dataframe({"PAM/TAM site": dseqs}, hide_index=True)
+                        if not proven:
+                            st.caption(
+                                ":material/info: These sequences cover the selection exactly, "
+                                "but are not verified as the smallest possible set: the solver "
+                                "reached its time limit first. Raising the cutoff usually allows "
+                                "a verified result.",
+                            )
                     except Exception:
                         logger.exception("Degenerate sequence calculation failed")
                         st.warning("Could not compute degenerate sequences for this cutoff.")

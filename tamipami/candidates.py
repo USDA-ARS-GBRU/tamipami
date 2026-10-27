@@ -194,6 +194,15 @@ def positional_subset_candidates(
     max_combinations: int = MAX_POSITIONAL_COMBINATIONS,
     max_candidates: int = MAX_POSITIONAL_CANDIDATES,
 ) -> List[Tuple[str, Set[str]]]:
+    """Positional-subset candidates; see _positional_subset_candidates."""
+    return _positional_subset_candidates(D, max_combinations, max_candidates)[0]
+
+
+def _positional_subset_candidates(
+    D: List[str],
+    max_combinations: int = MAX_POSITIONAL_COMBINATIONS,
+    max_candidates: int = MAX_POSITIONAL_CANDIDATES,
+) -> Tuple[List[Tuple[str, Set[str]]], bool]:
     """
     Enumerate candidates by positional subsets:
       - For each position i, let cols[i] be bases observed in D
@@ -203,12 +212,15 @@ def positional_subset_candidates(
     If more than `max_candidates` rectangles are accepted, only the `max_candidates`
     with the largest expansions are returned.
 
+    Returns:
+        (candidates, complete): `complete` is False when candidates were dropped.
+
     Raises:
         CandidateLimitExceeded: If the number of positional combinations exceeds
         `max_combinations`.
     """
     if not D:
-        return []
+        return [], True
     k = len(D[0])
     # Observed bases per position
     cols: List[Set[str]] = unique_chars_per_position(D)
@@ -249,7 +261,8 @@ def positional_subset_candidates(
         logger.info(
             "Kept the %d largest of %d positional candidates", max_candidates, n_accepted
         )
-    return [(code, exp) for _, _, code, exp in sorted(heap, key=lambda t: t[1])]
+    cands = [(code, exp) for _, _, code, exp in sorted(heap, key=lambda t: t[1])]
+    return cands, n_accepted <= max_candidates
 
 
 def dedupe_candidates(cands: List[Tuple[str, Set[str]]]) -> List[Tuple[str, Set[str]]]:
@@ -316,15 +329,26 @@ def enumerate_all_candidates(D: List[str], method: str = "average",
 def combine_candidates(D: List[str], tree_cands: List[Tuple[str, Set[str]]],
                        keep_only_maximal: bool = False) -> List[Tuple[str, Set[str]]]:
     """Add positional-subset candidates to `tree_cands`, dedupe, and optionally keep maximal only."""
+    return combine_candidates_complete(D, tree_cands, keep_only_maximal)[0]
+
+
+def combine_candidates_complete(
+    D: List[str], tree_cands: List[Tuple[str, Set[str]]], keep_only_maximal: bool = False
+) -> Tuple[List[Tuple[str, Set[str]]], bool]:
+    """
+    As combine_candidates, also returning whether the pool contains every exact rectangle
+    (False if a size limit applied or only maximal rectangles were kept).
+    """
     try:
-        pos_cands = positional_subset_candidates(D)
+        pos_cands, complete = _positional_subset_candidates(D)
     except CandidateLimitExceeded as e:
         # Tree-induced candidates always include every singleton, so an exact cover still exists
         logger.warning(
             "Skipping positional-subset candidates (%s); using tree-induced candidates only.", e
         )
-        pos_cands = []
+        pos_cands, complete = [], False
     all_cands  = dedupe_candidates(tree_cands + pos_cands)
     if keep_only_maximal:
         all_cands = filter_maximal_exact(all_cands, D)
-    return all_cands
+        complete = False
+    return all_cands, complete

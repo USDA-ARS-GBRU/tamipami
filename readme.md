@@ -80,6 +80,7 @@ Tamipami Inputs | Tamipami results
 5. Hit 'Submit'. This will process your files.
 6. After you have hit 'Submit' you can explore your data interactively. The key interface is the z-score slider bar. Moving that will set the 
 cutoff value to separate kmers that cut from those that did not. This will update the histogram of sequence z-scores, the table of reads the degenerate sequences created and the sequence motif.
+By default at most the top 50% of k-mers can be selected; a lower cutoff is raised to that limit (uncheck "Limit selection to the top 50% of k-mers" to remove it). If the degenerate sequences are marked as not verified, they cover the selected k-mers exactly but the solver reached its time limit before proving that no smaller set exists.
 7. Be sure to explore each length tab, to select the PAM/TAM site best supported by your data.
 8. Export the raw run data.
 
@@ -128,16 +129,21 @@ options:
 ### Predict
 
 ```
-usage: tamipami predict [-h] [--input INPUT] --cutoff CUTOFF --predict_out PREDICT_OUT
+usage: tamipami predict [-h] [--input INPUT] [--cutoff CUTOFF] [--max_fraction MAX_FRACTION] --predict_out PREDICT_OUT
 
 options:
   -h, --help            show this help message and exit
-  --input INPUT         An file containing the data from a TamiPami process run or downloaded data from the web ap, if not input is provided STDIN will be assumed
-  --cutoff CUTOFF       Cutoff thresholds as a JSON dictionary with integer keys [3-8] and numeric values. Example: '{"3": 0.7, "4": 0.85, "5": 0.93}'. Keys must be integers between 3 and 8. Values
-                        must be numbers.
+  --input INPUT         An file containing the data from a TamiPami process run or downloaded data from the web app, if no input is provided STDIN will be assumed
+  --cutoff CUTOFF       Cutoff thresholds as a JSON dictionary with integer keys [3-5] and numeric values. Example: '{"3": 0.7, "4": 0.85, "5": 0.93}'. Keys must be integers between 3 and 5. Values
+                        must be numbers. If omitted, a cutoff is computed automatically for each length.
+  --max_fraction MAX_FRACTION
+                        The largest fraction of k-mers, ranked by z-score, that can be selected as PAM/TAM sites. A cutoff that would select more is raised to this limit. Use 1 to disable. (default:
+                        0.5)
   --predict_out PREDICT_OUT
                         A file directory containing the PAM/TAM and degenerate sequences identified
 ```
+
+For each length, `predict` writes `data.csv`, `histogram.html`, a sequence logo and `degenerate_pam_tam.csv`. The degenerate file lists the IUPAC sequences covering the selected k-mers. Its `proven_optimal` column is `False` when the sequences cover the selection exactly but the solver reached its time limit before proving that no smaller set exists; raising the cutoff usually gives a proven result.
 
 ### Serve
 

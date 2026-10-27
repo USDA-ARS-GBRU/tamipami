@@ -6,7 +6,7 @@ Exact-cover solver for degenerate IUPAC rectangles.
 
 - Candidate generation is delegated to tamipami.candidates.enumerate_all_candidates()
   (tree-induced + positional-subsets + dedupe; optional maximal filter).
-- CP-SAT solve uses a three-stage lexicographic objective and requires OPTIMAL solutions:
+- CP-SAT solve uses a three-stage lexicographic objective:
     1) Minimize number of rectangles
     2) Minimize total degenerate positions
     3) Minimize total allowed bases
@@ -22,7 +22,7 @@ from __future__ import annotations
 import logging
 import multiprocessing
 import os
-from typing import Dict, List, Set, Tuple, FrozenSet, Iterable, Optional
+from typing import Dict, List, NamedTuple, Set, Tuple, FrozenSet, Iterable, Optional
 
 from ortools.sat.python import cp_model
 
@@ -92,13 +92,27 @@ def minimal_exact_cover(
     (with interleaved search) instead of wall-clock time, so identical inputs give identical
     results on any machine; `time_limit` then only acts as a wall-clock backstop.
     """
+    return _solve_exact_cover(
+        seqs, candidates_list, time_limit, num_workers, strict_exact, deterministic_time
+    )[0]
+
+
+def _solve_exact_cover(
+    seqs: List[str],
+    candidates_list: List[Tuple[str, Set[str]]],
+    time_limit: float = 30.0,
+    num_workers: Optional[int] = None,
+    strict_exact: bool = False,
+    deterministic_time: Optional[float] = None,
+) -> Tuple[List, bool]:
+    """minimal_exact_cover, also returning whether every stage was proven OPTIMAL."""
     # --- Indexing & incidence ---
     seq_index = {s: i for i, s in enumerate(seqs)}
     n_seqs = len(seqs)
     n_cands = len(candidates_list)
 
     if n_seqs == 0:
-        return []
+        return [], True
 
     covers: List[List[int]] = [[] for _ in range(n_seqs)]
     for cand_idx, (_, covered_set) in enumerate(candidates_list):
@@ -168,20 +182,26 @@ def minimal_exact_cover(
                 "Exact-cover accepted FEASIBLE at Stage %d (not proven OPTIMAL). "
                 "Increase time_limit if strict optimality is required.", stage_no
             )
-            return _extract_codes()
+            return _extract_codes(), False
         elif best_codes is not None and not strict_exact:
             # A later stage found nothing in time; the previous stage's cover is still exact
             logger.warning(
                 "Stage %d found no solution (status=%s); returning Stage %d result.",
                 stage_no, status, stage_no - 1
             )
-            return best_codes
+            return best_codes, False
         else:
             raise RuntimeError(
                 f"Stage {stage_no} not optimal (status={status}). "
                 "Increase time_limit or relax strict_exact."
             )
-    return best_codes
+    return best_codes, True
+
+
+class DegenerateResult(NamedTuple):
+    """Degenerate IUPAC codes forming an exact cover, and whether the cover is proven minimal."""
+    codes: List[str]
+    proven_optimal: bool
 
 
 # Deterministic CP-SAT budget per stage. On the RTW554 example, 20 was the smallest budget
@@ -210,6 +230,23 @@ def seqs_to_degenerates(
     keep_only_maximal: bool = False  # speed heuristic; default False to preserve optimality options
 ) -> List:
     """
+    Return the codes of solve_degenerates(); see there for arguments.
+    """
+    return solve_degenerates(
+        seqs, D=D, time_limit=time_limit, deterministic_time=deterministic_time,
+        linkage=linkage, keep_only_maximal=keep_only_maximal,
+    ).codes
+
+
+def solve_degenerates(
+    seqs: Iterable[str],
+    D: int = 2,
+    time_limit: float = 60.0,
+    deterministic_time: Optional[float] = DETERMINISTIC_TIME,
+    linkage: str = "average",
+    keep_only_maximal: bool = False,
+) -> DegenerateResult:
+    """
     Build a (near-)complete candidate set from the dataset and solve exact cover with CP-SAT.
 
     Candidate generation uses tamipami.candidates.enumerate_all_candidates(...)
@@ -226,27 +263,31 @@ def seqs_to_degenerates(
         keep_only_maximal: If True, restrict candidates to maximal exact rectangles (heuristic).
 
     Returns:
-        ListIUPAC codes forming an exact cover of the dataset, lexicographically optimal.
+        DegenerateResult: IUPAC codes forming an exact cover of the dataset, and
+        `proven_optimal`, True when the cover is proven globally minimal (complete
+        candidate pool and every CP-SAT stage OPTIMAL). When False the cover is still
+        exact, but a smaller one may exist.
     """
     seqs = sorted(set(seqs))
     if not seqs:
-        return []
+        return DegenerateResult([], True)
     if len({len(s) for s in seqs}) != 1:
         raise ValueError("All sequences must have the same length")
     if len(seqs) == 1:
-        return seqs
+        return DegenerateResult(seqs, True)
 
     try:
         # 1) Tree-induced candidates are few and always contain every singleton, so this
         #    solves quickly and gives a valid cover to fall back on and to hint the full solve.
         tree_cands = candidates.tree_induced_candidates(seqs, method=linkage)
         solve = dict(time_limit=time_limit, deterministic_time=deterministic_time)
-        tree_codes = minimal_exact_cover(seqs=seqs, candidates_list=tree_cands, **solve)
+        tree_codes, _ = _solve_exact_cover(seqs=seqs, candidates_list=tree_cands, **solve)
         if len(tree_codes) == 1:
-            return tree_codes  # a single exact rectangle is the unique optimum
+            # a single exact rectangle is the unique optimum
+            return DegenerateResult(tree_codes, True)
 
         # 2) Full candidate set
-        cand_list = candidates.combine_candidates(
+        cand_list, complete = candidates.combine_candidates_complete(
             seqs, tree_cands, keep_only_maximal=keep_only_maximal
         )
         logger.info(
@@ -254,12 +295,15 @@ def seqs_to_degenerates(
             len(cand_list), keep_only_maximal, linkage
         )
         try:
-            codes = minimal_exact_cover(seqs=seqs, candidates_list=cand_list, **solve)
+            codes, solved = _solve_exact_cover(seqs=seqs, candidates_list=cand_list, **solve)
         except RuntimeError as e:
             logger.warning("Full candidate solve failed (%s); using tree-induced cover.", e)
-            return tree_codes
+            return DegenerateResult(tree_codes, False)
+        proven = solved and complete
+        if not proven:
+            logger.info("Degenerate cover is exact but not proven minimal.")
         # A time-limited FEASIBLE result is never allowed to be worse than the tree cover
-        return min(codes, tree_codes, key=_cover_score)
+        return DegenerateResult(min(codes, tree_codes, key=_cover_score), proven)
     except Exception as e:
-        logger.exception(f"An error occurred in seqs_to_degenerates: {e}")
+        logger.exception(f"An error occurred in solve_degenerates: {e}")
         raise

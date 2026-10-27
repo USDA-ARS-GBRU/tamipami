@@ -17,6 +17,11 @@ from scipy.stats import gaussian_kde
 
 logger = logging.getLogger(__name__)
 
+# Largest fraction of k-mers passed on as PAM/TAM sites. Even near-PAMless nucleases such
+# as SpRY prefer NRN (about half of all k-mers), and smaller selections keep the
+# degenerate-sequence solve fast and provably minimal.
+MAX_SELECTED_FRACTION = 0.5
+
 
 class pamSeqExp:
     """A class for managing and analyzing kmer count data from PAM/TAM sequencing experiments.
@@ -498,6 +503,36 @@ class pamSeqExp:
             cutoff = max(0.0, cutoff)
 
         return cutoff
+
+    def top_fraction_cutoff(
+        self, length: int, fraction: float = MAX_SELECTED_FRACTION, type: str = "zscore"
+    ) -> float:
+        """
+        Lowest score among the top `fraction` of k-mers of a length, so that selecting
+        scores >= the returned value keeps that fraction (more only if scores are tied).
+        """
+        if not 0 < fraction <= 1:
+            raise ValueError("`fraction` must be in (0, 1]")
+        x = self.multikmerdict[int(length)][type].to_numpy(dtype=float)
+        x = np.sort(x[np.isfinite(x)])[::-1]
+        if x.size == 0:
+            return -np.inf
+        return float(x[max(1, int(fraction * x.size)) - 1])
+
+    def limit_cutoff(
+        self,
+        length: int,
+        cutoff: float,
+        max_fraction: Optional[float] = MAX_SELECTED_FRACTION,
+        type: str = "zscore",
+    ) -> float:
+        """
+        Raise `cutoff` if needed so that at most `max_fraction` of k-mers are selected.
+        `max_fraction` of None or 1 leaves the cutoff unchanged.
+        """
+        if max_fraction is None or max_fraction >= 1:
+            return cutoff
+        return max(float(cutoff), self.top_fraction_cutoff(length, max_fraction, type))
 
     def make_logo(
         self,

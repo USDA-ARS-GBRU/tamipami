@@ -16,7 +16,7 @@ from tamipami import pam
 from tamipami import degenerate
 from tamipami import fastq
 from tamipami import tpio
-from tamipami.cli_utils import cutoff_arg_validator
+from tamipami.cli_utils import cutoff_arg_validator, fraction_arg_validator
 from tamipami.config import config
 from tamipami._version import __version__
 
@@ -184,6 +184,16 @@ def myparser() -> argparse.ArgumentParser:
             'Example: \'{"3": 0.7, "4": 0.85, "5": 0.93}\'. '
             "Keys must be integers between 3 and 5. Values must be numbers. "
             "If omitted, a cutoff is computed automatically for each length."
+        ),
+    )
+    parser_predict.add_argument(
+        "--max_fraction",
+        type=fraction_arg_validator,
+        default=pam.MAX_SELECTED_FRACTION,
+        help=(
+            "The largest fraction of k-mers, ranked by z-score, that can be selected as PAM/TAM "
+            "sites. A cutoff that would select more is raised to this limit. Use 1 to disable. "
+            "(default: %(default)s)"
         ),
     )
     parser_predict.add_argument(
@@ -396,8 +406,15 @@ def _mk_outputs(pamseqobj: pam.pamSeqExp, outdir: str, lenval: int, cutoff: floa
             filename=os.path.join(outdir, str(lenval), "histogram.html"),
         )
         filtered_df = df[df["zscore"] >= cutoff]
-        dseqs = degenerate.seqs_to_degenerates(filtered_df["kmers"].tolist())
-        degen_df = pd.DataFrame(dseqs, columns=["PAM/TAM site"])
+        dseqs, proven = degenerate.solve_degenerates(filtered_df["kmers"].tolist())
+        if not proven:
+            logging.warning(
+                "Length %d: the degenerate sequences are an exact cover of the selected k-mers "
+                "but were not proven to be the smallest set (solver time limit reached).",
+                lenval,
+            )
+        # proven_optimal is per selection: False means an exact cover not proven minimal
+        degen_df = pd.DataFrame({"PAM/TAM site": dseqs, "proven_optimal": proven})
         degen_df.to_csv(
             os.path.join(outdir, str(lenval), "degenerate_pam_tam.csv"), index=False
         )
@@ -451,6 +468,14 @@ def predict(args: argparse.Namespace = None) -> None:
             lenval: pamseqobj.find_breakpoint(length=lenval) for lenval in kmdkeys
         }
         logging.info(f"Computed cutoff: {cutoff}")
+    for lenval in kmdkeys:
+        limited = pamseqobj.limit_cutoff(lenval, cutoff[lenval], args.max_fraction)
+        if limited > cutoff[lenval]:
+            logging.warning(
+                "Length %d: cutoff raised from %.3f to %.3f to select at most %g%% of k-mers.",
+                lenval, cutoff[lenval], limited, 100 * args.max_fraction,
+            )
+            cutoff[lenval] = limited
 
     pd_out = _create_directories(args.predict_out, map(str, kmdkeys))
 

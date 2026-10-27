@@ -54,3 +54,14 @@ def cutoff_arg_validator(value: str) -> dict:
             )
         result[k] = v
     return result
+
+
+def fraction_arg_validator(value: str) -> float:
+    """Validates --max_fraction: a number greater than 0 and at most 1."""
+    try:
+        v = float(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"--max_fraction must be a number, got '{value}'")
+    if not 0 < v <= 1:
+        raise argparse.ArgumentTypeError(f"--max_fraction must be > 0 and <= 1, got {v}")
+    return v

@@ -135,3 +135,54 @@ def test_degenerate_solve_is_reproducible():
     seqs = sorted(rng.choice(allk, size=150, replace=False).tolist())
     first = degenerate.seqs_to_degenerates(seqs, deterministic_time=5)
     assert all(degenerate.seqs_to_degenerates(seqs, deterministic_time=5) == first for _ in range(2))
+
+
+def test_solve_degenerates_reports_proven_optimum():
+    result = degenerate.solve_degenerates(["AGG", "CGG", "GGG", "TGG", "ACC"])
+    assert result.proven_optimal
+    assert sorted(result.codes) == ["ACC", "NGG"]
+
+
+def test_solve_degenerates_flags_unproven_cover():
+    # Too little solver time to prove the dense selection optimal
+    rng = np.random.default_rng(5)
+    allk = ["".join(p) for p in itertools.product("ACGT", repeat=4)]
+    seqs = sorted(rng.choice(allk, size=200, replace=False).tolist())
+    result = degenerate.solve_degenerates(seqs, deterministic_time=0.01)
+    assert not result.proven_optimal
+    assert sorted(s for c in result.codes for s in candidates.expand_iupac(c)) == seqs
+
+
+def test_capped_candidate_pool_is_not_complete():
+    seqs = ["".join(p) for p in itertools.product("ACGT", repeat=3)]
+    _, complete = candidates._positional_subset_candidates(seqs, max_candidates=10)
+    assert not complete
+    _, complete = candidates.combine_candidates_complete(seqs, candidates.tree_induced_candidates(seqs))
+    assert complete
+
+
+def test_limit_cutoff_keeps_top_fraction():
+    df = pd.DataFrame({"kmers": [f"K{i}" for i in range(10)], "zscore": np.arange(10.0)})
+    obj = pam.pamSeqExp(multikmerdict={3: df})
+    limited = obj.limit_cutoff(3, cutoff=-1.0)
+    assert (df.zscore >= limited).sum() == 5
+    assert obj.limit_cutoff(3, cutoff=8.0) == 8.0  # a stricter cutoff is kept
+    assert obj.limit_cutoff(3, cutoff=-1.0, max_fraction=1) == -1.0
+
+
+def test_predict_applies_max_fraction(tmp_path):
+    rng = np.random.default_rng(6)
+    kmers = ["".join(p) for p in itertools.product("ACGT", repeat=3)]
+    df = pd.DataFrame({"kmers": kmers, "zscore": rng.normal(size=len(kmers))})
+    h5 = tmp_path / "in.h5"
+    tpio.export_hdf({3: df}, to_buffer=False, filename=str(h5))
+    out = tmp_path / "out"
+    args = cli.myparser().parse_args(
+        ["predict", "--input", str(h5), "--cutoff", '{"3": -10}', "--predict_out", str(out)]
+    )
+    cli.predict(args)
+    degen = pd.read_csv(out / "3" / "degenerate_pam_tam.csv")
+    assert sum(len(candidates.expand_iupac(c)) for c in degen["PAM/TAM site"]) == 32
+    assert degen["proven_optimal"].all()
+    with pytest.raises(SystemExit):
+        cli.myparser().parse_args(["predict", "--max_fraction", "0", "--predict_out", str(out)])

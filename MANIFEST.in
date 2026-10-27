@@ -3,3 +3,4 @@ include conda-requirements.txt
 include tamipami/assets/*
 include readme.md
 include LICENSE.txt
+include CHANGELOG.md
