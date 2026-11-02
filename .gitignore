@@ -193,3 +193,8 @@ Temporary Items
 ~$*.xls
 
 tamipami/_version.py
+
+
+.fastq.gz
+.fastq
+
