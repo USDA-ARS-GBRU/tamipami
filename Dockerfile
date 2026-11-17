@@ -13,6 +13,7 @@ WORKDIR /app
 # Install system dependencies (curl is used by HEALTHCHECK; Java for BBMerge comes from
 # the bioconda bbmap package and all pip requirements ship binary wheels)
 RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         curl && \
     rm -rf /var/lib/apt/lists/*
@@ -27,6 +28,9 @@ RUN mamba install -y -c conda-forge -c bioconda --file conda-requirements.txt &&
 
 # Install pip packages
 RUN pip install --no-cache-dir -r pip-requirements.txt
+
+# Upgrade conda-bundled packages that Trivy flagged (urllib3, certifi, setuptools, wheel)
+RUN pip install --no-cache-dir -U urllib3 certifi setuptools wheel
 
 # 4. VERSION ARGS
 ARG SETUPTOOLS_SCM_PRETEND_VERSION

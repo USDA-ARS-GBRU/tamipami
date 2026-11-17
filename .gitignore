@@ -198,3 +198,6 @@ tamipami/_version.py
 .fastq.gz
 .fastq
 
+
+# Trivy scan output
+trivy-*.json

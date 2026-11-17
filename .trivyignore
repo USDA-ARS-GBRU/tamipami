@@ -1,0 +1,20 @@
+# Accepted Trivy findings (reviewed 2026-11-17, Trivy 0.76.2, image built from condaforge/miniforge3:25.11.0-1)
+#
+# All five come from the base image layer, not from TamiPami's own layers. The packages
+# installed for the application are already at fixed versions (urllib3 2.8.0,
+# setuptools 84.2.1, msgpack 1.2.4). The flagged copies are vendored inside pip/conda tooling,
+# which is used only at build time. The runtime container runs `streamlit` as a non-root user
+# and does not run pip or conda.
+#
+# Re-review when the base image or pip is updated; remove entries that no longer appear.
+
+# msgpack 1.1.2 vendored in pip (pip/_vendor/vendor.txt)
+CVE-2026-114613
+GHSA-6v7p-g79w-8964
+
+# setuptools 70.3.0 (base layer; source copy not located)
+CVE-2025-47273
+
+# urllib3 2.7.0 (base layer; source copy not located)
+CVE-2026-97687
+CVE-2026-97689
