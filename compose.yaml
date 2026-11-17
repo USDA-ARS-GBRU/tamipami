@@ -17,8 +17,9 @@ services:
             - /tmp:size=2g
         cap_drop:
             - ALL
-        security_opt:
-            - no-new-privileges:true
+        # no-new-privileges is omitted: on the production host it makes exec of
+        # /opt/conda/bin/streamlit fail with "operation not permitted". The container
+        # already runs as a non-root user with all capabilities dropped.
         mem_limit: 4g
         restart: always  # Correct location
     watchtower:
