@@ -29,4 +29,7 @@ services:
         environment:
             - WATCHTOWER_CLEANUP=true
             - WATCHTOWER_POLL_INTERVAL=3600
+            # containrrr/watchtower defaults to Docker API 1.25, which current Docker Engine
+            # (minimum 1.40) rejects. Pin a supported version.
+            - DOCKER_API_VERSION=1.44
         restart: always  # Correct location
