@@ -566,10 +566,27 @@ class pamSeqExp:
             prob_df = logomaker.alignment_to_matrix(
                 sequences=df_filtered["kmers"], to_type="probability", pseudocount=0
             )
-            logo = logomaker.Logo(prob_df, color_scheme="colorblind_safe")
+            # 1-indexed integer positions
+            prob_df.index = prob_df.index + 1
+            info_df = logomaker.transform_matrix(
+                prob_df, from_type="probability", to_type="information"
+            )
 
-            # Retrieve the matplotlib Figure from the Logo's axes
-            fig = logo.ax.figure
+            fig, (ax_prob, ax_info) = plt.subplots(
+                2, 1, figsize=(max(4, 0.9 * len(prob_df) + 2), 6), sharex=True
+            )
+            logomaker.Logo(prob_df, ax=ax_prob, color_scheme="colorblind_safe")
+            logomaker.Logo(info_df, ax=ax_info, color_scheme="colorblind_safe")
+
+            ax_prob.set_ylabel("Proportion")
+            ax_info.set_ylabel("Bits")
+            ax_info.set_ylim(0, 2)
+            ax_info.set_xlabel("PAM/TAM position")
+            ax_info.set_xticks(list(prob_df.index))
+            ax_info.xaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f"{int(v)}"))
+            for ax in (ax_prob, ax_info):
+                ax.spines[["top", "right"]].set_visible(False)
+            fig.tight_layout()
 
             # Save if requested
             if filename:

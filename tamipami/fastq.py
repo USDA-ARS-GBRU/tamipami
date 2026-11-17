@@ -92,6 +92,7 @@ def merge_reads_stream(fastq: str, fastq2: str, stderr=subprocess.PIPE) -> subpr
         "in2=" + fastq2,
         "out=stdout.fastq",  # Stream merged reads to stdout
         "interleaved=f",
+        "usejni=t",
     ]
     parameters.extend(config["bbmerge"])
     logger.info(parameters)

@@ -9,8 +9,8 @@ Each instance:
      - Guard against pairwise and sampled triplet merges.
      - Representatives (lexicographically smallest member) are Hamming≥2 apart.
      - Fill remainder with Hamming≥2 singletons if needed.
-  3) Expands GT to dataset D and solves with tamipami.degenerate.seqs_to_degenerates.
-  4) Evaluates coverage, ties, exact block matches, compactness sums, verdict.
+  3) Expands GT to dataset D and solves with tamipami.degenerate.solve_degenerates (the path the app and CLI use).
+  4) Checks every GT code is in the enumerated candidate pool, then evaluates coverage, ties, exact block matches, compactness sums, verdict.
   5) Writes per-instance JSON lines (sorted gt_codes & solver_codes) and summary CSV.
 
 CLI:
@@ -33,7 +33,7 @@ import numpy as np
 import scipy.cluster.hierarchy as sch
 
 # Solver & candidates (your updated modules)
-from tamipami.degenerate import seqs_to_degenerates
+from tamipami.degenerate import solve_degenerates
 from tamipami import candidates as candmod
 
 # ------------------ IUPAC maps ------------------
@@ -353,7 +353,6 @@ def run_instance_tree(
     K: int,
     m: int,
     rng: random.Random,
-    D_hamming: int,
     time_limit: float,
     linkage: str,
 ) -> Dict[str, object]:
@@ -362,7 +361,7 @@ def run_instance_tree(
       - sample base reads of length K from 4^K,
       - build GT rectangles via tree tiling,
       - expand GT to D,
-      - solve with seqs_to_degenerates,
+      - solve with solve_degenerates,
       - evaluate and return old-style record (gt/solver sorted).
     """
     # Sample base reads (density scaled by K)
@@ -408,9 +407,10 @@ def run_instance_tree(
 
     # Solve with enumeration+CP-SAT
     try:
-        solver_codes: List[str] = seqs_to_degenerates(
-            D, D=D_hamming, time_limit=time_limit, linkage=linkage, keep_only_maximal=False
+        solved = solve_degenerates(
+            D, time_limit=time_limit, linkage=linkage, keep_only_maximal=False
         )
+        solver_codes: List[str] = solved.codes
     except Exception as e:
         return {
             "example_idx": example_idx,
@@ -434,40 +434,14 @@ def run_instance_tree(
             "error": f"Solver exception: {e!r}",
         }
 
-    # Evaluate coverage
-    from tamipami.degenerate import minimal_exact_cover
-
-    # 1) Enumerate candidates ONCE (same for solve and evaluation)
-    all_cands = candmod.enumerate_all_candidates(
-        D, method=linkage, keep_only_maximal=False
-    )  # list[tuple[code:str, exp:set[str]]]
+    # Pool diagnostics: the candidate pool must contain every GT code, since each is exact.
+    # The GT codes are NOT added to the pool, so this checks that enumeration is complete.
+    all_cands = candmod.enumerate_all_candidates(D, method=linkage, keep_only_maximal=False)
     exp_map: Dict[str, Set[str]] = {code: exp for code, exp in all_cands}
-
-    # (Optional, Phase‑1 validation) Seed GT codes into the candidate pool
-    # This guarantees the exact GT shapes are available to CP‑SAT among equal-expansion codes.
     existing_codes = set(exp_map.keys())
-    for code in gt_codes:
-        if code not in existing_codes:
-            exp = set(expand_iupac(code))
-            if exp.issubset(set(D)):
-                all_cands.append((code, exp))
-                exp_map[code] = exp
-                existing_codes.add(code)
 
-    # 2) Solve lexicographically, OPTIMAL-only, using the SAME candidate list
-    try:
-        solver_codes: List[str] = minimal_exact_cover(
-            seqs=D, candidates_list=all_cands, time_limit=time_limit
-        )
-    except Exception as e:
-        return {
-            "example_idx": example_idx, "status": "failure",
-            # ... (same failure record fields you already return) ...
-            "error": f"Solver exception: {e!r}",
-        }
-
-    # 3) Evaluate coverage using exp_map built from all_cands (same universe)
-    solver_sets = [exp_map.get(code, set(expand_iupac(code))) for code in solver_codes]
+    # Evaluate coverage of the solver's output
+    solver_sets = [set(expand_iupac(code)) for code in solver_codes]
     disjoint_solver = True
     for i in range(len(solver_sets)):
         for j in range(i + 1, len(solver_sets)):
@@ -496,17 +470,6 @@ def run_instance_tree(
     cand_code_set = set(exp_map.keys())
     missing_gt = [c for c in gt_codes_sorted if c not in cand_code_set]
 
-    # Optional k=3 oracle: true minimal cardinality using complete IUPAC enumeration
-    oracle_min = -1
-    oracle_status = "disabled"
-    try:
-        if K == 3:
-            # You must provide oracle_min_cardinality_k3(D) in the file or import it.
-            from tamipami.oracle_k3 import oracle_min_cardinality_k3  # <— or local function
-            oracle_min, oracle_status = oracle_min_cardinality_k3(D, time_limit=10.0)
-    except Exception as _e:
-        oracle_min, oracle_status = -1, f"error:{_e!r}"
-
     # Verdict
     if coverage_ok:
         if tie and exact_block_matches:
@@ -514,11 +477,7 @@ def run_instance_tree(
         elif solver_count < len(gt_codes_sorted):
             verdict = "better"
         elif solver_count > len(gt_codes_sorted):
-            # If oracle exists and proves fewer rectangles are possible, flag candidate-gap
-            if oracle_min != -1 and solver_count > oracle_min:
-                verdict = "worse_candidate_gap"
-            else:
-                verdict = "worse"
+            verdict = "worse"
         else:
             verdict = "valid-different"
     else:
@@ -552,8 +511,7 @@ def run_instance_tree(
         # --- Diagnostics in the returned record ---
         "gt_missing_in_candidates": sorted(missing_gt),
         "candidate_count": len(all_cands),
-        "oracle_min": oracle_min,
-        "oracle_status": oracle_status,
+        "proven_optimal": solved.proven_optimal,
         "error": "",
     }
 
@@ -584,7 +542,6 @@ def main() -> None:
     parser.add_argument("--k", type=int, default=3, help="Sequence length k (3..5).")
     parser.add_argument("--m", type=int, default=8, help="Target GT rectangle count per instance.")
     parser.add_argument("--samples", type=int, default=100, help="Number of instances to run.")
-    parser.add_argument("--D", type=int, default=1, help="Hamming radius (kept for API compatibility).")
     parser.add_argument("--time-limit", type=float, default=30.0, help="CP-SAT time limit per instance.")
     parser.add_argument("--linkage", type=str, default="average", choices=["average", "complete"],
                         help="Dendrogram linkage used during candidate enumeration (tree-induced path).")
@@ -609,7 +566,6 @@ def main() -> None:
             K=args.k,
             m=args.m,
             rng=rng,
-            D_hamming=args.D,
             time_limit=args.time_limit,
             linkage=args.linkage,
         )
@@ -648,7 +604,7 @@ def main() -> None:
         "valid-different": verdict_counts["valid-different"],
         "invalid": verdict_counts["invalid"],
     }
-    write_summary_csv(args.outdir / "summary.csv", [summary_row])
+    write_summary_csv(outdir_k / "summary.csv", [summary_row])
 
     print(
         f"Summary k={args.k}: successes={successes}/{args.samples}, ties={ties}, "

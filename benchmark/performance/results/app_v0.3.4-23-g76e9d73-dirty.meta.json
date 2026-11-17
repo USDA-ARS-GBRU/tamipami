@@ -1,0 +1,31 @@
+{
+  "ref": "WORKTREE",
+  "label": "v0.3.4-23-g76e9d73-dirty",
+  "git_describe": "v0.3.4-23-g76e9d73",
+  "commit": "76e9d730c5f2b0578db1595854e86392ef907367",
+  "dirty": true,
+  "tags_at_commit": [],
+  "tamipami_source": "/Users/adam.rivers/Documents/repos/tamipami",
+  "timestamp_utc": "2026-11-17T14:46:10+00:00",
+  "params": {
+    "num_runs": 5,
+    "headless": false,
+    "cpu_delta": true,
+    "experiments": "/Users/adam.rivers/Documents/repos/tamipami/data/metadata/experiments.csv"
+  },
+  "system": {
+    "platform": "macOS-26.7.3-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "python": "3.13.18",
+    "logical_cpus": 15,
+    "physical_cpus": 15,
+    "memory_gb": 24.0,
+    "Model Name": "MacBook Pro",
+    "Model Identifier": "Mac17,9",
+    "Chip": "Apple M5 Pro",
+    "Total Number of Cores": "15 (5 Super and 10 Performance)",
+    "Memory": "24 GB",
+    "macos": "26.7.3",
+    "chrome": "Google Chrome 157.0.8103.79"
+  }
+}
