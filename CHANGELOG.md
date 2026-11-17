@@ -101,7 +101,9 @@ degenerate sequences from v0.3.4 runs will not match exactly.
     setuptools and urllib3 inside pip and conda) are accepted and documented in
     `.trivyignore`. The runtime container does not run pip or conda. Re-review them when
     the base image changes.
-- **Google Analytics.** `compose.yaml` loads `GA_MEASUREMENT_ID` only through
+- **Google Analytics.** The web app now loads the tag into the parent page instead of
+  the sandboxed iframe that `st.components.v1.html` creates, which did not send hits.
+  `compose.yaml` loads `GA_MEASUREMENT_ID` only through
   `env_file: .env`. The redundant `${GA_MEASUREMENT_ID}` entry in `environment:` is
   removed, because it overrode the `.env` value with an empty string when the variable
   was not set in the shell. Deploy by pulling the repository on the server and running

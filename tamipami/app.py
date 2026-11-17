@@ -45,14 +45,28 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # This is your Project Ro
 ga_id = os.getenv("GA_MEASUREMENT_ID")
 
 if ga_id:
+    import json
+
+    # st.components.v1.html renders in a sandboxed iframe, so Google Analytics would see the
+    # page as about:srcdoc and may not send hits. The script below loads gtag.js into the
+    # parent page instead (same origin), once per browser session.
     ga_snippet = f"""
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id={ga_id}"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){{dataLayer.push(arguments);}}
-      gtag('js', new Date());
-      gtag('config', '{ga_id}');
+      const gaId = {json.dumps(ga_id)};
+      const doc = window.parent.document;
+      if (!doc.getElementById("ga-loader")) {{
+        const loader = doc.createElement("script");
+        loader.id = "ga-loader";
+        loader.async = true;
+        loader.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(gaId);
+        doc.head.appendChild(loader);
+        const config = doc.createElement("script");
+        config.text = "window.dataLayer = window.dataLayer || [];" +
+          "function gtag(){{dataLayer.push(arguments);}}" +
+          "gtag('js', new Date());" +
+          "gtag('config', " + JSON.stringify(gaId) + ");";
+        doc.head.appendChild(config);
+      }}
     </script>
     """
     st.components.v1.html(ga_snippet, height=0)
