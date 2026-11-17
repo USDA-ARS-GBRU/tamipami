@@ -86,7 +86,8 @@ degenerate sequences from v0.3.4 runs will not match exactly.
 
 - **Hardening.** The image runs as a non-root user. `compose.yaml` runs the container
   with a read-only root filesystem, a `tmpfs` at `/tmp`, all capabilities dropped,
-  `no-new-privileges` and a 4 GB memory limit.
+  and a 4 GB memory limit. `no-new-privileges` is not set, because it stopped the
+  container from starting on the production host.
 - **Image.** The image is smaller (3.3 GB, down from 3.9 GB) and has a health check.
   Upload size, error detail and solver threads (4) are set via environment variables.
 - **CI.** The test suite must pass before an image is published to GHCR.
