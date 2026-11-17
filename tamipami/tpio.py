@@ -3,7 +3,6 @@
 import sys
 import tempfile
 import logging
-import tempfile
 import os
 
 import pandas as pd
@@ -24,6 +23,9 @@ def export_hdf(
     under a key prefixed with 'k_' followed by the k-mer length. The function can
     either write directly to a file or return the file as a byte buffer.
 
+    Any existing file at `filename` is overwritten. When `to_buffer` is True the file is
+    built in memory only and nothing is read from or written to disk.
+
     Parameters:
         multikmerdict (dict): A dictionary with k-mer lengths as keys and DataFrames as values.
         to_buffer (bool): If True, returns the HDF5 file as a byte buffer. Defaults to True.
@@ -39,14 +41,14 @@ def export_hdf(
     try:
         with pd.HDFStore(
             filename,
-            mode="a",
+            mode="w",
             driver="H5FD_CORE",
             driver_core_backing_store=driver_core_backing_store,
             complevel=6,
         ) as out:
             for kmerlen, df in multikmerdict.items():
                 key = "k_" + str(kmerlen)
-                out.put(key, df, format="table", append=True)
+                out.put(key, df, format="table")
             if to_buffer:
                 return out._handle.get_file_image()
             else:
@@ -77,11 +79,13 @@ def import_hdf(from_buffer: bool = False, filename: str = None) -> dict:
         ValueError: If 'from_buffer' is False and no filename is provided.
         OSError, KeyError, pd.errors.HDFStoreError: If there is an error reading the HDF file or stream.
     """
+    inputdat = None
     try:
         multikmerdict = {}
-        inputdat: str
         if from_buffer:
             inputdat = store_stdin_binary_to_tempfile()
+            if inputdat is None:
+                raise ValueError("No HDF5 data was received on STDIN.")
         else:
             if filename is None:
                 raise ValueError(
@@ -97,7 +101,7 @@ def import_hdf(from_buffer: bool = False, filename: str = None) -> dict:
         logging.error(f"Could not import the hdf file or file stream: {e}")
         raise e
     finally:
-        if from_buffer and os.path.exists(inputdat):
+        if from_buffer and inputdat and os.path.exists(inputdat):
             os.remove(inputdat)
 
 

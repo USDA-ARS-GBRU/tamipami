@@ -10,58 +10,53 @@ import multiprocessing
 from pathlib import Path
 
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from tamipami import pam
 from tamipami import degenerate
 from tamipami import fastq
 from tamipami import tpio
-from tamipami.cli_utils import cutoff_arg_validator
+from tamipami.cli_utils import cutoff_arg_validator, fraction_arg_validator
 from tamipami.config import config
 from tamipami._version import __version__
 
+logger = logging.getLogger(__name__)
 
-def _logger_setup(logfile: str) -> None:
-    """Set up logging configuration to output logs to a specified file and the console.
-
-    This function configures the logging system to write logs to a specified
-    logfile and also outputs logs of level INFO or higher to the console. The
-    log level, format, and date format can be customized using environment
-    variables.
-
-    Args:
-        logfile: The path to the log file where logs will be written.
-
-    Raises:
-        FileNotFoundError: If the directory for the logfile does not exist.
-    """
+def logger_setup(logfile: str, filemode: str = "w") -> None:
     logdir = os.path.dirname(logfile)
     if logdir and not os.path.exists(logdir):
         os.makedirs(logdir, exist_ok=True)
+        
+    log_level = os.getenv("LOG_LEVEL", "INFO")
+    numeric_level = getattr(logging, log_level.upper(), logging.INFO)
+    
+    # Get the root logger directly
+    root_logger = logging.getLogger("")
+    root_logger.setLevel(numeric_level)
+    
+    # CRITICAL: Clear any existing handlers added by Streamlit
+    if root_logger.hasHandlers():
+        root_logger.handlers.clear()
 
-    log_level = os.getenv("LOG_LEVEL", "DEBUG")
+    # 1. File Handler Setup
     log_format = os.getenv(
         "LOG_FORMAT", "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"
     )
     date_format = os.getenv("DATE_FORMAT", "%m-%d %H:%M")
+    
+    file_handler = logging.FileHandler(logfile, mode=filemode)
+    file_handler.setFormatter(logging.Formatter(log_format, datefmt=date_format))
+    root_logger.addHandler(file_handler)
 
-    logging.basicConfig(
-        level=getattr(logging, log_level),
-        format=log_format,
-        datefmt=date_format,
-        filename=logfile,
-        filemode="w",
-    )
-    # define a Handler which writes INFO messages or higher to the sys.stderr
-    console: logging.StreamHandler = logging.StreamHandler()
+    # 2. Console Handler Setup
+    console = logging.StreamHandler(sys.stderr) 
     console.setLevel(logging.INFO)
-    # set a format which is simpler for console use
-    formatter: logging.Formatter = logging.Formatter(
-        "%(asctime)s: %(levelname)-8s %(message)s"
-    )
-    # tell the handler to use this format
-    console.setFormatter(formatter)
-    # add the handler to the root logger
-    logging.getLogger("").addHandler(console)
+    
+    console_formatter = logging.Formatter("%(asctime)s: %(levelname)-8s %(message)s")
+    console.setFormatter(console_formatter)
+    
+    root_logger.addHandler(console)
+
 
 
 def myparser() -> argparse.ArgumentParser:
@@ -178,16 +173,27 @@ def myparser() -> argparse.ArgumentParser:
         "--input",
         type=str,
         required=False,
-        help="An file containing the data from a TamiPami process run or downloaded data from the web ap, if not input is provided STDIN will be assumed",
+        help="An file containing the data from a TamiPami process run or downloaded data from the web app, if no input is provided STDIN will be assumed",
     )
     parser_predict.add_argument(
         "--cutoff",
         type=cutoff_arg_validator,
-        required=True,
+        required=False,
         help=(
             "Cutoff thresholds as a JSON dictionary with integer keys [3-5] and numeric values. "
             'Example: \'{"3": 0.7, "4": 0.85, "5": 0.93}\'. '
-            "Keys must be integers between 3 and 5. Values must be numbers."
+            "Keys must be integers between 3 and 5. Values must be numbers. "
+            "If omitted, a cutoff is computed automatically for each length."
+        ),
+    )
+    parser_predict.add_argument(
+        "--max_fraction",
+        type=fraction_arg_validator,
+        default=pam.MAX_SELECTED_FRACTION,
+        help=(
+            "The largest fraction of k-mers, ranked by z-score, that can be selected as PAM/TAM "
+            "sites. A cutoff that would select more is raised to this limit. Use 1 to disable. "
+            "(default: %(default)s)"
         ),
     )
     parser_predict.add_argument(
@@ -298,6 +304,7 @@ def process(args: argparse.Namespace = None) -> tuple[pam.pamSeqExp, dict]:
             (exp_raw, run_summ["exp"]["tot"], run_summ["exp"]["targets"]) = results[1]
 
             pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw, position=orientation)
+            pamexpobj.ensure_multikmerdict(mink=3)  # build once, explicitly
             return pamexpobj, run_summ
     except FileNotFoundError as e:
         logging.error(f"File not found: {e}")
@@ -308,10 +315,6 @@ def process(args: argparse.Namespace = None) -> tuple[pam.pamSeqExp, dict]:
     except Exception as e:
         logging.error("Unexpected error processing the fastq files")
         raise
-
-
-import os
-import logging
 
 
 def _create_directories(outdir: str, subdir_list: list) -> str:
@@ -382,7 +385,8 @@ def _mk_outputs(pamseqobj: pam.pamSeqExp, outdir: str, lenval: int, cutoff: floa
         raise ValueError("`lenval` must be a positive integer.")
     try:
         df = pamseqobj.multikmerdict[lenval]
-        pamseqobj.make_logo(
+        os.makedirs(os.path.join(outdir, str(lenval)), exist_ok=True)
+        fig = pamseqobj.make_logo(
             length=lenval,
             cutoff=cutoff,
             score_type="zscore",
@@ -391,7 +395,8 @@ def _mk_outputs(pamseqobj: pam.pamSeqExp, outdir: str, lenval: int, cutoff: floa
                 outdir, str(lenval), "logo." + config["logo_file_type"]
             ),
         )
-        os.makedirs(os.path.join(outdir, str(lenval)), exist_ok=True)
+        if fig is not None:
+            plt.close(fig)
         df.to_csv(os.path.join(outdir, str(lenval), "data.csv"), index=False)
         maxbins = config.get("histogram_bins", 100)
         tpio.histogram_plot(
@@ -401,8 +406,15 @@ def _mk_outputs(pamseqobj: pam.pamSeqExp, outdir: str, lenval: int, cutoff: floa
             filename=os.path.join(outdir, str(lenval), "histogram.html"),
         )
         filtered_df = df[df["zscore"] >= cutoff]
-        dseqs = degenerate.seqs_to_degenerates(filtered_df["kmers"].tolist())
-        degen_df = pd.DataFrame(dseqs, columns=["PAM/TAM site"])
+        dseqs, proven = degenerate.solve_degenerates(filtered_df["kmers"].tolist())
+        if not proven:
+            logging.warning(
+                "Length %d: the degenerate sequences are an exact cover of the selected k-mers "
+                "but were not proven to be the smallest set (solver time limit reached).",
+                lenval,
+            )
+        # proven_optimal is per selection: False means an exact cover not proven minimal
+        degen_df = pd.DataFrame({"PAM/TAM site": dseqs, "proven_optimal": proven})
         degen_df.to_csv(
             os.path.join(outdir, str(lenval), "degenerate_pam_tam.csv"), index=False
         )
@@ -417,7 +429,6 @@ def _mk_outputs(pamseqobj: pam.pamSeqExp, outdir: str, lenval: int, cutoff: floa
     except Exception as e:
         logging.error(f"Unexpected error occurred for kmer length {lenval}: {str(e)}")
         raise e
-
 
 def predict(args: argparse.Namespace = None) -> None:
     """
@@ -435,20 +446,37 @@ def predict(args: argparse.Namespace = None) -> None:
         AssertionError: If the provided cutoff lengths do not match the
         available kmer lengths in the data.
     """
-    data = tpio.import_hdf(from_buffer=not args.input, filename=args.input)
+    # Read from --input if given, otherwise from STDIN
+    if args.input:
+        data = tpio.import_hdf(from_buffer=False, filename=args.input)
+    else:
+        data = tpio.import_hdf(from_buffer=True)
+
+    # data is already a fully-formed dict[int -> DataFrame]; do NOT rebuild
     pamseqobj = pam.pamSeqExp(multikmerdict=data)
     kmdkeys = pamseqobj.multikmerdict.keys()
 
     if args.cutoff:
         cutoff = {int(key): value for key, value in args.cutoff.items()}
-        assert set(cutoff.keys()) == set(
-            kmdkeys
-        ), "A length listed in the --cutoff input does not match the lengths available."
+        if set(cutoff.keys()) != set(kmdkeys):
+            raise ValueError(
+                f"The --cutoff lengths {sorted(cutoff)} do not match the lengths available "
+                f"in the input {sorted(kmdkeys)}."
+            )
     else:
         cutoff = {
             lenval: pamseqobj.find_breakpoint(length=lenval) for lenval in kmdkeys
         }
         logging.info(f"Computed cutoff: {cutoff}")
+    for lenval in kmdkeys:
+        limited = pamseqobj.limit_cutoff(lenval, cutoff[lenval], args.max_fraction)
+        if limited > cutoff[lenval]:
+            logging.warning(
+                "Length %d: cutoff raised from %.3f to %.3f to select at most %g%% of k-mers.",
+                lenval, cutoff[lenval], limited, 100 * args.max_fraction,
+            )
+            cutoff[lenval] = limited
+
     pd_out = _create_directories(args.predict_out, map(str, kmdkeys))
 
     for lenval in kmdkeys:
@@ -475,7 +503,7 @@ def main(args: argparse.Namespace = None) -> None:
     parser = myparser()
     args = args or parser.parse_args()
 
-    _logger_setup(args.log)
+    logger_setup(args.log)
     logging.info("Begin processing PAM/TAM sequencing libraries")
     logging.info(args)
     if args.subcommand == "process":
@@ -487,7 +515,7 @@ def main(args: argparse.Namespace = None) -> None:
     elif args.subcommand == "serve":
         import subprocess
 
-        script = "tamipami/app.py"
+        script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app.py")
         port = str(getattr(args, "port", 8501))
         host = getattr(args, "host", "0.0.0.0")
         cmd = [

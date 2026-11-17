@@ -11,14 +11,11 @@ You must provide either both reverse files (cont2 and exp2) for paired-end, or o
 """
 
 import os
-import uuid
-import gzip
 import shutil
-from pathlib import Path
-import json
+import tempfile
+import logging
 
-import streamlit as st
-import pandas as pd
+import matplotlib.pyplot as plt
 
 from tamipami.config import config
 from tamipami import pam
@@ -26,7 +23,20 @@ from tamipami import fastq
 from tamipami import degenerate
 from tamipami import tpio
 from tamipami._version import __version__
+from tamipami.cli import logger_setup
 
+# Streamlit re-executes this script on every interaction; configure logging once per process
+# and append, so one user's rerun does not truncate the log for everyone.
+LOGFILE = os.getenv(
+    "TAMIPAMI_LOGFILE", os.path.join(tempfile.gettempdir(), "tamipami_streamlit.log")
+)
+_root_logger = logging.getLogger()
+if not getattr(_root_logger, "_tamipami_configured", False):
+    logger_setup(logfile=LOGFILE, filemode="a")
+    _root_logger._tamipami_configured = True
+logger = logging.getLogger(__name__)
+
+import streamlit as st
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # This is your Project Root
 
@@ -85,12 +95,19 @@ with st.expander(label="Use Instructions", icon=":material/help_center:"):
                 5. Hit 'Submit'. This will process your files.
                 6. After you have hit 'Submit' you can explore your data interactively. The key interface is the Zscore slider bar. Moving that will set the 
                 cutoff value to separate kmers that cut from those that did not. This will update the histogram of sequence zscores, the table of reads  the degenerate sequences created and the sequence motif.
+                By default no more than the top 50% of k-mers can be selected; a lower cutoff is raised to that limit. Uncheck "Limit selection to the top 50% of k-mers" to remove it.
                 7. Be sure to explore each length tab, to select the PAM/TAM site best supported by your data.
                 8. Export the raw run data.
 
                 If you need help or encounter errors please request support on the [Tamipami Github issues page](https://github.com/USDA-ARS-GBRU/tamipami/issues)   
     """
     )
+
+@st.cache_resource
+def load_example_zip() -> bytes:
+    with open(os.path.join(ROOT_DIR, "assets/Example.zip"), "rb") as f:
+        return f.read()
+
 
 args = {}
 with st.sidebar:
@@ -110,12 +127,9 @@ with st.sidebar:
                     (cont) and **SRR34761004** (exp).
                     """
         )
-        file_path = os.path.join(ROOT_DIR, "assets/Example.zip")
-        with open(file_path, "rb") as f:
-            file_bytes = f.read()
         st.download_button(
             label="Download example SpCas9 data",
-            data=file_bytes,
+            data=load_example_zip(),
             file_name="Example.zip",
             mime="application/zip",  # or "application/gzip" etc.,
             type="primary",
@@ -152,7 +166,7 @@ with st.sidebar:
         st.markdown("## Set your search settings")
         args["length"] = st.select_slider(
             "The maximum length of the PAM or TAM sequences",
-            options=list(range(3, 7)),
+            options=list(range(3, 6)),
             value=5,
             key="length",
         )
@@ -176,19 +190,22 @@ with st.sidebar:
         newrun = st.form_submit_button("Submit")
 
 
-def write_input_file(datadir: str, stream, fname) -> None:
+def write_input_file(datadir: str, stream, fname) -> str:
     """
     Writes a FASTQ file to the specified directory from a given stream.
 
     This function checks if the specified directory exists and is writable.
-    If the directory does not exist, it creates it. The function then writes
-    the content of the provided stream to a gzipped FASTQ file in the directory.
-    The file is named using the provided filename with a '.fastq.gz' extension.
+    If the directory does not exist, it creates it. The function then copies
+    the content of the provided stream to the directory unchanged, named
+    '<fname>.fastq.gz' if the stream is gzipped or '<fname>.fastq' otherwise.
 
     Parameters:
         datadir (str): The directory path where the file will be saved.
         stream: The input stream containing the file data.
         fname: The base name for the output file.
+
+    Returns:
+        str: The path of the written file.
 
     Raises:
         PermissionError: If the directory is not writable.
@@ -200,26 +217,22 @@ def write_input_file(datadir: str, stream, fname) -> None:
         if not os.access(datadir, os.W_OK):
             raise PermissionError(f"Directory {datadir} is not writable.")
 
-        filename = os.path.join(datadir, f"{fname}.fastq.gz")
-
-        # Check for gzip magic number (0x1f, 0x8b) to avoid double-gzipping
+        # Check for gzip magic number (0x1f, 0x8b); plain FASTQ is written as-is
         magic = stream.read(2)
         stream.seek(0)
         is_gzipped = magic == b"\x1f\x8b"
+        filename = os.path.join(datadir, f"{fname}.fastq.gz" if is_gzipped else f"{fname}.fastq")
 
-        if is_gzipped:
-            with open(filename, "wb") as temp1:
-                shutil.copyfileobj(stream, temp1)
-        else:
-            with gzip.open(filename, "wb") as temp1:
-                shutil.copyfileobj(stream, temp1)
+        with open(filename, "wb") as temp1:
+            shutil.copyfileobj(stream, temp1)
         stream.seek(0)
+        return filename
     except (IOError, PermissionError) as e:
         st.exception(e)
         raise (e)
 
 
-def save_input_files(datadir: str, args: dict) -> None:
+def save_input_files(datadir: str, args: dict) -> dict:
     """
     Save uploaded FASTQ files to the session directory.
 
@@ -229,6 +242,9 @@ def save_input_files(datadir: str, args: dict) -> None:
     Parameters:
         datadir (str): The directory path where the files will be saved.
         args (dict): Dictionary containing file upload objects.
+
+    Returns:
+        dict: Paths of the written files keyed by 'cont1', 'cont2', 'exp1', 'exp2' (None if absent).
 
     Raises:
         ValueError: If only one of cont2 or exp2 is provided.
@@ -248,19 +264,11 @@ def save_input_files(datadir: str, args: dict) -> None:
         )
 
     # Write files that are present
+    paths = {}
     for key in ["cont1", "cont2", "exp1", "exp2"]:
         stream = args.get(key)
-        if stream is not None:
-            write_input_file(datadir, stream, key)
-
-
-def download_json(dfdict):
-    tempdict = {}
-    for length, df in dfdict.items():
-        tempdict[length] = df.to_dict()
-    json_data = json.dumps(tempdict)
-    json_bytes = json_data.encode("utf-8")
-    return json_bytes
+        paths[key] = write_input_file(datadir, stream, key) if stream is not None else None
+    return paths
 
 
 def parse_lib(args: dict) -> tuple[str]:
@@ -286,45 +294,42 @@ def process_data(args):
         AssertionError: If required forward files are missing.
         Exception: For unexpected errors during processing.
     """
-    session_id = uuid.uuid4()
-    datadir = Path(os.path.join(ROOT_DIR, str(session_id)))
-    datadir.mkdir(parents=True, exist_ok=True)
-    try:
-        save_input_files(str(datadir), args)
+    # Uploads go to a private temp dir (removed on exit), not the package directory
+    with tempfile.TemporaryDirectory(prefix="tamipami_") as datadir:
+        try:
+            return _process_uploaded(datadir, args)
+        except Exception as e:
+            logger.exception("Error processing uploaded FASTQ files")
+            st.error(
+                f"There was an error processing the FASTQ files, Please verify your input files."
+            )
+            raise e
 
-        spacer, orientation = parse_lib(args)
-        run_summ = {"cont": {}, "exp": {}}
 
-        # Determine paired-end or single-end
-        cont2_path = (
-            os.path.join(datadir, "cont2.fastq.gz") if args.get("cont2") else None
-        )
-        exp2_path = os.path.join(datadir, "exp2.fastq.gz") if args.get("exp2") else None
+def _process_uploaded(datadir: str, args: dict):
+    """Save uploads to `datadir`, count PAM/TAM k-mers and build the pamSeqExp object."""
+    paths = save_input_files(datadir, args)
 
-        cont_raw, run_summ["cont"]["tot"], run_summ["cont"]["targets"] = fastq.process(
-            fastq=os.path.join(datadir, "cont1.fastq.gz"),
-            fastq2=cont2_path,
-            pamlen=args["length"],
-            spacer=spacer,
-            orientation=orientation,
-        )
-        exp_raw, run_summ["exp"]["tot"], run_summ["exp"]["targets"] = fastq.process(
-            fastq=os.path.join(datadir, "exp1.fastq.gz"),
-            fastq2=exp2_path,
-            pamlen=args["length"],
-            spacer=spacer,
-            orientation=orientation,
-        )
-        pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw, position=orientation)
-        return pamexpobj, run_summ
-    except Exception as e:
-        st.error(
-            f"There was an error processing the FASTQ files, Please verify your input files."
-        )
-        raise e
-    finally:
-        if os.path.exists(datadir):
-            shutil.rmtree(datadir)
+    spacer, orientation = parse_lib(args)
+    run_summ = {"cont": {}, "exp": {}}
+
+    cont_raw, run_summ["cont"]["tot"], run_summ["cont"]["targets"] = fastq.process(
+        fastq=paths["cont1"],
+        fastq2=paths["cont2"],
+        pamlen=args["length"],
+        spacer=spacer,
+        orientation=orientation,
+    )
+    exp_raw, run_summ["exp"]["tot"], run_summ["exp"]["targets"] = fastq.process(
+        fastq=paths["exp1"],
+        fastq2=paths["exp2"],
+        pamlen=args["length"],
+        spacer=spacer,
+        orientation=orientation,
+    )
+    pamexpobj = pam.pamSeqExp(ctl=cont_raw, exp=exp_raw, position=orientation)
+    pamexpobj.ensure_multikmerdict(mink=3)  # build once, explicitly
+    return pamexpobj, run_summ
 
 
 def update_slider(n, sliderkey):
@@ -332,36 +337,13 @@ def update_slider(n, sliderkey):
     st.session_state[sliderkey] = breakpoint
 
 
-def data_checks(length, sdcutoff):
-    results = st.session_state.pamexpobj.check_N(length)
-    mess = "Shot (Poisson) noise of the control library is {:.1%} and the experimental library is {:.1%}.".format(
-        results[0], results[1]
-    )
-    recc = "Consider analyzing your data at a shorter length or sequencing more deeply"
-    if any([x > sdcutoff for x in results]):
-        return st.warning(mess + recc)
-    else:
-        return st.info(mess)
-
-
-def read_count_check(run_summ, minfrac):
-    expfrac = run_summ["exp"]["targets"] / run_summ["exp"]["targets"]
-    contfrac = run_summ["cont"]["targets"] / run_summ["cont"]["targets"]
-    if (expfrac or contfrac) < minfrac:
-        return st.warning(
-            "Only {:.1%} of merged experimental reads and {:.1%} \
-                        of merged control reads contained a target. Please verify your Library, Spacer and Orientation settings".format(
-                expfrac, contfrac
-            )
-        )
-
-
 # Wrapper functions for caching
 
 
 @st.cache_data
-def compute_degenerate(filtered_kmers_tuple):
-    return degenerate.seqs_to_degenerates(list(filtered_kmers_tuple))
+def compute_degenerate(filtered_kmers):
+    """Return (degenerate codes, proven minimal) for the selected k-mers."""
+    return tuple(degenerate.solve_degenerates(list(filtered_kmers)))
 
 
 def main(args):
@@ -374,6 +356,10 @@ def main(args):
         st.session_state["run_summ"] = run_summ
         st.session_state["pamexpobj"] = pamexpobj
         st.session_state["run_args"] = args
+        # Build the export once per run instead of on every rerun
+        st.session_state["hdf_bytes"] = tpio.export_hdf(
+            pamexpobj.multikmerdict, to_buffer=True, filename="tamipami.h5"
+        )
         for key in pamexpobj.multikmerdict.keys():
             slider_key = f"slider_{key}"
             breakpoint_val = pamexpobj.find_breakpoint(length=key, type="zscore")
@@ -397,6 +383,18 @@ def main(args):
             st.write(
                 "image from [Walton et al. 2021]( https://doi.org/10.1038/s41596-020-00465-2)"
             )
+
+        limit_selection = st.checkbox(
+            f"Limit selection to the top {pam.MAX_SELECTED_FRACTION:.0%} of k-mers",
+            value=True,
+            key="limit_selection",
+            help=(
+                "Raises any cutoff that would select more than half of the k-mers of a length. "
+                "Even near-PAMless nucleases such as SpRY prefer NRN, which excludes about half of "
+                "all k-mers, and smaller selections give degenerate sequences that are found "
+                "faster and are proven to be the smallest set."
+            ),
+        )
 
         length_keys = list(st.session_state.pamexpobj.multikmerdict.keys())
         tablabels = [f"Length {x}" for x in length_keys]
@@ -434,6 +432,15 @@ def main(args):
                     if slider_key in st.session_state
                     else float(df["zscore"].min())
                 )
+                if limit_selection:
+                    limited = st.session_state.pamexpobj.limit_cutoff(length=key, cutoff=cutoff)
+                    if limited > cutoff:
+                        st.info(
+                            f"The cutoff was raised from {cutoff:.2f} to {limited:.2f} so that "
+                            f"only the top {pam.MAX_SELECTED_FRACTION:.0%} of k-mers are selected.",
+                            icon=":material/filter_alt:",
+                        )
+                        cutoff = limited
 
                 althist = tpio.histogram_plot(
                     df,
@@ -447,9 +454,20 @@ def main(args):
                 with hist:
                     st.altair_chart(althist)
                 filtered_df = df[df["zscore"] >= cutoff] if cutoff is not None else df
-                dseqs = compute_degenerate(filtered_df["kmers"].tolist())
                 with degenerates:
-                    st.dataframe({"PAM/TAM site": dseqs}, hide_index=True)
+                    try:
+                        dseqs, proven = compute_degenerate(filtered_df["kmers"].tolist())
+                        st.dataframe({"PAM/TAM site": dseqs}, hide_index=True)
+                        if not proven:
+                            st.caption(
+                                ":material/info: These sequences cover the selection exactly, "
+                                "but are not verified as the smallest possible set: the solver "
+                                "reached its time limit first. Raising the cutoff usually allows "
+                                "a verified result.",
+                            )
+                    except Exception:
+                        logger.exception("Degenerate sequence calculation failed")
+                        st.warning("Could not compute degenerate sequences for this cutoff.")
 
                 st.subheader(f" Review filtered data for length {key}:")
                 column_config = {
@@ -458,13 +476,13 @@ def main(args):
                     "exp_raw": st.column_config.NumberColumn("Exp Raw", format="%d", help="The raw read count for the k-mer in the experimental library"),
                     "ctl_clr": st.column_config.NumberColumn("Control CLR", format="%.2f", help="The Centered Log-Ratio (CLR, base e) normalized read count for the k-mer in the control library"),
                     "exp_clr": st.column_config.NumberColumn("Exp CLR", format="%.2f", help="The normalized read count for the k-mer in the experimental library"),
-                    "diff": st.column_config.NumberColumn("Difference", format="%.2f", help="The difference in CLR values between the experimental minus control libraries"),
+                    "diff": st.column_config.NumberColumn("Difference", format="%.2f", help="The difference in CLR values: control minus experimental libraries (positive values indicate depletion)"),
                     "zscore": st.column_config.NumberColumn("Z-score", format="%.2f", help="The z-score for the k-mer, calulated from s.d and mean of a folded distribution of the uncut peak  ",),
                     "pvalue": st.column_config.NumberColumn("p-value", format="%.3e", help="The p-value for the k-mer"),
                     "p_adjust_BH": st.column_config.NumberColumn("p-adj (BH)", format="%.3e", help="The Benjamini-Hochberg adjusted p-value for the k-mer"),
                     "is_statistically_cut": st.column_config.CheckboxColumn("Stat Cut", help="Indicates if the k-mer is statistically significant"),
                     "true_percent_depleted": st.column_config.NumberColumn("True Depleted %", format="%.1f%%", help="The percentage of uncorrected depleted k-mers"),
-                    "shrunk_percent_depleted": st.column_config.NumberColumn("Shrunk Depleted %", format="%.1f%%", help="The percentage of shrunk depleted k-mers, kmers with BH-adjusted p-values < 0.05 or Z-score < 0 are zeroed out and the remaining kmers are renormalized to 100%"),
+                    "shrunk_percent_depleted": st.column_config.NumberColumn("Shrunk Depleted %", format="%.1f%%", help="The depletion percentage for k-mers that are statistically cut (BH-adjusted p-value <= 0.05 and Z-score > 0); all other k-mers are set to 0"),
                 }
                 st.dataframe(
                     filtered_df,
@@ -481,6 +499,7 @@ def main(args):
                 )
 
                 st.pyplot(logo)
+                plt.close(logo)  # free the figure; Streamlit reruns would otherwise leak one per tab
 
         st.divider()
         st.markdown(
@@ -493,7 +512,9 @@ def main(args):
         )
         st.download_button(
             label="📥 Download the full run data as a HDF5 file",
-            data=tpio.export_hdf(
+            data=st.session_state["hdf_bytes"]
+            if "hdf_bytes" in st.session_state
+            else tpio.export_hdf(
                 st.session_state.pamexpobj.multikmerdict,
                 to_buffer=True,
                 filename="tamipami.h5",

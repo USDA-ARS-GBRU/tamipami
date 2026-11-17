@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """entropy :  a TamiPami module for working with entropy of sequence sets"""
 
+import logging
 import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
 
+logger = logging.getLogger(__name__)
 
 def strings_to_char_array(strings: list[str]) -> np.ndarray:
     """
@@ -134,7 +136,7 @@ def tot_ent(cumm_ent_array: np.ndarray, length: int, orientation: str) -> np.nda
     elif orientation == "5prime":
         sub_array = cumm_ent_array[:, length:]
     else:
-        raise ValueError("Invalid orientation value. Expected '3prime' or '5prime'.")
+        raise ValueError("Invalid orientation value. Expected '3prime' or '5prime'. select a library or enter the orientation of the sequence.")
     return np.sum(sub_array, axis=1)
 
 
@@ -200,7 +202,7 @@ def analyze_clusters(df: pd.DataFrame) -> tuple[int, float]:
     # Perform k-means clustering with 2 clusters
     kmeans = KMeans(n_clusters=2, random_state=42)
     df["cluster"] = kmeans.fit_predict(df[["max_gradient", "zscore_at_max_gradient"]])
-    print(df)
+    logger.debug(df)
     # Identify the cluster with the largest max_gradient
     cluster_max_gradients = df.groupby("cluster")["max_gradient"].max()
     target_cluster = cluster_max_gradients.idxmax()
