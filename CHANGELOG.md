@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.4.0 (unreleased)
+## v0.4.0
 
 Changes since v0.3.4. Several of them change results, so z-scores, cutoffs and
 degenerate sequences from v0.3.4 runs will not match exactly.
@@ -90,3 +90,19 @@ degenerate sequences from v0.3.4 runs will not match exactly.
 - **Image.** The image is smaller (3.3 GB, down from 3.9 GB) and has a health check.
   Upload size, error detail and solver threads (4) are set via environment variables.
 - **CI.** The test suite must pass before an image is published to GHCR.
+- **Vulnerability fixes.** A Trivy scan of the image went from 51 actionable HIGH or
+  CRITICAL findings (6 critical) to 0.
+  - `pip-requirements.txt` pins `streamlit==1.67.0` and requires `pillow>=13.0.0`,
+    which fixes the critical Pillow CVEs.
+  - The image build applies Ubuntu security updates (`apt-get upgrade`) and upgrades
+    the conda-bundled `urllib3`, `certifi`, `setuptools` and `wheel`.
+  - Five findings in build-time tooling in the base image (copies of msgpack,
+    setuptools and urllib3 inside pip and conda) are accepted and documented in
+    `.trivyignore`. The runtime container does not run pip or conda. Re-review them when
+    the base image changes.
+- **Google Analytics.** `compose.yaml` loads `GA_MEASUREMENT_ID` only through
+  `env_file: .env`. The redundant `${GA_MEASUREMENT_ID}` entry in `environment:` is
+  removed, because it overrode the `.env` value with an empty string when the variable
+  was not set in the shell. Deploy by pulling the repository on the server and running
+  `docker compose up -d --force-recreate`; Watchtower updates the image but does not
+  re-read `compose.yaml`.
